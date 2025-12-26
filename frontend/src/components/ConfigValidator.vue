@@ -348,6 +348,7 @@ const hasRecommendedWarnings = computed(() => {
 const handleValidate = async () => {
   validating.value = true
   try {
+    debugger;
     const response = await axios.get('/api/system/config/validate')
 
     console.log('🔍 配置验证响应:', response.data)

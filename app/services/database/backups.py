@@ -23,24 +23,23 @@ logger = logging.getLogger(__name__)
 
 
 def _check_mongodump_available() -> bool:
-    """检查 mongodump 命令是否可用"""
+    """Check if the mongodump command is available"""
     return shutil.which("mongodump") is not None
 
 
 async def create_backup_native(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: str | None = None) -> Dict[str, Any]:
-    """
-    使用 MongoDB 原生 mongodump 命令创建备份（推荐，速度快）
+    """Create a backup using the MongoDB Native Mongodump command (recommended, fast)
 
-    优势：
-    - 速度快（直接操作 BSON，不需要 JSON 转换）
-    - 压缩效率高
-    - 支持大数据量
-    - 并行处理多个集合
+Strengths:
+- Speed.
+- Compressive efficiency.
+- Support large data volumes
+- Multiple collections in parallel.
 
-    要求：
-    - 系统中需要安装 MongoDB Database Tools
-    - mongodump 命令在 PATH 中可用
-    """
+Requests:
+- The system needs to install MongoDB Data Tools
+- Mongodump command available in PATH
+"""
     if not _check_mongodump_available():
         raise Exception("mongodump 命令不可用，请安装 MongoDB Database Tools 或使用 create_backup() 方法")
 
@@ -53,28 +52,28 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
 
     os.makedirs(backup_dir, exist_ok=True)
 
-    # 构建 mongodump 命令
+    #Build Mongodump command
     cmd = [
         "mongodump",
         "--uri", settings.MONGO_URI,
         "--out", backup_path,
-        "--gzip"  # 启用压缩
+        "--gzip"  #Enable compression
     ]
 
-    # 如果指定了集合，只备份这些集合
+    #If you have specified a collection, only these pools will be backed up.
     if collections:
         for collection_name in collections:
             cmd.extend(["--collection", collection_name])
 
-    logger.info(f"🔄 开始执行 mongodump 备份: {name}")
+    logger.info(f"Start the mongodump backup:{name}")
 
-    # 🔥 使用 asyncio.to_thread 在线程池中执行阻塞的 subprocess 调用
+    #Use asyncio.to theread to execute blocked subprocess call in the online pool
     def _run_mongodump():
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=3600  # 1小时超时
+            timeout=3600  #One hour out of time.
         )
         if result.returncode != 0:
             raise Exception(f"mongodump 执行失败: {result.stderr}")
@@ -82,17 +81,17 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
 
     try:
         await asyncio.to_thread(_run_mongodump)
-        logger.info(f"✅ mongodump 备份完成: {name}")
+        logger.info(f"Backup is complete:{name}")
     except subprocess.TimeoutExpired:
         raise Exception("备份超时（超过1小时）")
     except Exception as e:
-        logger.error(f"❌ mongodump 备份失败: {e}")
-        # 清理失败的备份目录
+        logger.error(f"Backup failed:{e}")
+        #Clear failed backup directory
         if os.path.exists(backup_path):
             await asyncio.to_thread(shutil.rmtree, backup_path)
         raise
 
-    # 计算备份大小
+    #Calculate Backup Size
     def _get_dir_size(path):
         total = 0
         for dirpath, dirnames, filenames in os.walk(path):
@@ -103,7 +102,7 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
 
     file_size = await asyncio.to_thread(_get_dir_size, backup_path)
 
-    # 获取实际备份的集合列表
+    #Retrieving a collection list of actual backups
     if not collections:
         collections = await db.list_collection_names()
         collections = [c for c in collections if not c.startswith("system.")]
@@ -117,7 +116,7 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
         "collections": collections,
         "created_at": datetime.utcnow(),
         "created_by": user_id,
-        "backup_type": "mongodump",  # 标记备份类型
+        "backup_type": "mongodump",  #Tag Backup Type
     }
 
     await db.database_backups.insert_one(backup_meta)
@@ -135,11 +134,10 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
 
 
 async def create_backup(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: str | None = None) -> Dict[str, Any]:
-    """
-    创建数据库备份（Python 实现，兼容性好但速度较慢）
+    """Create database backup (Python achieved, compatible but slow)
 
-    对于大数据量（>100MB），建议使用 create_backup_native() 方法
-    """
+For large data volume (>100MB), it is recommended to use file backup native() method
+"""
     db = get_mongo_db()
 
     backup_id = str(ObjectId())
@@ -168,7 +166,7 @@ async def create_backup(name: str, backup_dir: str, collections: Optional[List[s
 
     os.makedirs(backup_dir, exist_ok=True)
 
-    # 🔥 使用 asyncio.to_thread 将阻塞的文件 I/O 操作放到线程池执行
+    #Use asyncio.to theread to put the blocking I/O operation in the thread pool
     def _write_backup():
         with gzip.open(backup_path, "wt", encoding="utf-8") as f:
             json.dump(backup_data, f, ensure_ascii=False, indent=2)
@@ -222,26 +220,25 @@ async def delete_backup(backup_id: str) -> None:
     if not backup:
         raise Exception("备份不存在")
     if os.path.exists(backup["file_path"]):
-        # 🔥 使用 asyncio.to_thread 将阻塞的文件删除操作放到线程池执行
+        #Use asyncio.to thread to remove the blocked file from the thread pool
         backup_type = backup.get("backup_type", "python")
         if backup_type == "mongodump":
-            # mongodump 备份是目录，需要递归删除
+            #Mongodump Backup is a directory, which needs to be deleted over time
             await asyncio.to_thread(shutil.rmtree, backup["file_path"])
         else:
-            # Python 备份是单个文件
+            #Python backup is a single file
             await asyncio.to_thread(os.remove, backup["file_path"])
     await db.database_backups.delete_one({"_id": ObjectId(backup_id)})
 
 
 def _convert_date_fields(doc: dict) -> dict:
-    """
-    转换文档中的日期字段（字符串 -> datetime）
+    """Convert date fields in documents (string - > datetime)
 
-    常见的日期字段：
-    - created_at, updated_at, completed_at
-    - started_at, finished_at
-    - analysis_date (保持字符串格式，因为是日期而非时间戳)
-    """
+Common date fields:
+- Creatured at, upted at, completed at.
+- Started at, finished at
+- analysis date (maintain string format because it is a date rather than a time stamp)
+"""
     from dateutil import parser
 
     date_fields = [
@@ -253,27 +250,26 @@ def _convert_date_fields(doc: dict) -> dict:
     for field in date_fields:
         if field in doc and isinstance(doc[field], str):
             try:
-                # 尝试解析日期字符串
+                #Try Parsing Date String
                 doc[field] = parser.parse(doc[field])
-                logger.debug(f"✅ 转换日期字段 {field}: {doc[field]}")
+                logger.debug(f"Convert date fields{field}: {doc[field]}")
             except Exception as e:
-                logger.warning(f"⚠️ 无法解析日期字段 {field}: {doc[field]}, 错误: {e}")
+                logger.warning(f"Could not close temporary folder: %s{field}: {doc[field]}, Error:{e}")
 
     return doc
 
 
 async def import_data(content: bytes, collection: str, *, format: str = "json", overwrite: bool = False, filename: str | None = None) -> Dict[str, Any]:
-    """
-    导入数据到数据库
+    """Import Data to Database
 
-    支持两种导入模式：
-    1. 单集合模式：导入数据到指定集合
-    2. 多集合模式：导入包含多个集合的导出文件（自动检测）
-    """
+Two import modes are supported:
+Single-pool mode: Import data to specified pool
+Multi-pool mode: Import export files containing multiple pools (automated detection)
+"""
     db = get_mongo_db()
 
     if format.lower() == "json":
-        # 🔥 使用 asyncio.to_thread 将阻塞的 JSON 解析放到线程池执行
+        #Use asyncio.to thread to place the blocked JSON resolution in the thread pool for execution
         def _parse_json():
             return json.loads(content.decode("utf-8"))
 
@@ -281,67 +277,67 @@ async def import_data(content: bytes, collection: str, *, format: str = "json", 
     else:
         raise Exception(f"不支持的格式: {format}")
 
-    # 检测是否为多集合导出格式
-    logger.info(f"🔍 [导入检测] 数据类型: {type(data)}")
+    #Tests for export formats for multiple pools
+    logger.info(f"[import detection] Data type:{type(data)}")
 
-    # 🔥 新格式：包含 export_info 和 data 的字典
+    #New format: dictionaries containing export info and data
     if isinstance(data, dict) and "export_info" in data and "data" in data:
-        logger.info(f"📦 检测到新版多集合导出文件（包含 export_info）")
+        logger.info(f"📦 new version of multipool export file (includes export info)")
         export_info = data.get("export_info", {})
-        logger.info(f"📋 导出信息: 创建时间={export_info.get('created_at')}, 集合数={len(export_info.get('collections', []))}")
+        logger.info(f"Export information: Created ={export_info.get('created_at')}, set ={len(export_info.get('collections', []))}")
 
-        # 提取实际数据
+        #Drawing actual data
         data = data["data"]
-        logger.info(f"📦 包含 {len(data)} 个集合: {list(data.keys())}")
+        logger.info(f"Including{len(data)}Pool:{list(data.keys())}")
 
-    # 🔥 旧格式：直接是集合名到文档列表的映射
+    #🔥 Old format: a map directly from the grouping to the document list
     if isinstance(data, dict):
-        logger.info(f"🔍 [导入检测] 字典包含 {len(data)} 个键")
-        logger.info(f"🔍 [导入检测] 键列表: {list(data.keys())[:10]}")  # 只显示前10个
+        logger.info(f"🔍 [import detection]{len(data)}Key")
+        logger.info(f"List of keys:{list(data.keys())[:10]}")  #Show top 10 only
 
-        # 检查每个键值对的类型
-        for k, v in list(data.items())[:5]:  # 只检查前5个
-            logger.info(f"🔍 [导入检测] 键 '{k}': 值类型={type(v)}, 是否为列表={isinstance(v, list)}")
+        #Check the type of each key pair
+        for k, v in list(data.items())[:5]:  #Only the first five.
+            logger.info(f"🔍 [import detection] key '{k}': Value type={type(v)}, is the list ={isinstance(v, list)}")
             if isinstance(v, list):
-                logger.info(f"🔍 [导入检测] 键 '{k}': 列表长度={len(v)}")
+                logger.info(f"🔍 [import detection] key '{k}': list length={len(v)}")
 
     if isinstance(data, dict) and all(isinstance(k, str) and isinstance(v, list) for k, v in data.items()):
-        # 多集合模式
-        logger.info(f"📦 确认为多集合导入模式，包含 {len(data)} 个集合")
+        #Multipool Mode
+        logger.info(f"Confirm as multi-pool import mode{len(data)}Round up.")
 
         total_inserted = 0
         imported_collections = []
 
         for coll_name, documents in data.items():
-            if not documents:  # 跳过空集合
-                logger.info(f"⏭️ 跳过空集合: {coll_name}")
+            if not documents:  #Skip empty collections
+                logger.info(f"Jumping through empty pools:{coll_name}")
                 continue
 
             collection_obj = db[coll_name]
 
             if overwrite:
                 deleted_count = await collection_obj.delete_many({})
-                logger.info(f"🗑️ 清空集合 {coll_name}：删除 {deleted_count.deleted_count} 条文档")
+                logger.info(f"All right.{coll_name}: Delete{deleted_count.deleted_count}a document")
 
-            # 处理 _id 字段和日期字段
+            #Process  id fields and date fields
             for doc in documents:
-                # 转换 _id
+                #Convert  id
                 if "_id" in doc and isinstance(doc["_id"], str):
                     try:
                         doc["_id"] = ObjectId(doc["_id"])
                     except Exception:
                         del doc["_id"]
 
-                # 🔥 转换日期字段（字符串 -> datetime）
+                #🔥 Convert date fields (string - > datetime)
                 _convert_date_fields(doc)
 
-            # 插入数据
+            #Insert Data
             if documents:
                 res = await collection_obj.insert_many(documents)
                 inserted_count = len(res.inserted_ids)
                 total_inserted += inserted_count
                 imported_collections.append(coll_name)
-                logger.info(f"✅ 导入集合 {coll_name}：{inserted_count} 条文档")
+                logger.info(f"Import set{coll_name}：{inserted_count}a document")
 
         return {
             "mode": "multi_collection",
@@ -353,35 +349,35 @@ async def import_data(content: bytes, collection: str, *, format: str = "json", 
             "overwrite": overwrite,
         }
     else:
-        # 单集合模式（兼容旧版本）
-        logger.info(f"📄 单集合导入模式，目标集合: {collection}")
-        logger.info(f"🔍 [单集合模式] 数据类型: {type(data)}")
+        #Single-pool mode (old version compatible)
+        logger.info(f"Single group import mode, target group:{collection}")
+        logger.info(f"Data types:{type(data)}")
 
         if isinstance(data, dict):
-            logger.info(f"🔍 [单集合模式] 字典包含 {len(data)} 个键")
-            logger.info(f"🔍 [单集合模式] 键列表: {list(data.keys())[:10]}")
+            logger.info(f"The dictionary contains:{len(data)}Key")
+            logger.info(f"List of keys:{list(data.keys())[:10]}")
 
         collection_obj = db[collection]
 
         if not isinstance(data, list):
-            logger.info(f"🔍 [单集合模式] 数据不是列表，转换为列表")
+            logger.info(f"🔍 [single-pool mode] Data is not a list, converted to a list")
             data = [data]
 
-        logger.info(f"🔍 [单集合模式] 准备插入 {len(data)} 条文档")
+        logger.info(f"🔍 [single assembly mode]{len(data)}a document")
 
         if overwrite:
             deleted_count = await collection_obj.delete_many({})
-            logger.info(f"🗑️ 清空集合 {collection}：删除 {deleted_count.deleted_count} 条文档")
+            logger.info(f"All right.{collection}: Delete{deleted_count.deleted_count}a document")
 
         for doc in data:
-            # 转换 _id
+            #Convert  id
             if "_id" in doc and isinstance(doc["_id"], str):
                 try:
                     doc["_id"] = ObjectId(doc["_id"])
                 except Exception:
                     del doc["_id"]
 
-            # 🔥 转换日期字段（字符串 -> datetime）
+            #🔥 Convert date fields (string - > datetime)
             _convert_date_fields(doc)
 
         inserted_count = 0
@@ -400,42 +396,41 @@ async def import_data(content: bytes, collection: str, *, format: str = "json", 
 
 
 def _sanitize_document(doc: Any) -> Any:
-    """
-    递归清空文档中的敏感字段
+    """Recursively empty sensitive fields of the document
 
-    敏感字段关键词：api_key, api_secret, secret, token, password,
-                    client_secret, webhook_secret, private_key
+Sensitive field keywords: api key, api secret, secret, token, password,
+You're not going to be able to do that.
 
-    排除字段：max_tokens, timeout, retry_times 等配置字段（不是敏感信息）
-    """
+Excluded fields: max tokens, timeout, configuration times etc. (not sensitive information)
+"""
     SENSITIVE_KEYWORDS = [
         "api_key", "api_secret", "secret", "token", "password",
         "client_secret", "webhook_secret", "private_key"
     ]
 
-    # 排除的字段（虽然包含敏感关键词，但不是敏感信息）
+    #Excluded fields (although containing sensitive keywords but not sensitive information)
     EXCLUDED_FIELDS = [
-        "max_tokens",      # LLM 配置：最大 token 数
-        "timeout",         # 超时时间
-        "retry_times",     # 重试次数
-        "context_length",  # 上下文长度
+        "max_tokens",      #LLM configuration: max token
+        "timeout",         #Timeout
+        "retry_times",     #Number of retries
+        "context_length",  #Context Length
     ]
 
     if isinstance(doc, dict):
         sanitized = {}
         for k, v in doc.items():
-            # 检查是否在排除列表中
+            #Check if in the excluded list
             if k.lower() in [f.lower() for f in EXCLUDED_FIELDS]:
-                # 保留该字段
+                #Keep the field
                 if isinstance(v, (dict, list)):
                     sanitized[k] = _sanitize_document(v)
                 else:
                     sanitized[k] = v
-            # 检查字段名是否包含敏感关键词（忽略大小写）
+            #Check if field names contain sensitive keywords (neglect case)
             elif any(keyword in k.lower() for keyword in SENSITIVE_KEYWORDS):
-                sanitized[k] = ""  # 清空敏感字段
+                sanitized[k] = ""  #Clear Sensitive Fields
             elif isinstance(v, (dict, list)):
-                sanitized[k] = _sanitize_document(v)  # 递归处理
+                sanitized[k] = _sanitize_document(v)  #Recursive processing
             else:
                 sanitized[k] = v
         return sanitized
@@ -448,12 +443,12 @@ def _sanitize_document(doc: Any) -> Any:
 async def export_data(collections: Optional[List[str]] = None, *, export_dir: str, format: str = "json", sanitize: bool = False) -> str:
     import pandas as pd
 
-    # 🔥 使用异步数据库连接
+    #🔥 with a walk-in database connection
     db = get_mongo_db()
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
     if not collections:
-        # 🔥 异步调用 list_collection_names()
+        #🔥 list collection names()
         collections = await db.list_collection_names()
         collections = [c for c in collections if not c.startswith("system.")]
 
@@ -464,17 +459,17 @@ async def export_data(collections: Optional[List[str]] = None, *, export_dir: st
         collection = db[collection_name]
         docs: List[dict] = []
 
-        # users 集合在脱敏模式下只导出空数组（保留结构，不导出实际用户数据）
+        #users group to export only empty arrays in desensitization mode (maintain structure, do not export actual user data)
         if sanitize and collection_name == "users":
             all_data[collection_name] = []
             continue
 
-        # 🔥 异步迭代查询结果
+        #🔥Diverse Query Results
         async for doc in collection.find():
             docs.append(serialize_document(doc))
         all_data[collection_name] = docs
 
-    # 如果启用脱敏，递归清空所有敏感字段
+    #If dissensitivity is enabled, clear all sensitive fields
     if sanitize:
         all_data = _sanitize_document(all_data)
 
@@ -490,7 +485,7 @@ async def export_data(collections: Optional[List[str]] = None, *, export_dir: st
             "data": all_data,
         }
 
-        # 🔥 使用 asyncio.to_thread 将阻塞的文件 I/O 操作放到线程池执行
+        #Use asyncio.to theread to put the blocking I/O operation in the thread pool
         def _write_json():
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(export_data_dict, f, ensure_ascii=False, indent=2)
@@ -508,7 +503,7 @@ async def export_data(collections: Optional[List[str]] = None, *, export_dir: st
                 row["_collection"] = collection_name
                 rows.append(row)
 
-        # 🔥 使用 asyncio.to_thread 将阻塞的文件 I/O 操作放到线程池执行
+        #Use asyncio.to theread to put the blocking I/O operation in the thread pool
         def _write_csv():
             if rows:
                 pd.DataFrame(rows).to_csv(file_path, index=False, encoding="utf-8-sig")
@@ -522,7 +517,7 @@ async def export_data(collections: Optional[List[str]] = None, *, export_dir: st
         filename = f"export_{timestamp}.xlsx"
         file_path = os.path.join(export_dir, filename)
 
-        # 🔥 使用 asyncio.to_thread 将阻塞的文件 I/O 操作放到线程池执行
+        #Use asyncio.to theread to put the blocking I/O operation in the thread pool
         def _write_excel():
             with pd.ExcelWriter(file_path, engine="openpyxl") as writer:
                 for collection_name, documents in all_data.items():

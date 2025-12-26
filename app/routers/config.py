@@ -1,5 +1,4 @@
-"""
-配置管理API路由
+"""Configure to manage API route
 """
 
 import logging
@@ -32,15 +31,14 @@ router = APIRouter(prefix="/config", tags=["配置管理"])
 logger = logging.getLogger("webapi")
 
 
-# ===== 配置重载端点 =====
+#== sync, corrected by elderman == @elder man
 
 @router.post("/reload", summary="重新加载配置")
 async def reload_config(current_user: dict = Depends(get_current_user)):
-    """
-    重新加载配置并桥接到环境变量
+    """Reload configuration and bridge to environment variable
 
-    用于配置更新后立即生效，无需重启服务
-    """
+Effective immediately after configuration update without restarting service
+"""
     try:
         from app.core.config_bridge import reload_bridged_config
 
@@ -70,14 +68,14 @@ async def reload_config(current_user: dict = Depends(get_current_user)):
                 "message": "配置重载失败，请查看日志"
             }
     except Exception as e:
-        logger.error(f"配置重载失败: {e}", exc_info=True)
+        logger.error(f"Cannot initialise Evolution's mail component.{e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"配置重载失败: {str(e)}"
         )
 
 
-# ===== 方案A：敏感字段响应脱敏 & 请求清洗 =====
+#== sync, corrected by elderman == @elder man
 from copy import deepcopy
 
 def _sanitize_llm_configs(items):
@@ -87,14 +85,13 @@ def _sanitize_llm_configs(items):
         return items
 
 def _sanitize_datasource_configs(items):
-    """
-    脱敏数据源配置，返回缩略的 API Key
+    """Desensitive data source configuration, return abbreviated API Key
 
-    逻辑：
-    1. 如果数据库中有有效的 API Key，返回缩略版本
-    2. 如果数据库中没有，尝试从环境变量读取并返回缩略版本
-    3. 如果都没有，返回 None
-    """
+Logical:
+1. Return abbreviated version if there is a valid API Key in the database
+2. If not available in the database, try to read from the environment variable and return the abbreviated version
+3. If none, return
+"""
     try:
         from app.utils.api_key_utils import (
             is_valid_api_key,
@@ -106,25 +103,25 @@ def _sanitize_datasource_configs(items):
         for item in items:
             data = item.model_dump()
 
-            # 处理 API Key
+            #Process API Key
             db_key = data.get("api_key")
             if is_valid_api_key(db_key):
-                # 数据库中有有效的 API Key，返回缩略版本
+                #API Key in database, return abbreviated version
                 data["api_key"] = truncate_api_key(db_key)
             else:
-                # 数据库中没有有效的 API Key，尝试从环境变量读取
+                #There is no valid API Key in the database, trying to read from the environment variable
                 ds_type = data.get("type")
                 if isinstance(ds_type, str):
                     env_key = get_env_api_key_for_datasource(ds_type)
                     if env_key:
-                        # 环境变量中有有效的 API Key，返回缩略版本
+                        #API Key, return abbreviated version of the environment variable
                         data["api_key"] = truncate_api_key(env_key)
                     else:
                         data["api_key"] = None
                 else:
                     data["api_key"] = None
 
-            # 处理 API Secret（同样的逻辑）
+            #Process API Secret
             db_secret = data.get("api_secret")
             if is_valid_api_key(db_secret):
                 data["api_secret"] = truncate_api_key(db_secret)
@@ -145,7 +142,7 @@ def _sanitize_database_configs(items):
         return items
 
 def _sanitize_kv(d: Dict[str, Any]) -> Dict[str, Any]:
-    """对字典中的可能敏感键进行脱敏（仅用于响应）。"""
+    """Sensitization of potentially sensitive keys in the dictionary (for response only)."""
     try:
         if not isinstance(d, dict):
             return d
@@ -164,7 +161,7 @@ def _sanitize_kv(d: Dict[str, Any]) -> Dict[str, Any]:
 
 
 class SetDefaultRequest(BaseModel):
-    """设置默认配置请求"""
+    """Set default configuration request"""
     name: str
 
 
@@ -172,7 +169,7 @@ class SetDefaultRequest(BaseModel):
 async def get_system_config(
     current_user: User = Depends(get_current_user)
 ):
-    """获取系统配置"""
+    """Get System Configuration"""
     try:
         config = await config_service.get_system_config()
         if not config:
@@ -202,13 +199,13 @@ async def get_system_config(
         )
 
 
-# ========== 大模型厂家管理 ==========
+#== sync, corrected by elderman ==
 
 @router.get("/llm/providers", response_model=List[LLMProviderResponse])
 async def get_llm_providers(
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有大模型厂家"""
+    """Get all the big models."""
     try:
         from app.utils.api_key_utils import (
             is_valid_api_key,
@@ -220,26 +217,26 @@ async def get_llm_providers(
         result = []
 
         for provider in providers:
-            # 处理 API Key：优先使用数据库配置，如果数据库没有则检查环境变量
+            #Process API Key: Prioritize database configuration and check environment variables if the database is not available
             db_key_valid = is_valid_api_key(provider.api_key)
             if db_key_valid:
-                # 数据库中有有效的 API Key，返回缩略版本
+                #API Key in database, return abbreviated version
                 api_key_display = truncate_api_key(provider.api_key)
             else:
-                # 数据库中没有有效的 API Key，尝试从环境变量读取
+                #There is no valid API Key in the database, trying to read from the environment variable
                 env_key = get_env_api_key_for_provider(provider.name)
                 if env_key:
-                    # 环境变量中有有效的 API Key，返回缩略版本
+                    #API Key, return abbreviated version of the environment variable
                     api_key_display = truncate_api_key(env_key)
                 else:
                     api_key_display = None
 
-            # 处理 API Secret（同样的逻辑）
+            #Process API Secret
             db_secret_valid = is_valid_api_key(provider.api_secret)
             if db_secret_valid:
                 api_secret_display = truncate_api_key(provider.api_secret)
             else:
-                # 注意：API Secret 通常不在环境变量中，所以这里只检查数据库
+                #Note: API Secret is not usually among environment variables, so only data are checked here Library
                 api_secret_display = None
 
             result.append(
@@ -254,7 +251,7 @@ async def get_llm_providers(
                     is_active=provider.is_active,
                     supported_features=provider.supported_features,
                     default_base_url=provider.default_base_url,
-                    # 返回缩略的 API Key（前6位 + "..." + 后6位）
+                    #Returns the abbreviated API Key (6th + "..." + 6th)
                     api_key=api_key_display,
                     api_secret=api_secret_display,
                     extra_config={
@@ -280,7 +277,7 @@ async def add_llm_provider(
     request: LLMProviderRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """添加大模型厂家（方案A：REST不接受密钥，强制清洗）"""
+    """Add a large modeler (option A:REST does not accept keys, forced cleaning)"""
     try:
         sanitized = request.model_dump()
         if 'api_key' in sanitized:
@@ -288,7 +285,7 @@ async def add_llm_provider(
         provider = LLMProvider(**sanitized)
         provider_id = await config_service.add_llm_provider(provider)
 
-        # 审计日志（忽略异常）
+        #Audit log (overlooking anomalies)
         try:
             await log_operation(
                 user_id=str(getattr(current_user, "id", "")),
@@ -318,34 +315,34 @@ async def update_llm_provider(
     request: LLMProviderRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """更新大模型厂家"""
+    """Update the big modeler."""
     try:
         from app.utils.api_key_utils import should_skip_api_key_update
 
         update_data = request.model_dump(exclude_unset=True)
 
-        # 🔥 修改：处理 API Key 的更新逻辑
-        # 1. 如果 API Key 是空字符串，表示用户想清空密钥 → 保存空字符串
-        # 2. 如果 API Key 是占位符或截断的密钥（如 "sk-99054..."），则删除该字段（不更新）
-        # 3. 如果 API Key 是有效的完整密钥，则更新
+        #Changes: updated logic for processing API Key
+        #1. If API Key is an empty string, this means that the user wants to empty the key → Save an empty string
+        #2. If API Key is a placeholder or cut key (e.g. "sk-99054..."), delete the field (not updated)
+        #Update if API Key is a valid complete key
         if 'api_key' in update_data:
             api_key = update_data.get('api_key', '')
-            # 如果应该跳过更新（占位符或截断的密钥），则删除该字段
+            #Delete the field if updates (placeholder or cut key) should be skipped
             if should_skip_api_key_update(api_key):
                 del update_data['api_key']
-            # 如果是空字符串，保留（表示清空）
-            # 如果是有效的完整密钥，保留（表示更新）
+            #If empty string, keep (means empty)
+            #If a valid complete key is maintained (indicating updates)
 
         if 'api_secret' in update_data:
             api_secret = update_data.get('api_secret', '')
-            # 同样的逻辑处理 API Secret
+            #Same logic API Secret
             if should_skip_api_key_update(api_secret):
                 del update_data['api_secret']
 
         success = await config_service.update_llm_provider(provider_id, update_data)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -381,12 +378,12 @@ async def delete_llm_provider(
     provider_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """删除大模型厂家"""
+    """Remove Large Modeler"""
     try:
         success = await config_service.delete_llm_provider(provider_id)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -423,13 +420,13 @@ async def toggle_llm_provider(
     request: dict,
     current_user: User = Depends(get_current_user)
 ):
-    """切换大模型厂家状态"""
+    """Toggle large modeler state"""
     try:
         is_active = request.get("is_active", True)
         success = await config_service.toggle_llm_provider(provider_id, is_active)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -465,7 +462,7 @@ async def fetch_provider_models(
     provider_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """从厂家 API 获取模型列表"""
+    """Fetch model list from the manufacturer API"""
     try:
         result = await config_service.fetch_provider_models(provider_id)
         return result
@@ -485,10 +482,10 @@ async def fetch_provider_models(
 async def migrate_env_to_providers(
     current_user: User = Depends(get_current_user)
 ):
-    """将环境变量配置迁移到厂家管理"""
+    """Migration of environmental variables to plant management"""
     try:
         result = await config_service.migrate_env_to_providers()
-        # 审计日志（忽略异常）
+        #Audit log (overlooking anomalies)
         try:
             await log_operation(
                 user_id=str(getattr(current_user, "id", "")),
@@ -523,11 +520,11 @@ async def migrate_env_to_providers(
 async def init_aggregator_providers(
     current_user: User = Depends(get_current_user)
 ):
-    """初始化聚合渠道厂家配置（302.AI、OpenRouter等）"""
+    """Initialized polymerization channel plant configuration (302.AI, OpenRouter, etc.)"""
     try:
         result = await config_service.init_aggregator_providers()
 
-        # 审计日志（忽略异常）
+        #Audit log (overlooking anomalies)
         try:
             await log_operation(
                 user_id=str(getattr(current_user, "id", "")),
@@ -563,101 +560,101 @@ async def test_provider_api(
     provider_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """测试厂家API密钥"""
+    """Tester API Key"""
     try:
-        logger.info(f"🧪 收到API测试请求 - provider_id: {provider_id}")
+        logger.info(f"- Request for API testing.{provider_id}")
         result = await config_service.test_provider_api(provider_id)
-        logger.info(f"🧪 API测试结果: {result}")
+        logger.info(f"API test results:{result}")
         return result
     except Exception as e:
-        logger.error(f"测试厂家API失败: {e}")
+        logger.error(f"Test factory API failed:{e}")
         raise HTTPException(
             status_code=500,
             detail=f"测试厂家API失败: {str(e)}"
         )
 
 
-# ========== 大模型配置管理 ==========
+#== sync, corrected by elderman == @elder man
 
 @router.post("/llm", response_model=dict)
 async def add_llm_config(
     request: LLMConfigRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """添加或更新大模型配置"""
+    """Add or update large model configuration"""
     try:
-        logger.info(f"🔧 添加/更新大模型配置开始")
-        logger.info(f"📊 请求数据: {request.model_dump()}")
-        logger.info(f"🏷️ 厂家: {request.provider}, 模型: {request.model_name}")
+        logger.info(f"🔧 Add/update large model configuration start")
+        logger.info(f"Data requested:{request.model_dump()}")
+        logger.info(f"The plant:{request.provider}, Model:{request.model_name}")
 
-        # 创建LLM配置
+        #Create LLM Configuration
         llm_config_data = request.model_dump()
-        logger.info(f"📋 原始配置数据: {llm_config_data}")
+        logger.info(f"Original configuration data:{llm_config_data}")
 
-        # 如果没有提供API密钥，从厂家配置中获取
+        #If API keys are not provided, get from the plant configuration
         if not llm_config_data.get('api_key'):
-            logger.info(f"🔑 API密钥为空，从厂家配置获取: {request.provider}")
+            logger.info(f"The API key is empty and obtained from the plant configuration:{request.provider}")
 
-            # 获取厂家配置
+            #Get Plant Configuration
             providers = await config_service.get_llm_providers()
-            logger.info(f"📊 找到 {len(providers)} 个厂家配置")
+            logger.info(f"Found it.{len(providers)}Plant Configuration")
 
             for p in providers:
-                logger.info(f"   - 厂家: {p.name}, 有API密钥: {bool(p.api_key)}")
+                logger.info(f"- Vendor:{p.name}, with an API key:{bool(p.api_key)}")
 
             provider_config = next((p for p in providers if p.name == request.provider), None)
 
             if provider_config:
-                logger.info(f"✅ 找到厂家配置: {provider_config.name}")
+                logger.info(f"We found the plant configuration:{provider_config.name}")
                 if provider_config.api_key:
                     llm_config_data['api_key'] = provider_config.api_key
-                    logger.info(f"✅ 成功获取厂家API密钥 (长度: {len(provider_config.api_key)})")
+                    logger.info(f"✅ successfully obtained the manufacturer's API key (long:{len(provider_config.api_key)})")
                 else:
-                    logger.warning(f"⚠️ 厂家 {request.provider} 没有配置API密钥")
+                    logger.warning(f"The manufacturer.{request.provider}No API key configured")
                     llm_config_data['api_key'] = ""
             else:
-                logger.warning(f"⚠️ 未找到厂家 {request.provider} 的配置")
+                logger.warning(f"No factory found.{request.provider}Configure")
                 llm_config_data['api_key'] = ""
         else:
-            logger.info(f"🔑 使用提供的API密钥 (长度: {len(llm_config_data.get('api_key', ''))})")
+            logger.info(f"Use the available API keys (long:{len(llm_config_data.get('api_key', ''))})")
 
-        logger.info(f"📋 最终配置数据: {llm_config_data}")
-        # 🔥 修改：允许通过 REST 写入密钥，但如果是无效的密钥则清空
-        # 无效的密钥：空字符串、占位符（your_xxx）、长度不够
+        logger.info(f"Final configuration data:{llm_config_data}")
+        #🔥 Changes: Allows writing through RST, but emptys if an invalid key
+        #Invalid key: Empty string, placeholder (your xx), insufficient length
         if 'api_key' in llm_config_data:
             api_key = llm_config_data.get('api_key', '')
-            # 如果是无效的 Key，则清空（让系统使用环境变量）
+            #If Key is invalid, empty (use system environment variable)
             if not api_key or api_key.startswith('your_') or api_key.startswith('your-') or len(api_key) <= 10:
                 llm_config_data['api_key'] = ""
 
 
-        # 尝试创建LLMConfig对象
+        #Try creating LLMConfig objects
         try:
             llm_config = LLMConfig(**llm_config_data)
-            logger.info(f"✅ LLMConfig对象创建成功")
+            logger.info(f"LLMConfig object created successfully")
         except Exception as e:
-            logger.error(f"❌ LLMConfig对象创建失败: {e}")
-            logger.error(f"📋 失败的数据: {llm_config_data}")
+            logger.error(f"Could not close temporary folder: %s{e}")
+            logger.error(f"Data for failure:{llm_config_data}")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"配置数据验证失败: {str(e)}"
             )
 
-        # 保存配置
+        #Save Configuration
         success = await config_service.update_llm_config(llm_config)
 
         if success:
-            logger.info(f"✅ 大模型配置更新成功: {llm_config.provider}/{llm_config.model_name}")
+            logger.info(f"✅ Large model configuration update successful:{llm_config.provider}/{llm_config.model_name}")
 
-            # 同步定价配置到 tradingagents
+            #Sync Pricing Configuration to TradingAGents
             try:
                 from app.core.config_bridge import sync_pricing_config_now
                 sync_pricing_config_now()
-                logger.info(f"✅ 定价配置已同步到 tradingagents")
+                logger.info(f"✅ Pricing configuration synchronized to trafficagents")
             except Exception as e:
-                logger.warning(f"⚠️  同步定价配置失败: {e}")
+                logger.warning(f"Synchronized pricing configuration failed:{e}")
 
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -671,7 +668,7 @@ async def add_llm_config(
                 pass
             return {"message": "大模型配置更新成功", "model_name": llm_config.model_name}
         else:
-            logger.error(f"❌ 大模型配置保存失败")
+            logger.error(f"Large model configuration failed")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="大模型配置更新失败"
@@ -679,9 +676,9 @@ async def add_llm_config(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 添加大模型配置异常: {e}")
+        logger.error(f"Add large model configuration anomalies:{e}")
         import traceback
-        logger.error(f"📋 异常堆栈: {traceback.format_exc()}")
+        logger.error(f"Anomalous stack:{traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"添加大模型配置失败: {str(e)}"
@@ -693,11 +690,11 @@ async def add_data_source_config(
     request: DataSourceConfigRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """添加数据源配置"""
+    """Add Data Source Configuration"""
     try:
-        # 开源版本：所有用户都可以修改配置
+        #Open source version: All users can modify configuration
 
-        # 获取当前配置
+        #Get Current Configuration
         config = await config_service.get_system_config()
         if not config:
             raise HTTPException(
@@ -705,38 +702,38 @@ async def add_data_source_config(
                 detail="系统配置不存在"
             )
 
-        # 添加新的数据源配置
-        # 🔥 修改：支持保存 API Key（与大模型厂家管理逻辑一致）
+        #Add new data source configuration
+        #🔥 Modification: Support the preservation of API Key (consistent with large modeler management logic)
         from app.utils.api_key_utils import should_skip_api_key_update, is_valid_api_key
 
         _req = request.model_dump()
 
-        # 处理 API Key
+        #Process API Key
         if 'api_key' in _req:
             api_key = _req.get('api_key', '')
-            # 如果是占位符或截断的密钥，清空该字段
+            #If a placeholder or cut key, empty the field
             if should_skip_api_key_update(api_key):
                 _req['api_key'] = ""
-            # 如果是空字符串，保留（表示使用环境变量）
+            #If empty string, keep (means using environment variable)
             elif api_key == '':
                 _req['api_key'] = ''
-            # 如果是新输入的密钥，必须验证有效性
+            #If a new key is entered, the validity must be verified
             elif not is_valid_api_key(api_key):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="API Key 无效：长度必须大于 10 个字符，且不能是占位符"
                 )
-            # 有效的完整密钥，保留
+            #Valid Full Key, Save
 
-        # 处理 API Secret
+        #Process API Secret
         if 'api_secret' in _req:
             api_secret = _req.get('api_secret', '')
             if should_skip_api_key_update(api_secret):
                 _req['api_secret'] = ""
-            # 如果是空字符串，保留
+            #If an empty string, keep
             elif api_secret == '':
                 _req['api_secret'] = ''
-            # 如果是新输入的密钥，必须验证有效性
+            #If a new key is entered, the validity must be verified
             elif not is_valid_api_key(api_secret):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -748,7 +745,7 @@ async def add_data_source_config(
 
         success = await config_service.save_system_config(config)
         if success:
-            # 🆕 自动创建数据源分组关系
+            #Automatically create a data source group relationship 🆕
             market_categories = _req.get('market_categories', [])
             if market_categories:
                 for category_id in market_categories:
@@ -761,10 +758,10 @@ async def add_data_source_config(
                         )
                         await config_service.add_datasource_to_category(grouping)
                     except Exception as e:
-                        # 如果分组已存在或其他错误，记录但不影响主流程
-                        logger.warning(f"自动创建数据源分组失败: {str(e)}")
+                        #If there is a group or other error, record without affecting the main process
+                        logger.warning(f"Could not close temporary folder: %s{str(e)}")
 
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -796,11 +793,11 @@ async def add_database_config(
     request: DatabaseConfigRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """添加数据库配置"""
+    """Add Database Configuration"""
     try:
-        # 开源版本：所有用户都可以修改配置
+        #Open source version: All users can modify configuration
 
-        # 获取当前配置
+        #Get Current Configuration
         config = await config_service.get_system_config()
         if not config:
             raise HTTPException(
@@ -808,7 +805,7 @@ async def add_database_config(
                 detail="系统配置不存在"
             )
 
-        # 添加新的数据库配置（方案A：清洗敏感字段）
+        #Add a new database configuration (option A: Clean sensitive fields)
         _req = request.model_dump()
         _req['password'] = ""
         db_config = DatabaseConfig(**_req)
@@ -816,7 +813,7 @@ async def add_database_config(
 
         success = await config_service.save_system_config(config)
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -848,7 +845,7 @@ async def test_config(
     request: ConfigTestRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """测试配置连接"""
+    """Test Configuration Connection"""
     try:
         if request.config_type == "llm":
             llm_config = LLMConfig(**request.config_data)
@@ -880,11 +877,11 @@ async def test_saved_database_config(
     db_name: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """测试已保存的数据库配置（从数据库中获取完整配置包括密码）"""
+    """Test saved database configuration (take full configuration from database, including password)"""
     try:
-        logger.info(f"🧪 测试已保存的数据库配置: {db_name}")
+        logger.info(f"Test the saved database configuration:{db_name}")
 
-        # 从数据库获取完整的系统配置
+        #Get full system configuration from the database
         config = await config_service.get_system_config()
         if not config:
             raise HTTPException(
@@ -892,7 +889,7 @@ async def test_saved_database_config(
                 detail="系统配置不存在"
             )
 
-        # 查找指定的数据库配置
+        #Find specified database configuration
         db_config = None
         for db in config.database_configs:
             if db.name == db_name:
@@ -905,19 +902,19 @@ async def test_saved_database_config(
                 detail=f"数据库配置 '{db_name}' 不存在"
             )
 
-        logger.info(f"✅ 找到数据库配置: {db_config.name} ({db_config.type})")
-        logger.info(f"📍 连接信息: {db_config.host}:{db_config.port}")
-        logger.info(f"🔐 用户名: {db_config.username or '(无)'}")
-        logger.info(f"🔐 密码: {'***' if db_config.password else '(无)'}")
+        logger.info(f"Cannot initialise Evolution's mail component.{db_config.name} ({db_config.type})")
+        logger.info(f"Connect information:{db_config.host}:{db_config.port}")
+        logger.info(f"User name:{db_config.username or '(none)'}")
+        logger.info(f"Password:{'***' if db_config.password else '(none)'}")
 
-        # 使用完整配置进行测试
+        #Test using full configuration
         result = await config_service.test_database_config(db_config)
 
         return ConfigTestResponse(**result)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 测试数据库配置失败: {e}")
+        logger.error(f"Test database configuration failed:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"测试数据库配置失败: {str(e)}"
@@ -928,38 +925,38 @@ async def test_saved_database_config(
 async def get_llm_configs(
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有大模型配置"""
+    """Fetch all large model configurations"""
     try:
-        logger.info("🔄 开始获取大模型配置...")
+        logger.info("Start accessing large models...")
         config = await config_service.get_system_config()
 
         if not config:
-            logger.warning("⚠️ 系统配置为空，返回空列表")
+            logger.warning("⚠️ System configuration is empty, return empty list")
             return []
 
-        logger.info(f"📊 系统配置存在，大模型配置数量: {len(config.llm_configs)}")
+        logger.info(f"📊 System configuration exists, large model configuration number:{len(config.llm_configs)}")
 
-        # 如果没有大模型配置，创建一些示例配置
+        #Create some examples if no large model configuration
         if not config.llm_configs:
-            logger.info("🔧 没有大模型配置，创建示例配置...")
-            # 这里可以根据已有的厂家创建示例配置
-            # 暂时返回空列表，让前端显示"暂无配置"
+            logger.info("No large model configuration, create example configuration...")
+            #This can create an example configuration based on the existing manufacturer
+            #Return empty list for the time being so that the frontend can show "no configuration"
 
-        # 获取所有供应商信息，用于过滤被禁用供应商的模型
+        #Access to all vendor information to filter models of banned vendors
         providers = await config_service.get_llm_providers()
         active_provider_names = {p.name for p in providers if p.is_active}
 
-        # 过滤：只返回启用的模型 且 供应商也启用的模型
+        #Filter: returns only the active model and the model is also enabled by the supplier
         filtered_configs = [
             llm_config for llm_config in config.llm_configs
             if llm_config.enabled and llm_config.provider in active_provider_names
         ]
 
-        logger.info(f"✅ 过滤后的大模型配置数量: {len(filtered_configs)} (原始: {len(config.llm_configs)})")
+        logger.info(f"✅ Number of large filtered models configured:{len(filtered_configs)}(Original:{len(config.llm_configs)})")
 
         return _sanitize_llm_configs(filtered_configs)
     except Exception as e:
-        logger.error(f"❌ 获取大模型配置失败: {e}")
+        logger.error(f"Can not get folder: %s: %s{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取大模型配置失败: {str(e)}"
@@ -972,23 +969,23 @@ async def delete_llm_config(
     model_name: str,
     current_user: User = Depends(get_current_user)
 ):
-    """删除大模型配置"""
+    """Remove Large Model Configuration"""
     try:
-        logger.info(f"🗑️ 删除大模型配置请求 - provider: {provider}, model_name: {model_name}")
+        logger.info(f"Remove large model configuration request-provider:{provider}, model_name: {model_name}")
         success = await config_service.delete_llm_config(provider, model_name)
 
         if success:
-            logger.info(f"✅ 大模型配置删除成功 - {provider}/{model_name}")
+            logger.info(f"The large model configuration was successfully deleted -{provider}/{model_name}")
 
-            # 同步定价配置到 tradingagents
+            #Sync Pricing Configuration to TradingAGents
             try:
                 from app.core.config_bridge import sync_pricing_config_now
                 sync_pricing_config_now()
-                logger.info(f"✅ 定价配置已同步到 tradingagents")
+                logger.info(f"✅ Pricing configuration synchronized to trafficagents")
             except Exception as e:
-                logger.warning(f"⚠️  同步定价配置失败: {e}")
+                logger.warning(f"Synchronized pricing configuration failed:{e}")
 
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1002,7 +999,7 @@ async def delete_llm_config(
                 pass
             return {"message": "大模型配置删除成功"}
         else:
-            logger.warning(f"⚠️ 未找到大模型配置 - {provider}/{model_name}")
+            logger.warning(f"No large model configuration found -{provider}/{model_name}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="大模型配置不存在"
@@ -1010,7 +1007,7 @@ async def delete_llm_config(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 删除大模型配置异常 - {provider}/{model_name}: {e}")
+        logger.error(f"Remove large model configuration anomalies -{provider}/{model_name}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"删除大模型配置失败: {str(e)}"
@@ -1022,11 +1019,11 @@ async def set_default_llm(
     request: SetDefaultRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """设置默认大模型"""
+    """Set Default Large Model"""
     try:
         success = await config_service.set_default_llm(request.name)
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1057,7 +1054,7 @@ async def set_default_llm(
 async def get_data_source_configs(
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有数据源配置"""
+    """Get All Data Source Configurations"""
     try:
         config = await config_service.get_system_config()
         if not config:
@@ -1076,9 +1073,9 @@ async def update_data_source_config(
     request: DataSourceConfigRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """更新数据源配置"""
+    """Update data source configuration"""
     try:
-        # 获取当前配置
+        #Get Current Configuration
         config = await config_service.get_system_config()
         if not config:
             raise HTTPException(
@@ -1086,139 +1083,139 @@ async def update_data_source_config(
                 detail="系统配置不存在"
             )
 
-        # 查找并更新数据源配置
+        #Find and update the data source configuration
         from app.utils.api_key_utils import should_skip_api_key_update, is_valid_api_key
 
         def _truncate_api_key(api_key: str, prefix_len: int = 6, suffix_len: int = 6) -> str:
-            """截断 API Key 用于显示"""
+            """Cut API Key for display"""
             if not api_key or len(api_key) <= prefix_len + suffix_len:
                 return api_key
             return f"{api_key[:prefix_len]}...{api_key[-suffix_len:]}"
 
         for i, ds_config in enumerate(config.data_source_configs):
             if ds_config.name == name:
-                # 更新配置
-                # 🔥 修改：处理 API Key 的更新逻辑（与大模型厂家管理逻辑一致）
+                #Update Configuration
+                #🔥 Modification: updated logic for processing API Key (consistent with large modeler management)
                 _req = request.model_dump()
 
-                # 处理 API Key
+                #Process API Key
                 if 'api_key' in _req:
                     api_key = _req.get('api_key')
-                    logger.info(f"🔍 [API Key 验证] 收到的 API Key: {repr(api_key)} (类型: {type(api_key).__name__}, 长度: {len(api_key) if api_key else 0})")
+                    logger.info(f"API Key:{repr(api_key)}(Types:{type(api_key).__name__}, length:{len(api_key) if api_key else 0})")
 
-                    # 如果是 None 或空字符串，保留原值（不更新）
+                    #If None or empty string, preserve original value (not updated)
                     if api_key is None or api_key == '':
-                        logger.info(f"⏭️  [API Key 验证] None 或空字符串，保留原值")
+                        logger.info(f"None or empty string, retain original value")
                         _req['api_key'] = ds_config.api_key or ""
-                    # 🔥 如果包含 "..."（截断标记），需要验证是否是未修改的原值
+                    #🔥 If it contains "..." (cut marks), verify whether it is the original unmodified value
                     elif api_key and "..." in api_key:
-                        logger.info(f"🔍 [API Key 验证] 检测到截断标记，验证是否与数据库原值匹配")
+                        logger.info(f"🔍 [API Key Validation] detects cut marks and verifys whether they match the original database values")
 
-                        # 对数据库中的完整 API Key 进行相同的截断处理
+                        #Same cut-off process for complete API Key in database
                         if ds_config.api_key:
                             truncated_db_key = _truncate_api_key(ds_config.api_key)
-                            logger.info(f"🔍 [API Key 验证] 数据库原值截断后: {truncated_db_key}")
-                            logger.info(f"🔍 [API Key 验证] 收到的值: {api_key}")
+                            logger.info(f"[API Key Validation]{truncated_db_key}")
+                            logger.info(f"[API Key Verifyes]{api_key}")
 
-                            # 比较截断后的值
+                            #Compare post-cut values
                             if api_key == truncated_db_key:
-                                # 相同，说明用户没有修改，保留数据库中的完整值
-                                logger.info(f"✅ [API Key 验证] 截断值匹配，保留数据库原值")
+                                #Same, indicating that the user has not changed and maintains the full value in the database
+                                logger.info(f"[API Key Validation]")
                                 _req['api_key'] = ds_config.api_key
                             else:
-                                # 不同，说明用户修改了但修改得不完整
-                                logger.error(f"❌ [API Key 验证] 截断值不匹配，用户可能修改了不完整的密钥")
+                                #Different, indicating that the user has modified but incompletely
+                                logger.error(f"The cut-off value does not match and the user may modify the incomplete key")
                                 raise HTTPException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
                                     detail=f"API Key 格式错误：检测到截断标记但与数据库中的值不匹配，请输入完整的 API Key"
                                 )
                         else:
-                            # 数据库中没有原值，但前端发送了截断值，这是不合理的
-                            logger.error(f"❌ [API Key 验证] 数据库中没有原值，但收到了截断值")
+                            #There is no original value in the database, but it is unreasonable that the front end sends a cut-off value
+                            logger.error(f"No original value in the database, but cut-off value received")
                             raise HTTPException(
                                 status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"API Key 格式错误：请输入完整的 API Key"
                             )
-                    # 如果是占位符，则不更新（保留原值）
+                    #Do not update if placeholder (main value retained)
                     elif should_skip_api_key_update(api_key):
-                        logger.info(f"⏭️  [API Key 验证] 跳过更新（占位符），保留原值")
+                        logger.info(f"Skip update (placeholder) and retain original value")
                         _req['api_key'] = ds_config.api_key or ""
-                    # 如果是新输入的密钥，必须验证有效性
+                    #If a new key is entered, the validity must be verified
                     elif not is_valid_api_key(api_key):
-                        logger.error(f"❌ [API Key 验证] 验证失败: '{api_key}' (长度: {len(api_key)})")
-                        logger.error(f"   - 长度检查: {len(api_key)} > 10? {len(api_key) > 10}")
-                        logger.error(f"   - 占位符前缀检查: startswith('your_')? {api_key.startswith('your_')}, startswith('your-')? {api_key.startswith('your-')}")
-                        logger.error(f"   - 占位符后缀检查: endswith('_here')? {api_key.endswith('_here')}, endswith('-here')? {api_key.endswith('-here')}")
+                        logger.error(f"Validation failed: '{api_key}'(Longer:{len(api_key)})")
+                        logger.error(f"- Length check:{len(api_key)} > 10? {len(api_key) > 10}")
+                        logger.error(f"- Placeholder prefix check: Startswith ('your ')?{api_key.startswith('your_')}, startswith('your-')? {api_key.startswith('your-')}")
+                        logger.error(f"- Placeholder suffix check: endswith ('here')?{api_key.endswith('_here')}, endswith('-here')? {api_key.endswith('-here')}")
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"API Key 无效：长度必须大于 10 个字符，且不能是占位符（当前长度: {len(api_key)}）"
                         )
                     else:
-                        logger.info(f"✅ [API Key 验证] 验证通过，将更新密钥 (长度: {len(api_key)})")
-                    # 有效的完整密钥，保留（表示更新）
+                        logger.info(f"The key will be updated (long:{len(api_key)})")
+                    #valid full key, keep (means update)
 
-                # 处理 API Secret
+                #Process API Secret
                 if 'api_secret' in _req:
                     api_secret = _req.get('api_secret')
-                    logger.info(f"🔍 [API Secret 验证] 收到的 API Secret: {repr(api_secret)} (类型: {type(api_secret).__name__}, 长度: {len(api_secret) if api_secret else 0})")
+                    logger.info(f"API Secret:{repr(api_secret)}(Types:{type(api_secret).__name__}, length:{len(api_secret) if api_secret else 0})")
 
-                    # 如果是 None 或空字符串，保留原值（不更新）
+                    #If None or empty string, preserve original value (not updated)
                     if api_secret is None or api_secret == '':
-                        logger.info(f"⏭️  [API Secret 验证] None 或空字符串，保留原值")
+                        logger.info(f"None or empty string, maintain original value")
                         _req['api_secret'] = ds_config.api_secret or ""
-                    # 🔥 如果包含 "..."（截断标记），需要验证是否是未修改的原值
+                    #🔥 If it contains "..." (cut marks), verify whether it is the original unmodified value
                     elif api_secret and "..." in api_secret:
-                        logger.info(f"🔍 [API Secret 验证] 检测到截断标记，验证是否与数据库原值匹配")
+                        logger.info(f"🔍 [API Secret Validation] Detects cut marks to verify whether they match the original database values")
 
-                        # 对数据库中的完整 API Secret 进行相同的截断处理
+                        #Same cut-off process for complete API Secret in the database
                         if ds_config.api_secret:
                             truncated_db_secret = _truncate_api_key(ds_config.api_secret)
-                            logger.info(f"🔍 [API Secret 验证] 数据库原值截断后: {truncated_db_secret}")
-                            logger.info(f"🔍 [API Secret 验证] 收到的值: {api_secret}")
+                            logger.info(f"[API Secret Validation]{truncated_db_secret}")
+                            logger.info(f"Value received:{api_secret}")
 
-                            # 比较截断后的值
+                            #Compare post-cut values
                             if api_secret == truncated_db_secret:
-                                # 相同，说明用户没有修改，保留数据库中的完整值
-                                logger.info(f"✅ [API Secret 验证] 截断值匹配，保留数据库原值")
+                                #Same, indicating that the user has not changed and maintains the full value in the database
+                                logger.info(f"✅ [API Secret Validation] cut-off values match, maintain original database values")
                                 _req['api_secret'] = ds_config.api_secret
                             else:
-                                # 不同，说明用户修改了但修改得不完整
-                                logger.error(f"❌ [API Secret 验证] 截断值不匹配，用户可能修改了不完整的密钥")
+                                #Different, indicating that the user has modified but incompletely
+                                logger.error(f"The cut-off value does not match and the user may have modified an incomplete key")
                                 raise HTTPException(
                                     status_code=status.HTTP_400_BAD_REQUEST,
                                     detail=f"API Secret 格式错误：检测到截断标记但与数据库中的值不匹配，请输入完整的 API Secret"
                                 )
                         else:
-                            # 数据库中没有原值，但前端发送了截断值，这是不合理的
-                            logger.error(f"❌ [API Secret 验证] 数据库中没有原值，但收到了截断值")
+                            #There is no original value in the database, but it is unreasonable that the front end sends a cut-off value
+                            logger.error(f"No original value in the database, but cut-off value received")
                             raise HTTPException(
                                 status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"API Secret 格式错误：请输入完整的 API Secret"
                             )
-                    # 如果是占位符，则不更新（保留原值）
+                    #Do not update if placeholder (main value retained)
                     elif should_skip_api_key_update(api_secret):
-                        logger.info(f"⏭️  [API Secret 验证] 跳过更新（占位符），保留原值")
+                        logger.info(f"Skip update (placeholder) and retain original value")
                         _req['api_secret'] = ds_config.api_secret or ""
-                    # 如果是新输入的密钥，必须验证有效性
+                    #If a new key is entered, the validity must be verified
                     elif not is_valid_api_key(api_secret):
-                        logger.error(f"❌ [API Secret 验证] 验证失败: '{api_secret}' (长度: {len(api_secret)})")
-                        logger.error(f"   - 长度检查: {len(api_secret)} > 10? {len(api_secret) > 10}")
+                        logger.error(f"Verification failed: '{api_secret}'(Longer:{len(api_secret)})")
+                        logger.error(f"- Length check:{len(api_secret)} > 10? {len(api_secret) > 10}")
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"API Secret 无效：长度必须大于 10 个字符，且不能是占位符（当前长度: {len(api_secret)}）"
                         )
                     else:
-                        logger.info(f"✅ [API Secret 验证] 验证通过，将更新密钥 (长度: {len(api_secret)})")
+                        logger.info(f"Validation pass will update key (long:{len(api_secret)})")
 
                 updated_config = DataSourceConfig(**_req)
                 config.data_source_configs[i] = updated_config
 
                 success = await config_service.save_system_config(config)
                 if success:
-                    # 🆕 同步市场分类关系
+                    #Synchronize market classification relationships
                     new_categories = set(_req.get('market_categories', []))
 
-                    # 获取当前的分组关系
+                    #Get the current group relationship
                     current_groupings = await config_service.get_datasource_groupings()
                     current_categories = set(
                         g.market_category_id
@@ -1226,7 +1223,7 @@ async def update_data_source_config(
                         if g.data_source_name == name
                     )
 
-                    # 需要添加的分类
+                    #Category to add
                     to_add = new_categories - current_categories
                     for category_id in to_add:
                         try:
@@ -1238,17 +1235,17 @@ async def update_data_source_config(
                             )
                             await config_service.add_datasource_to_category(grouping)
                         except Exception as e:
-                            logger.warning(f"添加数据源分组失败: {str(e)}")
+                            logger.warning(f"Could not close temporary folder: %s{str(e)}")
 
-                    # 需要删除的分类
+                    #Category to delete
                     to_remove = current_categories - new_categories
                     for category_id in to_remove:
                         try:
                             await config_service.remove_datasource_from_category(name, category_id)
                         except Exception as e:
-                            logger.warning(f"删除数据源分组失败: {str(e)}")
+                            logger.warning(f"Could not close temporary folder: %s{str(e)}")
 
-                    # 审计日志（忽略异常）
+                    #Audit log (overlooking anomalies)
                     try:
                         await log_operation(
                             user_id=str(getattr(current_user, "id", "")),
@@ -1285,9 +1282,9 @@ async def delete_data_source_config(
     name: str,
     current_user: User = Depends(get_current_user)
 ):
-    """删除数据源配置"""
+    """Delete Data Source Configuration"""
     try:
-        # 获取当前配置
+        #Get Current Configuration
         config = await config_service.get_system_config()
         if not config:
             raise HTTPException(
@@ -1295,14 +1292,14 @@ async def delete_data_source_config(
                 detail="系统配置不存在"
             )
 
-        # 查找并删除数据源配置
+        #Find and remove the data source configuration
         for i, ds_config in enumerate(config.data_source_configs):
             if ds_config.name == name:
                 config.data_source_configs.pop(i)
 
                 success = await config_service.save_system_config(config)
                 if success:
-                    # 审计日志（忽略异常）
+                    #Audit log (overlooking anomalies)
                     try:
                         await log_operation(
                             user_id=str(getattr(current_user, "id", "")),
@@ -1334,13 +1331,13 @@ async def delete_data_source_config(
         )
 
 
-# ==================== 市场分类管理 ====================
+#== sync, corrected by elderman == @elder man
 
 @router.get("/market-categories", response_model=List[MarketCategory])
 async def get_market_categories(
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有市场分类"""
+    """Access to all market classifications"""
     try:
         categories = await config_service.get_market_categories()
         return categories
@@ -1356,13 +1353,13 @@ async def add_market_category(
     request: MarketCategoryRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """添加市场分类"""
+    """Add Market Classification"""
     try:
         category = MarketCategory(**request.model_dump())
         success = await config_service.add_market_category(category)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1395,12 +1392,12 @@ async def update_market_category(
     request: Dict[str, Any],
     current_user: User = Depends(get_current_user)
 ):
-    """更新市场分类"""
+    """Updating market classifications"""
     try:
         success = await config_service.update_market_category(category_id, request)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1432,12 +1429,12 @@ async def delete_market_category(
     category_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """删除市场分类"""
+    """Remove Market Classification"""
     try:
         success = await config_service.delete_market_category(category_id)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1464,13 +1461,13 @@ async def delete_market_category(
         )
 
 
-# ==================== 数据源分组管理 ====================
+#== sync, corrected by elderman == @elder man
 
 @router.get("/datasource-groupings", response_model=List[DataSourceGrouping])
 async def get_datasource_groupings(
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有数据源分组关系"""
+    """Get All Data Source Group Relationships"""
     try:
         groupings = await config_service.get_datasource_groupings()
         return groupings
@@ -1486,13 +1483,13 @@ async def add_datasource_to_category(
     request: DataSourceGroupingRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """将数据源添加到分类"""
+    """Add data sources to classification"""
     try:
         grouping = DataSourceGrouping(**request.model_dump())
         success = await config_service.add_datasource_to_category(grouping)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1525,12 +1522,12 @@ async def remove_datasource_from_category(
     category_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """从分类中移除数据源"""
+    """Remove data source from classification"""
     try:
         success = await config_service.remove_datasource_from_category(data_source_name, category_id)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1564,12 +1561,12 @@ async def update_datasource_grouping(
     request: Dict[str, Any],
     current_user: User = Depends(get_current_user)
 ):
-    """更新数据源分组关系"""
+    """Update data source group relationships"""
     try:
         success = await config_service.update_datasource_grouping(data_source_name, category_id, request)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1602,12 +1599,12 @@ async def update_category_datasource_order(
     request: DataSourceOrderRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """更新分类中数据源的排序"""
+    """Update the sorting of data sources in the classification"""
     try:
         success = await config_service.update_category_datasource_order(category_id, request.data_sources)
 
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1639,11 +1636,11 @@ async def set_default_data_source(
     request: SetDefaultRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """设置默认数据源"""
+    """Set Default Data Source"""
     try:
         success = await config_service.set_default_data_source(request.name)
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1674,7 +1671,7 @@ async def set_default_data_source(
 async def get_system_settings(
     current_user: User = Depends(get_current_user)
 ):
-    """获取系统设置"""
+    """Get System Settings"""
     try:
         effective = await config_provider.get_effective_system_settings()
         return _sanitize_kv(effective)
@@ -1689,9 +1686,9 @@ async def get_system_settings(
 async def get_system_settings_meta(
     current_user: User = Depends(get_current_user)
 ):
-    """获取系统设置的元数据（敏感性、可编辑性、来源、是否有值）。
-    返回结构：{success, data: {items: [{key,sensitive,editable,source,has_value}]}, message}
-    """
+    """(c) Obtaining metadata (sensitivity, redactability, source, availability of values) from the system settings.
+Return structure:   FT 0 }, message}
+"""
     try:
         meta_map = await config_provider.get_system_settings_meta()
         items = [
@@ -1710,22 +1707,22 @@ async def update_system_settings(
     settings: Dict[str, Any],
     current_user: User = Depends(get_current_user)
 ):
-    """更新系统设置"""
+    """Update System Settings"""
     try:
-        # 打印接收到的设置（用于调试）
-        logger.info(f"📝 接收到的系统设置更新请求，包含 {len(settings)} 项")
+        #Print receiving settings (for debugging)
+        logger.info(f"📝Receives system settings update requests, including{len(settings)}Item")
         if 'quick_analysis_model' in settings:
             logger.info(f"  ✓ quick_analysis_model: {settings['quick_analysis_model']}")
         else:
-            logger.warning(f"  ⚠️  未包含 quick_analysis_model")
+            logger.warning(f"Quick analysis model")
         if 'deep_analysis_model' in settings:
             logger.info(f"  ✓ deep_analysis_model: {settings['deep_analysis_model']}")
         else:
-            logger.warning(f"  ⚠️  未包含 deep_analysis_model")
+            logger.warning(f"Not containing")
 
         success = await config_service.update_system_settings(settings)
         if success:
-            # 审计日志（忽略日志异常，不影响主流程）
+            #Audit log (overlooking log anomalies without affecting the main process)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1737,7 +1734,7 @@ async def update_system_settings(
                 )
             except Exception:
                 pass
-            # 失效缓存
+            #Invalid Cache
             try:
                 config_provider.invalidate()
             except Exception:
@@ -1751,7 +1748,7 @@ async def update_system_settings(
     except HTTPException:
         raise
     except Exception as e:
-        # 审计失败记录（忽略日志异常）
+        #Audit failure record (overlooking log anomaly)
         try:
             await log_operation(
                 user_id=str(getattr(current_user, "id", "")),
@@ -1774,10 +1771,10 @@ async def update_system_settings(
 async def export_config(
     current_user: User = Depends(get_current_user)
 ):
-    """导出配置"""
+    """Export Configuration"""
     try:
         config_data = await config_service.export_config()
-        # 审计日志（忽略异常）
+        #Audit log (overlooking anomalies)
         try:
             await log_operation(
                 user_id=str(getattr(current_user, "id", "")),
@@ -1806,11 +1803,11 @@ async def import_config(
     config_data: Dict[str, Any],
     current_user: User = Depends(get_current_user)
 ):
-    """导入配置"""
+    """Import Configuration"""
     try:
         success = await config_service.import_config(config_data)
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1841,11 +1838,11 @@ async def import_config(
 async def migrate_legacy_config(
     current_user: User = Depends(get_current_user)
 ):
-    """迁移传统配置"""
+    """Move traditional configuration"""
     try:
         success = await config_service.migrate_legacy_config()
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1877,13 +1874,13 @@ async def set_default_llm(
     request: SetDefaultRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """设置默认大模型"""
+    """Set Default Large Model"""
     try:
-        # 开源版本：所有用户都可以修改配置
+        #Open source version: All users can modify configuration
 
         success = await config_service.set_default_llm(request.name)
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1915,13 +1912,13 @@ async def set_default_data_source(
     request: SetDefaultRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """设置默认数据源"""
+    """Set Default Data Source"""
     try:
-        # 开源版本：所有用户都可以修改配置
+        #Open source version: All users can modify configuration
 
         success = await config_service.set_default_data_source(request.name)
         if success:
-            # 审计日志（忽略异常）
+            #Audit log (overlooking anomalies)
             try:
                 await log_operation(
                     user_id=str(getattr(current_user, "id", "")),
@@ -1952,7 +1949,7 @@ async def set_default_data_source(
 async def get_available_models(
     current_user: User = Depends(get_current_user)
 ):
-    """获取可用的模型列表"""
+    """Get a list of available models"""
     try:
         models = await config_service.get_available_models()
         return models
@@ -1963,13 +1960,13 @@ async def get_available_models(
         )
 
 
-# ========== 模型目录管理 ==========
+#== sync, corrected by elderman == @elder man
 
 @router.get("/model-catalog", response_model=List[Dict[str, Any]])
 async def get_model_catalog(
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有模型目录"""
+    """Fetch all model directories"""
     try:
         catalogs = await config_service.get_model_catalog()
         return [catalog.model_dump(by_alias=False) for catalog in catalogs]
@@ -1985,7 +1982,7 @@ async def get_provider_model_catalog(
     provider: str,
     current_user: User = Depends(get_current_user)
 ):
-    """获取指定厂家的模型目录"""
+    """Retrieving a model directory of specified manufacturers"""
     try:
         catalog = await config_service.get_provider_models(provider)
         if not catalog:
@@ -2004,7 +2001,7 @@ async def get_provider_model_catalog(
 
 
 class ModelCatalogRequest(BaseModel):
-    """模型目录请求"""
+    """Model Directory Request"""
     provider: str
     provider_name: str
     models: List[Dict[str, Any]]
@@ -2015,24 +2012,24 @@ async def save_model_catalog(
     request: ModelCatalogRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """保存或更新模型目录"""
+    """Save or update the model directory"""
     try:
-        logger.info(f"📝 收到保存模型目录请求: provider={request.provider}, models数量={len(request.models)}")
-        logger.info(f"📝 请求数据: {request.model_dump()}")
+        logger.info(f"📝Received a request to save the model directory: protocol={request.provider}, models ={len(request.models)}")
+        logger.info(f"Data requested:{request.model_dump()}")
 
-        # 转换为 ModelInfo 列表
+        #Convert to ModelInfo List
         models = [ModelInfo(**m) for m in request.models]
-        logger.info(f"✅ 成功转换 {len(models)} 个模型")
+        logger.info(f"Successful conversion{len(models)}Model")
 
         catalog = ModelCatalog(
             provider=request.provider,
             provider_name=request.provider_name,
             models=models
         )
-        logger.info(f"✅ 创建 ModelCatalog 对象成功")
+        logger.info(f"Could not close temporary folder: %s")
 
         success = await config_service.save_model_catalog(catalog)
-        logger.info(f"💾 保存结果: {success}")
+        logger.info(f"Save results:{success}")
 
         if not success:
             raise HTTPException(
@@ -2040,7 +2037,7 @@ async def save_model_catalog(
                 detail="保存模型目录失败"
             )
 
-        # 记录操作日志
+        #Log Operations Log
         await log_operation(
             user_id=str(current_user["id"]),
             username=current_user.get("username", "unknown"),
@@ -2053,7 +2050,7 @@ async def save_model_catalog(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 保存模型目录失败: {str(e)}", exc_info=True)
+        logger.error(f"Could not close temporary folder: %s{str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"保存模型目录失败: {str(e)}"
@@ -2065,7 +2062,7 @@ async def delete_model_catalog(
     provider: str,
     current_user: User = Depends(get_current_user)
 ):
-    """删除模型目录"""
+    """Remove model directory"""
     try:
         success = await config_service.delete_model_catalog(provider)
         if not success:
@@ -2074,7 +2071,7 @@ async def delete_model_catalog(
                 detail=f"未找到厂家 {provider} 的模型目录"
             )
 
-        # 记录操作日志
+        #Log Operations Log
         await log_operation(
             user_id=str(current_user["id"]),
             username=current_user.get("username", "unknown"),
@@ -2097,7 +2094,7 @@ async def delete_model_catalog(
 async def init_model_catalog(
     current_user: User = Depends(get_current_user)
 ):
-    """初始化默认模型目录"""
+    """Initialize the default model directory"""
     try:
         success = await config_service.init_default_model_catalog()
         if not success:
@@ -2116,20 +2113,20 @@ async def init_model_catalog(
         )
 
 
-# ===== 数据库配置管理端点 =====
+#== sync, corrected by elderman == @elder man
 
 @router.get("/database", response_model=List[DatabaseConfig])
 async def get_database_configs(
     current_user: dict = Depends(get_current_user)
 ):
-    """获取所有数据库配置"""
+    """Get All Database Configurations"""
     try:
-        logger.info("🔄 获取数据库配置列表...")
+        logger.info("Can not open message")
         configs = await config_service.get_database_configs()
-        logger.info(f"✅ 获取到 {len(configs)} 个数据库配置")
+        logger.info(f"Other Organiser{len(configs)}Database Configuration")
         return configs
     except Exception as e:
-        logger.error(f"❌ 获取数据库配置失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取数据库配置失败: {str(e)}"
@@ -2141,9 +2138,9 @@ async def get_database_config(
     db_name: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """获取指定的数据库配置"""
+    """Get specified database configuration"""
     try:
-        logger.info(f"🔄 获取数据库配置: {db_name}")
+        logger.info(f"Access to database configurations:{db_name}")
         config = await config_service.get_database_config(db_name)
 
         if not config:
@@ -2156,7 +2153,7 @@ async def get_database_config(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 获取数据库配置失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取数据库配置失败: {str(e)}"
@@ -2168,14 +2165,14 @@ async def add_database_config(
     request: DatabaseConfigRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """添加数据库配置"""
+    """Add Database Configuration"""
     try:
-        logger.info(f"➕ 添加数据库配置: {request.name}")
+        logger.info(f"Add database configuration:{request.name}")
 
-        # 转换为 DatabaseConfig 对象
+        #Convert to DataConfig Object
         db_config = DatabaseConfig(**request.model_dump())
 
-        # 添加配置
+        #Add Profile
         success = await config_service.add_database_config(db_config)
 
         if not success:
@@ -2184,7 +2181,7 @@ async def add_database_config(
                 detail="添加数据库配置失败，可能已存在同名配置"
             )
 
-        # 记录操作日志
+        #Log Operations Log
         await log_operation(
             user_id=current_user["id"],
             username=current_user.get("username", "unknown"),
@@ -2198,7 +2195,7 @@ async def add_database_config(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 添加数据库配置失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"添加数据库配置失败: {str(e)}"
@@ -2211,21 +2208,21 @@ async def update_database_config(
     request: DatabaseConfigRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """更新数据库配置"""
+    """Update Database Configuration"""
     try:
-        logger.info(f"🔄 更新数据库配置: {db_name}")
+        logger.info(f"Update the database configuration:{db_name}")
 
-        # 检查名称是否匹配
+        #Check if the name matches
         if db_name != request.name:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="URL中的名称与请求体中的名称不匹配"
             )
 
-        # 转换为 DatabaseConfig 对象
+        #Convert to DataConfig Object
         db_config = DatabaseConfig(**request.model_dump())
 
-        # 更新配置
+        #Update Configuration
         success = await config_service.update_database_config(db_config)
 
         if not success:
@@ -2234,7 +2231,7 @@ async def update_database_config(
                 detail=f"数据库配置 '{db_name}' 不存在"
             )
 
-        # 记录操作日志
+        #Log Operations Log
         await log_operation(
             user_id=current_user["id"],
             username=current_user.get("username", "unknown"),
@@ -2248,7 +2245,7 @@ async def update_database_config(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 更新数据库配置失败: {e}")
+        logger.error(f"Update of database configuration failed:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"更新数据库配置失败: {str(e)}"
@@ -2260,11 +2257,11 @@ async def delete_database_config(
     db_name: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """删除数据库配置"""
+    """Delete Database Configuration"""
     try:
-        logger.info(f"🗑️ 删除数据库配置: {db_name}")
+        logger.info(f"Delete database configuration:{db_name}")
 
-        # 删除配置
+        #Remove Configuration
         success = await config_service.delete_database_config(db_name)
 
         if not success:
@@ -2273,7 +2270,7 @@ async def delete_database_config(
                 detail=f"数据库配置 '{db_name}' 不存在"
             )
 
-        # 记录操作日志
+        #Log Operations Log
         await log_operation(
             user_id=current_user["id"],
             username=current_user.get("username", "unknown"),
@@ -2287,7 +2284,7 @@ async def delete_database_config(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 删除数据库配置失败: {e}")
+        logger.error(f"Delete database configuration failed:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"删除数据库配置失败: {str(e)}"

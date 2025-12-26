@@ -44,7 +44,7 @@ TUSHARE_TOKEN=your_tushare_token      # Tushare数据
 在开始之前，您需要获取以下API密钥：
 
 1. **🇨🇳 阿里百炼 API Key** (推荐)
-   - 访问 [阿里云百炼平台](https://dashscope.aliyun.com/)
+   - 访问 [阿里云百炼平台](https://dashscope-int.aliyun.com/)
    - 注册账户并获取API密钥
    - 国产模型，无需科学上网，响应速度快
 

@@ -2,7 +2,7 @@
 
 from langchain_openai import ChatOpenAI
 
-# 导入统一日志系统和图处理模块日志装饰器
+#Import unified log system and chart processing module log decorations
 from tradingagents.utils.logging_init import get_logger
 from tradingagents.utils.tool_logging import log_graph_module
 logger = get_logger("graph.signal_processing")
@@ -28,9 +28,9 @@ class SignalProcessor:
             Dictionary containing extracted decision information
         """
 
-        # 验证输入参数
+        #Validate input parameters
         if not full_signal or not isinstance(full_signal, str) or len(full_signal.strip()) == 0:
-            logger.error(f"❌ [SignalProcessor] 输入信号为空或无效: {repr(full_signal)}")
+            logger.error(f"[SignalProcessor] Input signal is empty or invalid:{repr(full_signal)}")
             return {
                 'action': '持有',
                 'target_price': None,
@@ -39,10 +39,10 @@ class SignalProcessor:
                 'reasoning': '输入信号无效，默认持有建议'
             }
 
-        # 清理和验证信号内容
+        #Clear and validate signal contents
         full_signal = full_signal.strip()
         if len(full_signal) == 0:
-            logger.error(f"❌ [SignalProcessor] 信号内容为空")
+            logger.error(f"[SignalProcessor]")
             return {
                 'action': '持有',
                 'target_price': None,
@@ -51,7 +51,7 @@ class SignalProcessor:
                 'reasoning': '信号内容为空，默认持有建议'
             }
 
-        # 检测股票类型和货币
+        #Test stock type and currency
         from tradingagents.utils.stock_utils import StockUtils
 
         market_info = StockUtils.get_market_info(stock_symbol)
@@ -60,7 +60,7 @@ class SignalProcessor:
         currency = market_info['currency_name']
         currency_symbol = market_info['currency_symbol']
 
-        logger.info(f"🔍 [SignalProcessor] 处理信号: 股票={stock_symbol}, 市场={market_info['market_name']}, 货币={currency}",
+        logger.info(f"[SignalProcessor]{stock_symbol}market ={market_info['market_name']}currency ={currency}",
                    extra={'stock_symbol': stock_symbol, 'market': market_info['market_name'], 'currency': currency})
 
         messages = [
@@ -94,38 +94,38 @@ class SignalProcessor:
             ("human", full_signal),
         ]
 
-        # 验证messages内容
+        #Verify message contents
         if not messages or len(messages) == 0:
-            logger.error(f"❌ [SignalProcessor] messages为空")
+            logger.error(f"[SignalProcessor] messages are empty.")
             return self._get_default_decision()
         
-        # 验证human消息内容
+        #Could not close temporary folder: %s
         human_content = messages[1][1] if len(messages) > 1 else ""
         if not human_content or len(human_content.strip()) == 0:
-            logger.error(f"❌ [SignalProcessor] human消息内容为空")
+            logger.error(f"[SignalProcessor] human message is empty.")
             return self._get_default_decision()
 
-        logger.debug(f"🔍 [SignalProcessor] 准备调用LLM，消息数量: {len(messages)}, 信号长度: {len(full_signal)}")
+        logger.debug(f"[SignalProcessor]{len(messages)}, signal length:{len(full_signal)}")
 
         try:
             response = self.quick_thinking_llm.invoke(messages).content
-            logger.debug(f"🔍 [SignalProcessor] LLM响应: {response[:200]}...")
+            logger.debug(f"[SignalProcessor] LLM responded:{response[:200]}...")
 
-            # 尝试解析JSON响应
+            #Try to parse JSON's response
             import json
             import re
 
-            # 提取JSON部分
+            #Extract JSON section
             json_match = re.search(r'\{.*\}', response, re.DOTALL)
             if json_match:
                 json_text = json_match.group()
-                logger.debug(f"🔍 [SignalProcessor] 提取的JSON: {json_text}")
+                logger.debug(f"[SignalProcessor]{json_text}")
                 decision_data = json.loads(json_text)
 
-                # 验证和标准化数据
+                #Validation and standardization of data
                 action = decision_data.get('action', '持有')
                 if action not in ['买入', '持有', '卖出']:
-                    # 尝试映射英文和其他变体
+                    #Try mapping English and other variables
                     action_map = {
                         'buy': '买入', 'hold': '持有', 'sell': '卖出',
                         'BUY': '买入', 'HOLD': '持有', 'SELL': '卖出',
@@ -134,30 +134,30 @@ class SignalProcessor:
                     }
                     action = action_map.get(action, '持有')
                     if action != decision_data.get('action', '持有'):
-                        logger.debug(f"🔍 [SignalProcessor] 投资建议映射: {decision_data.get('action')} -> {action}")
+                        logger.debug(f"[SignalProcessor]{decision_data.get('action')} -> {action}")
 
-                # 处理目标价格，确保正确提取
+                #Process target prices to ensure correct extraction
                 target_price = decision_data.get('target_price')
                 if target_price is None or target_price == "null" or target_price == "":
-                    # 如果JSON中没有目标价格，尝试从reasoning和完整文本中提取
+                    #If JSON does not have a target price, try to extract it from the whole text
                     reasoning = decision_data.get('reasoning', '')
-                    full_text = f"{reasoning} {full_signal}"  # 扩大搜索范围
+                    full_text = f"{reasoning} {full_signal}"  #Expand Search
                     
-                    # 增强的价格匹配模式
+                    #Enhanced price matching mode
                     price_patterns = [
-                        r'目标价[位格]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',  # 目标价位: 45.50
-                        r'目标[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         # 目标: 45.50
-                        r'价格[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         # 价格: 45.50
-                        r'价位[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         # 价位: 45.50
-                        r'合理[价位格]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)', # 合理价位: 45.50
-                        r'估值[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         # 估值: 45.50
-                        r'[¥\$](\d+(?:\.\d+)?)',                      # ¥45.50 或 $190
-                        r'(\d+(?:\.\d+)?)元',                         # 45.50元
-                        r'(\d+(?:\.\d+)?)美元',                       # 190美元
-                        r'建议[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',        # 建议: 45.50
-                        r'预期[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',        # 预期: 45.50
-                        r'看[到至]\s*[¥\$]?(\d+(?:\.\d+)?)',          # 看到45.50
-                        r'上涨[到至]\s*[¥\$]?(\d+(?:\.\d+)?)',        # 上涨到45.50
+                        r'目标价[位格]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',  #Target price: 45.50
+                        r'目标[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         #Objective: 45.50
+                        r'价格[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         #Price: 45.50
+                        r'价位[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         #Price: 45.50
+                        r'合理[价位格]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)', #Reasonable price: 45.50
+                        r'估值[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         #Valuation: 45.50
+                        r'[¥\$](\d+(?:\.\d+)?)',                      #45.50 or $190
+                        r'(\d+(?:\.\d+)?)元',                         #45.50.
+                        r'(\d+(?:\.\d+)?)美元',                       #$190.
+                        r'建议[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',        #Recommendation: 45.50
+                        r'预期[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',        #Expected: 45.50
+                        r'看[到至]\s*[¥\$]?(\d+(?:\.\d+)?)',          #Seeing 45.50.
+                        r'上涨[到至]\s*[¥\$]?(\d+(?:\.\d+)?)',        #Up to 45.50.
                         r'(\d+(?:\.\d+)?)\s*[¥\$]',                  # 45.50¥
                     ]
                     
@@ -166,32 +166,32 @@ class SignalProcessor:
                         if price_match:
                             try:
                                 target_price = float(price_match.group(1))
-                                logger.debug(f"🔍 [SignalProcessor] 从文本中提取到目标价格: {target_price} (模式: {pattern})")
+                                logger.debug(f"[SignalProcessor]{target_price}(Model:{pattern})")
                                 break
                             except (ValueError, IndexError):
                                 continue
 
-                    # 如果仍然没有找到价格，尝试智能推算
+                    #If you still haven't found a price, try to figure it out.
                     if target_price is None or target_price == "null" or target_price == "":
                         target_price = self._smart_price_estimation(full_text, action, is_china)
                         if target_price:
-                            logger.debug(f"🔍 [SignalProcessor] 智能推算目标价格: {target_price}")
+                            logger.debug(f"[SignalProcessor]{target_price}")
                         else:
                             target_price = None
-                            logger.warning(f"🔍 [SignalProcessor] 未能提取到目标价格，设置为None")
+                            logger.warning(f"[SignalProcessor] failed to extract the target price, set to None")
                 else:
-                    # 确保价格是数值类型
+                    #Ensure price is a numerical type
                     try:
                         if isinstance(target_price, str):
-                            # 清理字符串格式的价格
+                            #Clear the price for string format
                             clean_price = target_price.replace('$', '').replace('¥', '').replace('￥', '').replace('元', '').replace('美元', '').strip()
                             target_price = float(clean_price) if clean_price and clean_price.lower() not in ['none', 'null', ''] else None
                         elif isinstance(target_price, (int, float)):
                             target_price = float(target_price)
-                        logger.debug(f"🔍 [SignalProcessor] 处理后的目标价格: {target_price}")
+                        logger.debug(f"[SignalProcessor]{target_price}")
                     except (ValueError, TypeError):
                         target_price = None
-                        logger.warning(f"🔍 [SignalProcessor] 价格转换失败，设置为None")
+                        logger.warning(f"[SignalProcessor] Price conversion failed, set to None")
 
                 result = {
                     'action': action,
@@ -200,28 +200,28 @@ class SignalProcessor:
                     'risk_score': float(decision_data.get('risk_score', 0.5)),
                     'reasoning': decision_data.get('reasoning', '基于综合分析的投资建议')
                 }
-                logger.info(f"🔍 [SignalProcessor] 处理结果: {result}",
+                logger.info(f"[SignalProcessor]{result}",
                            extra={'action': result['action'], 'target_price': result['target_price'],
                                  'confidence': result['confidence'], 'stock_symbol': stock_symbol})
                 return result
             else:
-                # 如果无法解析JSON，使用简单的文本提取
+                #If JSON cannot be parsed, extract with simple text
                 return self._extract_simple_decision(response)
 
         except Exception as e:
-            logger.error(f"信号处理错误: {e}", exc_info=True, extra={'stock_symbol': stock_symbol})
-            # 回退到简单提取
+            logger.error(f"Signal processing error:{e}", exc_info=True, extra={'stock_symbol': stock_symbol})
+            #Back to simple extraction
             return self._extract_simple_decision(full_signal)
 
     def _smart_price_estimation(self, text: str, action: str, is_china: bool) -> float:
-        """智能价格推算方法"""
+        """Smart price extrapolation method"""
         import re
         
-        # 尝试从文本中提取当前价格和涨跌幅信息
+        #Try to extract current price and drop information from text
         current_price = None
         percentage_change = None
         
-        # 提取当前价格
+        #Extract Current Price
         current_price_patterns = [
             r'当前价[格位]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',
             r'现价[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',
@@ -238,7 +238,7 @@ class SignalProcessor:
                 except ValueError:
                     continue
         
-        # 提取涨跌幅信息
+        #Can not open message
         percentage_patterns = [
             r'上涨\s*(\d+(?:\.\d+)?)%',
             r'涨幅\s*(\d+(?:\.\d+)?)%',
@@ -255,35 +255,35 @@ class SignalProcessor:
                 except ValueError:
                     continue
         
-        # 基于动作和信息推算目标价
+        #Calculate target price based on actions and information
         if current_price and percentage_change:
             if action == '买入':
                 return round(current_price * (1 + percentage_change), 2)
             elif action == '卖出':
                 return round(current_price * (1 - percentage_change), 2)
         
-        # 如果有当前价格但没有涨跌幅，使用默认估算
+        #Use default estimation if current prices do not rise or fall
         if current_price:
             if action == '买入':
-                # 买入建议默认10-20%涨幅
+                #Buy recommendation default 10-20% increase
                 multiplier = 1.15 if is_china else 1.12
                 return round(current_price * multiplier, 2)
             elif action == '卖出':
-                # 卖出建议默认5-10%跌幅
+                #Sold proposal defaults 5-10% down Fan
                 multiplier = 0.95 if is_china else 0.92
                 return round(current_price * multiplier, 2)
-            else:  # 持有
-                # 持有建议使用当前价格
+            else:  #Hold
+                #Holding recommended use of current prices
                 return current_price
         
         return None
 
     def _extract_simple_decision(self, text: str) -> dict:
-        """简单的决策提取方法作为备用"""
+        """Simple decision extraction as backup"""
         import re
 
-        # 提取动作
-        action = '持有'  # 默认
+        #Rip Action
+        action = '持有'  #Default
         if re.search(r'买入|BUY', text, re.IGNORECASE):
             action = '买入'
         elif re.search(r'卖出|SELL', text, re.IGNORECASE):
@@ -291,15 +291,15 @@ class SignalProcessor:
         elif re.search(r'持有|HOLD', text, re.IGNORECASE):
             action = '持有'
 
-        # 尝试提取目标价格（使用增强的模式）
+        #Attempt to extract target prices (using enhanced models)
         target_price = None
         price_patterns = [
-            r'目标价[位格]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',  # 目标价位: 45.50
-            r'\*\*目标价[位格]?\*\*[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',  # **目标价位**: 45.50
-            r'目标[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         # 目标: 45.50
-            r'价格[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         # 价格: 45.50
-            r'[¥\$](\d+(?:\.\d+)?)',                      # ¥45.50 或 $190
-            r'(\d+(?:\.\d+)?)元',                         # 45.50元
+            r'目标价[位格]?[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',  #Target price: 45.50
+            r'\*\*目标价[位格]?\*\*[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',  #** Target price**: 45.50
+            r'目标[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         #Objective: 45.50
+            r'价格[：:]?\s*[¥\$]?(\d+(?:\.\d+)?)',         #Price: 45.50
+            r'[¥\$](\d+(?:\.\d+)?)',                      #45.50 or $190
+            r'(\d+(?:\.\d+)?)元',                         #45.50.
         ]
 
         for pattern in price_patterns:
@@ -311,10 +311,10 @@ class SignalProcessor:
                 except ValueError:
                     continue
 
-        # 如果没有找到价格，尝试智能推算
+        #If you don't find a price, try smart calculations.
         if target_price is None:
-            # 检测股票类型
-            is_china = True  # 默认假设是A股，实际应该从上下文获取
+            #Test for stock type
+            is_china = True  #The default assumption is Unit A and should actually be obtained from context
             target_price = self._smart_price_estimation(text, action, is_china)
 
         return {
@@ -326,7 +326,7 @@ class SignalProcessor:
         }
 
     def _get_default_decision(self) -> dict:
-        """返回默认的投资决策"""
+        """Return to default investment decision"""
         return {
             'action': '持有',
             'target_price': None,

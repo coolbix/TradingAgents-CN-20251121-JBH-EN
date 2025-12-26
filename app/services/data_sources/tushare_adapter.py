@@ -15,7 +15,7 @@ class TushareAdapter(DataSourceAdapter):
     """Tusharedata source adapter"""
 
     def __init__(self):
-        super().__init__()  # 调用父类初始化
+        super().__init__()  #Call Parent Initialization
         self._provider = None
         self._initialize()
 
@@ -33,17 +33,17 @@ class TushareAdapter(DataSourceAdapter):
         return "tushare"
 
     def _get_default_priority(self) -> int:
-        return 3  # highest priority (数字越大优先级越高)  # highest priority
+        return 3  ## Highest priority
 
     def get_token_source(self) -> Optional[str]:
-        """获取 Token 来源"""
+        """Get Token Source"""
         if self._provider:
             return getattr(self._provider, "token_source", None)
         return None
 
     def is_available(self) -> bool:
         """Check whether Tushare is available"""
-        # 如果未连接，尝试连接
+        #If not connected, try to connect
         if self._provider and not getattr(self._provider, "connected", False):
             try:
                 self._provider.connect_sync()
@@ -58,7 +58,7 @@ class TushareAdapter(DataSourceAdapter):
 
     def get_stock_list(self) -> Optional[pd.DataFrame]:
         """Get stock list"""
-        # 如果未连接，尝试连接
+        #If not connected, try to connect
         if self._provider and not self.is_available():
             logger.info("Tushare: Provider not connected, attempting to connect...")
             try:
@@ -70,7 +70,7 @@ class TushareAdapter(DataSourceAdapter):
             logger.warning("Tushare: Provider is not available")
             return None
         try:
-            # 使用 TushareProvider 的同步方法
+            #Sync with TushareProvider
             df = self._provider.get_stock_list_sync()
             if df is not None and not df.empty:
                 logger.info(f"Tushare: Successfully fetched {len(df)} stocks")
@@ -84,7 +84,7 @@ class TushareAdapter(DataSourceAdapter):
         if not self.is_available():
             return None
         try:
-            # 🔥 新增 ps, ps_ttm, total_share, float_share 字段
+            #New ps, ps tm, total share, float share field
             fields = "ts_code,total_mv,circ_mv,pe,pb,ps,turnover_rate,volume_ratio,pe_ttm,pb_mrq,ps_ttm,total_share,float_share"
             df = self._provider.api.daily_basic(trade_date=trade_date, fields=fields)
             if df is not None and not df.empty:
@@ -145,16 +145,16 @@ class TushareAdapter(DataSourceAdapter):
                         hi = float(row.get('high')) if row.get('high') is not None else None
                     if 'low' in df.columns:
                         lo = float(row.get('low')) if row.get('low') is not None else None
-                    # tushare 实时快照可能为 'vol' 或 'volume'
-                    # 🔥 成交量单位转换：Tushare 返回的是手，需要转换为股
+                    #Tushare real-time snapshots may be 'vol ' or 'volume'
+                    #🔥 Conversion unit: Tushare returns hand and needs to be converted to unit
                     if 'vol' in df.columns:
                         vol = float(row.get('vol')) if row.get('vol') is not None else None
                         if vol is not None:
-                            vol = vol * 100  # 手 -> 股
+                            vol = vol * 100  #Hand - > Unit
                     elif 'volume' in df.columns:
                         vol = float(row.get('volume')) if row.get('volume') is not None else None
                         if vol is not None:
-                            vol = vol * 100  # 手 -> 股
+                            vol = vol * 100  #Hand - > Unit
                 except Exception:
                     op = op or None
                     hi = hi or None
@@ -198,8 +198,8 @@ class TushareAdapter(DataSourceAdapter):
             freq = freq_map.get(period, "D")
             adj_arg = adj if adj in (None, "qfq", "hfq") else None
 
-            # 根据频率决定请求的字段
-            # 日线及以上周期只有 trade_date，分钟线才有 trade_time
+            #Deciding requested fields by frequency
+            #Track date only for minutes
             if freq in ["5min", "15min", "30min", "60min"]:
                 fields = "open,high,low,close,vol,amount,trade_date,trade_time"
             else:

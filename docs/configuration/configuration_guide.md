@@ -191,7 +191,7 @@ DEEPSEEK_ENABLED=true
 DASHSCOPE_API_KEY=sk-xxx
 ```
 
-**获取地址**: https://dashscope.aliyun.com/
+**获取地址**: https://dashscope-int.aliyun.com/
 - 注册阿里云账号 → 开通百炼服务 → 获取API密钥
 
 #### 其他大模型（可选）

@@ -87,7 +87,7 @@ python -m cli.main config
 ## 🔍 API密钥获取指南
 
 ### 阿里百炼 (推荐)
-1. 访问 https://dashscope.aliyun.com/
+1. 访问 https://dashscope-int.aliyun.com/
 2. 注册/登录阿里云账号
 3. 开通百炼服务
 4. 在控制台获取API密钥

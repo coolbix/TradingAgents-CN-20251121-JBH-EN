@@ -1,6 +1,5 @@
-"""
-基于MongoDB的股票筛选服务
-利用本地数据库中的股票基础信息进行高效筛选
+"""Stock screening service based on MongoDB
+Efficient screening using basic stock information in local databases Select
 """
 
 import logging
@@ -8,21 +7,21 @@ from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 
 from app.core.database import get_mongo_db
-# from app.models.screening import ScreeningCondition  # 避免循环导入
+#From app.models. avoiding import cycle
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseScreeningService:
-    """基于数据库的股票筛选服务"""
+    """Database-based stock screening services"""
     
     def __init__(self):
-        # 使用视图而不是基础信息表，视图已经包含了实时行情数据
+        #Use view instead of base information sheet, which already contains real-time line data
         self.collection_name = "stock_screening_view"
         
-        # 支持的基础信息字段映射
+        #Supported base information field map
         self.basic_fields = {
-            # 基本信息
+            #Basic information
             "code": "code",
             "name": "name", 
             "industry": "industry",
@@ -30,30 +29,30 @@ class DatabaseScreeningService:
             "market": "market",
             "list_date": "list_date",
             
-            # 市值信息 (亿元)
-            "total_mv": "total_mv",      # 总市值
-            "circ_mv": "circ_mv",        # 流通市值
-            "market_cap": "total_mv",    # 市值别名
+            #Market value information (billions of dollars)
+            "total_mv": "total_mv",      #Total market value
+            "circ_mv": "circ_mv",        #Market value in circulation
+            "market_cap": "total_mv",    #Market value aliases
 
-            # 财务指标
-            "pe": "pe",                  # 市盈率
-            "pb": "pb",                  # 市净率
-            "pe_ttm": "pe_ttm",         # 滚动市盈率
-            "pb_mrq": "pb_mrq",         # 最新市净率
-            "roe": "roe",                # 净资产收益率（最近一期）
+            #Financial indicators
+            "pe": "pe",                  #Earnings
+            "pb": "pb",                  #Net market rate
+            "pe_ttm": "pe_ttm",         #Rolling surplus
+            "pb_mrq": "pb_mrq",         #Newest net market rate
+            "roe": "roe",                #Net asset rate of return (latest period)
 
-            # 交易指标
-            "turnover_rate": "turnover_rate",  # 换手率%
-            "volume_ratio": "volume_ratio",    # 量比
+            #Transaction indicators
+            "turnover_rate": "turnover_rate",  #Exchange rate %
+            "volume_ratio": "volume_ratio",    #Scale
 
-            # 实时行情字段（需要从 market_quotes 关联查询）
-            "pct_chg": "pct_chg",              # 涨跌幅%
-            "amount": "amount",                # 成交额（万元）
-            "close": "close",                  # 收盘价
-            "volume": "volume",                # 成交量
+            #Real-time line-line fields (require contact query from markt quotes)
+            "pct_chg": "pct_chg",              #% Increase or Decline
+            "amount": "amount",                #(millions of dollars)
+            "close": "close",                  #Discount price
+            "volume": "volume",                #Exchange
         }
         
-        # 支持的操作符
+        #Supported Operators
         self.operators = {
             ">": "$gt",
             "<": "$lt", 
@@ -61,34 +60,33 @@ class DatabaseScreeningService:
             "<=": "$lte",
             "==": "$eq",
             "!=": "$ne",
-            "between": "$between",  # 自定义处理
+            "between": "$between",  #Custom Process
             "in": "$in",
             "not_in": "$nin",
-            "contains": "$regex",   # 字符串包含
+            "contains": "$regex",   #String contains
         }
     
     async def can_handle_conditions(self, conditions: List[Dict[str, Any]]) -> bool:
-        """
-        检查是否可以完全通过数据库筛选处理这些条件
-        
-        Args:
-            conditions: 筛选条件列表
-            
-        Returns:
-            bool: 是否可以处理
-        """
+        """Check if these conditions can be fully processed through database screening
+
+Args:
+Conditions: Filter Condition List
+
+Returns:
+Bool: Can it be handled
+"""
         for condition in conditions:
             field = condition.get("field") if isinstance(condition, dict) else condition.field
             operator = condition.get("operator") if isinstance(condition, dict) else condition.operator
             
-            # 检查字段是否支持
+            #Checks if fields support
             if field not in self.basic_fields:
-                logger.debug(f"字段 {field} 不支持数据库筛选")
+                logger.debug(f"Fields{field}Database filter is not supported")
                 return False
             
-            # 检查操作符是否支持
+            #Check if operator supports
             if operator not in self.operators:
-                logger.debug(f"操作符 {operator} 不支持数据库筛选")
+                logger.debug(f"Operator{operator}Database filter is not supported")
                 return False
         
         return True
@@ -101,95 +99,94 @@ class DatabaseScreeningService:
         order_by: Optional[List[Dict[str, str]]] = None,
         source: Optional[str] = None
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """
-        基于数据库进行股票筛选
+        """Share screening based on database
 
-        Args:
-            conditions: 筛选条件列表
-            limit: 返回数量限制
-            offset: 偏移量
-            order_by: 排序条件 [{"field": "total_mv", "direction": "desc"}]
-            source: 数据源（可选），默认使用优先级最高的数据源
+Args:
+Conditions: Filter Condition List
+Limited number of returns
+offset: offset
+Order by: Sort Conditions [  FMT 0   ]
+source: data source (optional), default use of highest priority data source
 
-        Returns:
-            Tuple[List[Dict], int]: (筛选结果, 总数量)
-        """
+Returns:
+Tuple [List [Dict], int]: (screening results, total number)
+"""
         try:
             db = get_mongo_db()
             collection = db[self.collection_name]
 
-            # 🔥 获取数据源优先级配置
+            #Access source priority configuration
             if not source:
                 from app.core.unified_config import UnifiedConfigManager
                 config = UnifiedConfigManager()
                 data_source_configs = await config.get_data_source_configs_async()
 
-                logger.info(f"🔍 [database_screening] 获取到 {len(data_source_configs)} 个数据源配置")
+                logger.info(f"[database screening]{len(data_source_configs)}Data source configuration")
                 for ds in data_source_configs:
                     logger.info(f"   - {ds.name}: type={ds.type}, priority={ds.priority}, enabled={ds.enabled}")
 
-                # 提取启用的数据源，按优先级排序
+                #Extract enabled data sources in order of priority
                 enabled_sources = [
                     ds.type.lower() for ds in data_source_configs
                     if ds.enabled and ds.type.lower() in ['tushare', 'akshare', 'baostock']
                 ]
 
-                logger.info(f"🔍 [database_screening] 启用的数据源（按优先级）: {enabled_sources}")
+                logger.info(f"🔍 [database screening] enabled data sources (by priority):{enabled_sources}")
 
                 if not enabled_sources:
                     enabled_sources = ['tushare', 'akshare', 'baostock']
-                    logger.warning(f"⚠️ [database_screening] 没有启用的数据源，使用默认: {enabled_sources}")
+                    logger.warning(f"[database screening]{enabled_sources}")
 
                 source = enabled_sources[0] if enabled_sources else 'tushare'
-                logger.info(f"✅ [database_screening] 最终使用的数据源: {source}")
+                logger.info(f"[database screening]{source}")
 
-            # 构建查询条件（现在视图已包含实时行情数据，可以直接查询所有字段）
+            #Build query conditions (now the view contains real-time line data and can directly query all fields)
             query = await self._build_query(conditions)
 
-            # 🔥 添加数据源筛选
+            #Add Data Source Filter
             query["source"] = source
 
-            logger.info(f"📋 数据库查询条件: {query}")
+            logger.info(f"Database search conditions:{query}")
 
-            # 构建排序条件
+            #Build Sort Conditions
             sort_conditions = self._build_sort_conditions(order_by)
 
-            # 获取总数
+            #Total acquisitions
             total_count = await collection.count_documents(query)
 
-            # 执行查询
+            #Execute queries
             cursor = collection.find(query)
 
-            # 应用排序
+            #Apply Sorting
             if sort_conditions:
                 cursor = cursor.sort(sort_conditions)
 
-            # 应用分页
+            #Apply page breaks
             cursor = cursor.skip(offset).limit(limit)
 
-            # 获取结果
+            #Get results
             results = []
             codes = []
             async for doc in cursor:
-                # 转换结果格式
+                #Convert Results Formatting
                 result = self._format_result(doc)
                 results.append(result)
                 codes.append(doc.get("code"))
 
-            # 批量查询财务数据（ROE等）- 如果视图中没有包含
+            #Batch query for financial data (ROE etc.) - if not included in view
             if codes:
                 await self._enrich_with_financial_data(results, codes)
 
-            logger.info(f"✅ 数据库筛选完成: 总数={total_count}, 返回={len(results)}, 数据源={source}")
+            logger.info(f"Database screening completed: Total ={total_count}returns ={len(results)}, data source={source}")
 
             return results, total_count
             
         except Exception as e:
-            logger.error(f"❌ 数据库筛选失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             raise Exception(f"数据库筛选失败: {str(e)}")
     
     async def _build_query(self, conditions: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """构建MongoDB查询条件"""
+        """Build MongoDB query condition"""
         query = {}
 
         for condition in conditions:
@@ -197,41 +194,41 @@ class DatabaseScreeningService:
             operator = condition.get("operator") if isinstance(condition, dict) else condition.operator
             value = condition.get("value") if isinstance(condition, dict) else condition.value
 
-            logger.info(f"🔍 [_build_query] 处理条件: field={field}, operator={operator}, value={value}")
+            logger.info(f"[ building query]{field}, operator={operator}, value={value}")
 
-            # 映射字段名
+            #Map field name
             db_field = self.basic_fields.get(field)
             if not db_field:
-                logger.warning(f"⚠️ [_build_query] 字段 {field} 不在 basic_fields 映射中，跳过")
+                logger.warning(f"Fields{field}Not in Basic fields Map, Skip")
                 continue
 
-            logger.info(f"✅ [_build_query] 字段映射: {field} -> {db_field}")
+            logger.info(f"✅[build query] field map:{field} -> {db_field}")
             
-            # 处理不同操作符
+            #Deal with different operators
             if operator == "between":
-                # between操作需要两个值
+                #Between takes two values
                 if isinstance(value, list) and len(value) == 2:
                     query[db_field] = {
                         "$gte": value[0],
                         "$lte": value[1]
                     }
             elif operator == "contains":
-                # 字符串包含（不区分大小写）
+                #String contains (no case sensitive)
                 query[db_field] = {
                     "$regex": str(value),
                     "$options": "i"
                 }
             elif operator in self.operators:
-                # 标准操作符
+                #Standard Operator
                 mongo_op = self.operators[operator]
                 query[db_field] = {mongo_op: value}
             
         return query
     
     def _build_sort_conditions(self, order_by: Optional[List[Dict[str, str]]]) -> List[Tuple[str, int]]:
-        """构建排序条件"""
+        """Build Sort Conditions"""
         if not order_by:
-            # 默认按总市值降序排序
+            #Default Sort By Total Market Value Decline
             return [("total_mv", -1)]
         
         sort_conditions = []
@@ -239,35 +236,34 @@ class DatabaseScreeningService:
             field = order.get("field")
             direction = order.get("direction", "desc")
             
-            # 映射字段名
+            #Map field name
             db_field = self.basic_fields.get(field)
             if not db_field:
                 continue
             
-            # 映射排序方向
+            #Map Sort Direction
             sort_direction = -1 if direction.lower() == "desc" else 1
             sort_conditions.append((db_field, sort_direction))
         
         return sort_conditions
     
     async def _enrich_with_financial_data(self, results: List[Dict[str, Any]], codes: List[str]) -> None:
-        """
-        批量查询财务数据并填充到结果中
+        """Batch search for financial data and fill in results
 
-        Args:
-            results: 筛选结果列表
-            codes: 股票代码列表
-        """
+Args:
+Results: Filter List
+codes: list of stock codes
+"""
         try:
             db = get_mongo_db()
             financial_collection = db['stock_financial_data']
 
-            # 🔥 获取数据源优先级配置
+            #Access source priority configuration
             from app.core.unified_config import UnifiedConfigManager
             config = UnifiedConfigManager()
             data_source_configs = await config.get_data_source_configs_async()
 
-            # 提取启用的数据源，按优先级排序
+            #Extract enabled data sources in order of priority
             enabled_sources = [
                 ds.type.lower() for ds in data_source_configs
                 if ds.enabled and ds.type.lower() in ['tushare', 'akshare', 'baostock']
@@ -276,11 +272,11 @@ class DatabaseScreeningService:
             if not enabled_sources:
                 enabled_sources = ['tushare', 'akshare', 'baostock']
 
-            # 优先使用优先级最高的数据源
+            #Prioritize the highest priority data sources
             preferred_source = enabled_sources[0] if enabled_sources else 'tushare'
 
-            # 批量查询最新的财务数据
-            # 按 code 分组，取每个 code 的最新一期数据（只查询优先级最高的数据源）
+            #Batch searching for up-to-date financial data
+            #Group by code to take the latest data for each code (only to query the highest priority data sources)
             pipeline = [
                 {"$match": {"code": {"$in": codes}, "data_source": preferred_source}},
                 {"$sort": {"code": 1, "report_period": -1}},
@@ -303,73 +299,73 @@ class DatabaseScreeningService:
                     "gross_margin": doc.get("gross_margin"),
                 }
 
-            # 填充财务数据到结果中
+            #Filling financial data to result
             for result in results:
                 code = result.get("code")
                 if code in financial_data_map:
                     financial_data = financial_data_map[code]
-                    # 只更新 ROE（如果 stock_basic_info 中没有的话）
+                    #Update ROE only (if not available at stock basic info)
                     if result.get("roe") is None:
                         result["roe"] = financial_data.get("roe")
-                    # 可以添加更多财务指标
+                    #More financial indicators could be added
                     # result["roa"] = financial_data.get("roa")
                     # result["netprofit_margin"] = financial_data.get("netprofit_margin")
 
-            logger.debug(f"✅ 已填充 {len(financial_data_map)} 条财务数据")
+            logger.debug(f"Filled{len(financial_data_map)}Financial data")
 
         except Exception as e:
-            logger.warning(f"⚠️ 填充财务数据失败: {e}")
-            # 不抛出异常，允许继续返回基础数据
+            logger.warning(f"Could not close temporary folder: %s{e}")
+            #Do not throw anomalies and allow continued return to base data
 
     def _format_result(self, doc: Dict[str, Any]) -> Dict[str, Any]:
-        """格式化查询结果，统一使用后端字段名"""
-        # 根据股票代码推断市场类型
+        """Format query results, use back-end fields First Name"""
+        #Infer market type by stock code
         code = doc.get("code", "")
-        market_type = "A股"  # 默认A股
+        market_type = "A股"  #Default A Unit
         if code:
             if code.startswith("6"):
-                market_type = "A股"  # 上海
+                market_type = "A股"  #Shanghai
             elif code.startswith(("0", "3")):
-                market_type = "A股"  # 深圳
+                market_type = "A股"  #Shenzhen.
             elif code.startswith("8") or code.startswith("4"):
-                market_type = "A股"  # 北交所
+                market_type = "A股"  #North China
 
         result = {
-            # 基础信息
+            #Basic information
             "code": doc.get("code"),
             "name": doc.get("name"),
             "industry": doc.get("industry"),
             "area": doc.get("area"),
-            "market": market_type,  # 市场类型（A股、美股、港股）
-            "board": doc.get("market"),  # 板块（主板、创业板、科创板等）
-            "exchange": doc.get("sse"),  # 交易所（上海证券交易所、深圳证券交易所等）
+            "market": market_type,  #Market type (A, US, HK)
+            "board": doc.get("market"),  #Board (main board, entrepreneurship board, science board, etc.)
+            "exchange": doc.get("sse"),  #Exchange (Shanghai Stock Exchange, Shenzhen Stock Exchange, etc.)
             "list_date": doc.get("list_date"),
 
-            # 市值信息（亿元）
+            #Market value information (billions of dollars)
             "total_mv": doc.get("total_mv"),
             "circ_mv": doc.get("circ_mv"),
 
-            # 财务指标
+            #Financial indicators
             "pe": doc.get("pe"),
             "pb": doc.get("pb"),
             "pe_ttm": doc.get("pe_ttm"),
             "pb_mrq": doc.get("pb_mrq"),
             "roe": doc.get("roe"),
 
-            # 交易指标
+            #Transaction indicators
             "turnover_rate": doc.get("turnover_rate"),
             "volume_ratio": doc.get("volume_ratio"),
 
-            # 交易数据（从视图中获取，视图已包含实时行情数据）
-            "close": doc.get("close"),              # 收盘价
-            "pct_chg": doc.get("pct_chg"),          # 涨跌幅(%)
-            "amount": doc.get("amount"),            # 成交额
-            "volume": doc.get("volume"),            # 成交量
-            "open": doc.get("open"),                # 开盘价
-            "high": doc.get("high"),                # 最高价
-            "low": doc.get("low"),                  # 最低价
+            #Transaction data (required from view, view already containing real-time line data)
+            "close": doc.get("close"),              #Discount price
+            "pct_chg": doc.get("pct_chg"),          #Increase/decrease (%)
+            "amount": doc.get("amount"),            #Done
+            "volume": doc.get("volume"),            #Exchange
+            "open": doc.get("open"),                #Opening price
+            "high": doc.get("high"),                #Maximum price
+            "low": doc.get("low"),                  #Minimum price
 
-            # 技术指标（基础信息筛选时为None）
+            #Technical indicators (None for basic information screening)
             "ma20": None,
             "rsi14": None,
             "kdj_k": None,
@@ -379,24 +375,23 @@ class DatabaseScreeningService:
             "dea": None,
             "macd_hist": None,
 
-            # 元数据
+            #Metadata
             "source": doc.get("source", "database"),
             "updated_at": doc.get("updated_at"),
         }
         
-        # 移除None值
+        #Remove Noone
         return {k: v for k, v in result.items() if v is not None}
     
     async def get_field_statistics(self, field: str) -> Dict[str, Any]:
-        """
-        获取字段的统计信息
-        
-        Args:
-            field: 字段名
-            
-        Returns:
-            Dict: 统计信息 {min, max, avg, count}
-        """
+        """Fetch field statistics
+
+Args:
+Field: First Name
+
+Returns:
+Dict: Statistical information FMT 0 
+"""
         try:
             db_field = self.basic_fields.get(field)
             if not db_field:
@@ -405,7 +400,7 @@ class DatabaseScreeningService:
             db = get_mongo_db()
             collection = db[self.collection_name]
             
-            # 使用聚合管道获取统计信息
+            #Access to statistical information using a polymer conduit
             pipeline = [
                 {"$match": {db_field: {"$exists": True, "$ne": None}}},
                 {"$group": {
@@ -433,20 +428,19 @@ class DatabaseScreeningService:
             return {"field": field, "count": 0}
             
         except Exception as e:
-            logger.error(f"获取字段统计失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return {"field": field, "error": str(e)}
     
     def _separate_conditions(self, conditions: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """
-        分离基础信息条件和实时行情条件
+        """Separation of basic information conditions and real-time conditions
 
-        Args:
-            conditions: 所有筛选条件
+Args:
+Options: All filter conditions
 
-        Returns:
-            Tuple[基础信息条件列表, 实时行情条件列表]
-        """
-        # 实时行情字段（需要从 market_quotes 查询）
+Returns:
+Tuple [list of basic information conditions, list of real-time line conditions]
+"""
+        #Real-time line field (required from market quotes)
         quote_fields = {"pct_chg", "amount", "close", "volume"}
 
         basic_conditions = []
@@ -467,22 +461,21 @@ class DatabaseScreeningService:
         codes: List[str],
         quote_conditions: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """
-        根据实时行情数据进行二次筛选
+        """Second screening based on real-time patterns
 
-        Args:
-            results: 初步筛选结果
-            codes: 股票代码列表
-            quote_conditions: 实时行情筛选条件
+Args:
+Results: Preliminary screening
+codes: list of stock codes
+quote conditions: real-time line filter conditions
 
-        Returns:
-            List[Dict]: 筛选后的结果
-        """
+Returns:
+List [Dict]: Post-screen results
+"""
         try:
             db = get_mongo_db()
             quotes_collection = db['market_quotes']
 
-            # 批量查询实时行情数据
+            #Batch query real-time line data
             quotes_cursor = quotes_collection.find({"code": {"$in": codes}})
             quotes_map = {}
             async for quote in quotes_cursor:
@@ -494,19 +487,19 @@ class DatabaseScreeningService:
                     "volume": quote.get("volume"),
                 }
 
-            logger.info(f"📊 查询到 {len(quotes_map)} 只股票的实时行情数据")
+            logger.info(f"Other Organiser{len(quotes_map)}Real-time behaviour data for stocks only")
 
-            # 过滤结果
+            #Filter Results
             filtered_results = []
             for result in results:
                 code = result.get("code")
                 quote_data = quotes_map.get(code)
 
                 if not quote_data:
-                    # 没有实时行情数据，跳过
+                    #No real-time behavioral data. Skip
                     continue
 
-                # 检查是否满足所有实时行情条件
+                #Check if all real-time conditions are met
                 match = True
                 for condition in quote_conditions:
                     field = condition.get("field") if isinstance(condition, dict) else condition.field
@@ -518,7 +511,7 @@ class DatabaseScreeningService:
                         match = False
                         break
 
-                    # 检查条件
+                    #Check Conditions
                     if operator == "between" and isinstance(value, list) and len(value) == 2:
                         if not (value[0] <= field_value <= value[1]):
                             match = False
@@ -541,29 +534,28 @@ class DatabaseScreeningService:
                             break
 
                 if match:
-                    # 将实时行情数据合并到结果中
+                    #Merge real-time line data into results
                     result.update(quote_data)
                     filtered_results.append(result)
 
-            logger.info(f"✅ 实时行情筛选完成: 筛选前={len(results)}, 筛选后={len(filtered_results)}")
+            logger.info(f"✅ Timeline screening complete: ={len(results)}, after filter ={len(filtered_results)}")
             return filtered_results
 
         except Exception as e:
-            logger.error(f"❌ 实时行情筛选失败: {e}")
-            # 如果失败，返回原始结果
+            logger.error(f"The real-time line filter failed:{e}")
+            #If failed, return original result
             return results
 
     async def get_available_values(self, field: str, limit: int = 100) -> List[str]:
-        """
-        获取字段的可选值列表（用于枚举类型字段）
-        
-        Args:
-            field: 字段名
-            limit: 返回数量限制
-            
-        Returns:
-            List[str]: 可选值列表
-        """
+        """List of optional values for fetching fields (for list type fields)
+
+Args:
+Field: First Name
+Limited number of returns
+
+Returns:
+List [str]: Optional list
+"""
         try:
             db_field = self.basic_fields.get(field)
             if not db_field:
@@ -572,26 +564,26 @@ class DatabaseScreeningService:
             db = get_mongo_db()
             collection = db[self.collection_name]
             
-            # 获取字段的不重复值
+            #Get field non-duplicate values
             values = await collection.distinct(db_field)
             
-            # 过滤None值并排序
+            #Filter and sort Noone values
             values = [v for v in values if v is not None]
             values.sort()
             
             return values[:limit]
             
         except Exception as e:
-            logger.error(f"获取字段可选值失败: {e}")
+            logger.error(f"Fetching fields failed:{e}")
             return []
 
 
-# 全局服务实例
+#Examples of global services
 _database_screening_service: Optional[DatabaseScreeningService] = None
 
 
 def get_database_screening_service() -> DatabaseScreeningService:
-    """获取数据库筛选服务实例"""
+    """Examples of accessing database filter services"""
     global _database_screening_service
     if _database_screening_service is None:
         _database_screening_service = DatabaseScreeningService()

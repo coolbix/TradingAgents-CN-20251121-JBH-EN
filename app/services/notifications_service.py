@@ -1,5 +1,4 @@
-"""
-通知服务：持久化 + 列表 + 已读 + SSE 发布
+"""Notification service: Endurance + List + Read + SSE release
 """
 import json
 import logging
@@ -29,7 +28,7 @@ class NotificationsService:
             await db[self.collection].create_index([("user_id", 1), ("created_at", -1)])
             await db[self.collection].create_index([("user_id", 1), ("status", 1)])
         except Exception as e:
-            logger.warning(f"创建索引失败(忽略): {e}")
+            logger.warning(f"Failed to create index (negative):{e}")
 
     async def create_and_publish(self, payload: NotificationCreate) -> str:
         await self._ensure_indexes()
@@ -60,21 +59,21 @@ class NotificationsService:
             "created_at": doc["created_at"].isoformat(),
         }
 
-        # 🔥 使用 WebSocket 发送通知
+        #Can not open message
         try:
             from app.routers.websocket_notifications import send_notification_via_websocket
             await send_notification_via_websocket(payload.user_id, payload_to_publish)
-            logger.debug(f"✅ [WS] 通知已通过 WebSocket 发送: user={payload.user_id}")
+            logger.debug(f"[WS] Notifications have been sent by WebSocket: user={payload.user_id}")
         except Exception as e:
-            logger.warning(f"⚠️ [WS] WebSocket 发送失败: {e}")
+            logger.warning(f"[WS] WebSocket failed:{e}")
 
-        # 清理策略：保留最近N天/最多M条
+        #Clean-up strategy: retain the latest N-day/up to M strips
         try:
             await db[self.collection].delete_many({
                 "user_id": payload.user_id,
                 "created_at": {"$lt": now_tz() - timedelta(days=self.retain_days)}
             })
-            # 超过配额按时间删旧
+            #Beyond the quota, delete by time
             count = await db[self.collection].count_documents({"user_id": payload.user_id})
             if count > self.max_per_user:
                 skip = count - self.max_per_user
@@ -84,7 +83,7 @@ class NotificationsService:
                 if ids:
                     await db[self.collection].delete_many({"_id": {"$in": ids}})
         except Exception as e:
-            logger.warning(f"通知清理失败(忽略): {e}")
+            logger.warning(f"Could not close temporary folder: %s{e}")
 
         return doc_id
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-定时任务管理路由
-提供定时任务的查询、暂停、恢复、手动触发等功能
+"""Time job management route
+Provides time task queries, pauses, recovery, manual triggers, etc.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Query
@@ -18,20 +17,20 @@ router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 
 
 class JobTriggerRequest(BaseModel):
-    """手动触发任务请求"""
+    """Manually trigger task request"""
     job_id: str
     kwargs: Optional[Dict[str, Any]] = None
 
 
 class JobUpdateRequest(BaseModel):
-    """更新任务请求"""
+    """Update Task Request"""
     job_id: str
     enabled: Optional[bool] = None
     cron: Optional[str] = None
 
 
 class JobMetadataUpdateRequest(BaseModel):
-    """更新任务元数据请求"""
+    """Update task metadata request"""
     display_name: Optional[str] = None
     description: Optional[str] = None
 
@@ -41,12 +40,11 @@ async def list_jobs(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    获取所有定时任务列表
-    
-    Returns:
-        任务列表，包含任务ID、名称、状态、下次执行时间等信息
-    """
+    """Can not open message
+
+Returns:
+Other Organiser
+"""
     try:
         jobs = await service.list_jobs()
         return ok(data=jobs, message=f"获取到 {len(jobs)} 个定时任务")
@@ -61,17 +59,16 @@ async def update_job_metadata_route(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    更新任务元数据（触发器名称和备注）
+    """Update task metadata (trigger name and comment)
 
-    Args:
-        job_id: 任务ID
-        request: 更新请求
+Args:
+Job id: Task ID
+request for updates
 
-    Returns:
-        操作结果
-    """
-    # 检查管理员权限
+Returns:
+Operation Results
+"""
+    #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以更新任务元数据")
 
@@ -97,15 +94,14 @@ async def get_job_detail(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    获取任务详情
+    """Can not open message
 
-    Args:
-        job_id: 任务ID
+Args:
+Job id: Task ID
 
-    Returns:
-        任务详细信息
-    """
+Returns:
+Task details
+"""
     try:
         job = await service.get_job(job_id)
         if not job:
@@ -123,16 +119,15 @@ async def pause_job(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    暂停任务
-    
-    Args:
-        job_id: 任务ID
-        
-    Returns:
-        操作结果
-    """
-    # 检查管理员权限
+    """Pause Task
+
+Args:
+Job id: Task ID
+
+Returns:
+Operation Results
+"""
+    #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以暂停任务")
     
@@ -154,16 +149,15 @@ async def resume_job(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    恢复任务
-    
-    Args:
-        job_id: 任务ID
-        
-    Returns:
-        操作结果
-    """
-    # 检查管理员权限
+    """Resume Mission
+
+Args:
+Job id: Task ID
+
+Returns:
+Operation Results
+"""
+    #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以恢复任务")
     
@@ -186,22 +180,21 @@ async def trigger_job(
     service: SchedulerService = Depends(get_scheduler_service),
     force: bool = Query(False, description="是否强制执行（跳过交易时间检查等）")
 ):
-    """
-    手动触发任务执行
+    """Manually trigger mission execution
 
-    Args:
-        job_id: 任务ID
-        force: 是否强制执行（跳过交易时间检查等），默认 False
+Args:
+Job id: Task ID
+force: enforcement ( Skip transaction time check, etc.), default False
 
-    Returns:
-        操作结果
-    """
-    # 检查管理员权限
+Returns:
+Operation Results
+"""
+    #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以手动触发任务")
 
     try:
-        # 为特定任务传递 force 参数
+        #Pass force parameters for specific tasks
         kwargs = {}
         if force and job_id in ["tushare_quotes_sync", "akshare_quotes_sync"]:
             kwargs["force"] = True
@@ -228,17 +221,16 @@ async def get_job_history(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    获取任务执行历史
-    
-    Args:
-        job_id: 任务ID
-        limit: 返回数量限制
-        offset: 偏移量
-        
-    Returns:
-        任务执行历史记录
-    """
+    """Get Task Execution History
+
+Args:
+Job id: Task ID
+Limited number of returns
+offset: offset
+
+Returns:
+Mission performance history
+"""
     try:
         history = await service.get_job_history(job_id, limit=limit, offset=offset)
         total = await service.count_job_history(job_id)
@@ -265,18 +257,17 @@ async def get_all_history(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    获取所有任务执行历史
-    
-    Args:
-        limit: 返回数量限制
-        offset: 偏移量
-        job_id: 任务ID过滤
-        status: 状态过滤
-        
-    Returns:
-        所有任务执行历史记录
-    """
+    """Get all tasks executed history
+
+Args:
+Limited number of returns
+offset: offset
+job id: Task ID filter
+status: status filter
+
+Returns:
+History of all assignments
+"""
     try:
         history = await service.get_all_history(
             limit=limit,
@@ -304,12 +295,11 @@ async def get_scheduler_stats(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    获取调度器统计信息
-    
-    Returns:
-        调度器统计信息，包括任务总数、运行中任务数、暂停任务数等
-    """
+    """Get statistics from the scheduler
+
+Returns:
+Scheduler statistical information, including total tasks, number of active tasks, number of suspended tasks, etc.
+"""
     try:
         stats = await service.get_stats()
         return ok(data=stats, message="获取统计信息成功")
@@ -322,12 +312,11 @@ async def scheduler_health_check(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    调度器健康检查
+    """Dispatch health check
 
-    Returns:
-        调度器健康状态
-    """
+Returns:
+Scheduler health status
+"""
     try:
         health = await service.health_check()
         return ok(data=health, message="调度器运行正常")
@@ -345,19 +334,18 @@ async def get_job_executions(
     limit: int = Query(50, ge=1, le=200, description="返回数量限制"),
     offset: int = Query(0, ge=0, description="偏移量")
 ):
-    """
-    获取任务执行历史
+    """Get Task Execution History
 
-    Args:
-        job_id: 任务ID过滤（可选）
-        status: 状态过滤（可选）
-        is_manual: 是否手动触发（可选）
-        limit: 返回数量限制
-        offset: 偏移量
+Args:
+job id: Task ID filter (optional)
+status: status filter (optional)
+is manual: Manually triggered (optional)
+Limited number of returns
+offset: offset
 
-    Returns:
-        执行历史列表
-    """
+Returns:
+Execute History List
+"""
     try:
         executions = await service.get_job_executions(
             job_id=job_id,
@@ -387,19 +375,18 @@ async def get_single_job_executions(
     limit: int = Query(50, ge=1, le=200, description="返回数量限制"),
     offset: int = Query(0, ge=0, description="偏移量")
 ):
-    """
-    获取指定任务的执行历史
+    """Can not open message
 
-    Args:
-        job_id: 任务ID
-        status: 状态过滤（可选）
-        is_manual: 是否手动触发（可选）
-        limit: 返回数量限制
-        offset: 偏移量
+Args:
+Job id: Task ID
+status: status filter (optional)
+is manual: Manually triggered (optional)
+Limited number of returns
+offset: offset
 
-    Returns:
-        执行历史列表
-    """
+Returns:
+Execute History List
+"""
     try:
         executions = await service.get_job_executions(
             job_id=job_id,
@@ -425,15 +412,14 @@ async def get_job_execution_stats(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    获取任务执行统计信息
+    """Access to statistical information on mandate implementation
 
-    Args:
-        job_id: 任务ID
+Args:
+Job id: Task ID
 
-    Returns:
-        统计信息
-    """
+Returns:
+Statistical information
+"""
     try:
         stats = await service.get_job_execution_stats(job_id)
         return ok(data=stats, message="获取统计信息成功")
@@ -447,18 +433,17 @@ async def cancel_execution(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    取消/终止任务执行
+    """Mandate execution cancelled/terminated
 
-    对于正在执行的任务，设置取消标记；
-    对于已经退出但数据库中仍为running的任务，直接标记为failed
+(a) For ongoing tasks, the demarking is set;
+For quit but still running in the database, directly marked as failed
 
-    Args:
-        execution_id: 执行记录ID（MongoDB _id）
+Args:
+Exection id: Execute Record ID (MongoDB id)
 
-    Returns:
-        操作结果
-    """
+Returns:
+Operation Results
+"""
     try:
         success = await service.cancel_job_execution(execution_id)
         if success:
@@ -478,18 +463,17 @@ async def mark_execution_failed(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    将执行记录标记为失败状态
+    """Mark execution record as a failed state
 
-    用于处理已经退出但数据库中仍为running的任务
+Used to process outgoing but still running tasks in the database
 
-    Args:
-        execution_id: 执行记录ID（MongoDB _id）
-        reason: 失败原因
+Args:
+Exection id: Execute Record ID (MongoDB id)
+Reason for failure
 
-    Returns:
-        操作结果
-    """
+Returns:
+Operation Results
+"""
     try:
         success = await service.mark_execution_as_failed(execution_id, reason)
         if success:
@@ -508,15 +492,14 @@ async def delete_execution(
     user: dict = Depends(get_current_user),
     service: SchedulerService = Depends(get_scheduler_service)
 ):
-    """
-    删除执行记录
+    """Delete Execution Record
 
-    Args:
-        execution_id: 执行记录ID（MongoDB _id）
+Args:
+Exection id: Execute Record ID (MongoDB id)
 
-    Returns:
-        操作结果
-    """
+Returns:
+Operation Results
+"""
     try:
         success = await service.delete_execution(execution_id)
         if success:

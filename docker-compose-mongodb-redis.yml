@@ -1,0 +1,64 @@
+version: '3.8'
+
+# MongoDB + Redis only (local dev)
+# Uses the same credentials/settings referenced in install-local.txt
+services:
+  mongodb:
+    image: mongo:4.4
+    container_name: tradingagents-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: tradingagents123
+      MONGO_INITDB_DATABASE: tradingagents
+      TZ: "Asia/Shanghai"
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "echo 'db.runCommand({ ping: 1 }).ok' | mongo --quiet mongodb://admin:tradingagents123@localhost:27017/admin"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - tradingagents-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tradingagents-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: "Asia/Shanghai"
+    command: redis-server --appendonly yes --requirepass tradingagents123
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "tradingagents123", "--raw", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - tradingagents-network
+
+volumes:
+  mongodb_data:
+    driver: local
+    name: tradingagents_mongodb_data
+  redis_data:
+    driver: local
+    name: tradingagents_redis_data
+
+networks:
+  tradingagents-network:
+    driver: bridge
+    name: tradingagents-network

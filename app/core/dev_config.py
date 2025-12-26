@@ -1,6 +1,5 @@
-"""
-开发环境配置
-优化开发体验，减少不必要的文件监控
+"""Develop Environmental Configuration
+Optimizing development experience and reducing unnecessary document monitoring
 """
 
 import logging
@@ -8,59 +7,59 @@ from typing import List, Optional
 
 
 class DevConfig:
-    """开发环境配置类"""
+    """Develop Environmental Configuration Category"""
     
-    # 文件监控配置
+    #File Monitor Configuration
     RELOAD_DIRS: List[str] = ["app"]
     
-    # 排除的文件和目录
+    #Excluded files and directories
     RELOAD_EXCLUDES: List[str] = [
-        # Python缓存文件
+        #Python cache file
         "__pycache__",
         "*.pyc",
         "*.pyo", 
         "*.pyd",
         
-        # 版本控制
+        #Version Control
         ".git",
         ".gitignore",
         
-        # 测试和缓存
+        #Test and Cache
         ".pytest_cache",
         ".coverage",
         "htmlcov",
         
-        # 日志文件
+        #Log File
         "*.log",
         "logs",
         
-        # 临时文件
+        #Temporary documents
         "*.tmp",
         "*.temp",
         "*.swp",
         "*.swo",
         
-        # 系统文件
+        #System File
         ".DS_Store",
         "Thumbs.db",
         "desktop.ini",
         
-        # IDE文件
+        #IDE File
         ".vscode",
         ".idea",
         "*.sublime-*",
         
-        # 数据文件
+        #Data Files
         "*.db",
         "*.sqlite",
         "*.sqlite3",
         
-        # 配置文件（避免敏感信息重载）
+        #Profile (avoiding reloading of sensitive information)
         ".env",
         ".env.local",
         ".env.production",
         
-        # 文档和静态文件
+        #Documents and static files
         "*.md",
         "*.txt",
         "*.json",
@@ -68,7 +67,7 @@ class DevConfig:
         "*.yml",
         "*.toml",
         
-        # 前端文件
+        #Frontend File
         "node_modules",
         "dist",
         "build",
@@ -76,68 +75,68 @@ class DevConfig:
         "*.css",
         "*.html",
         
-        # 其他
+        #Other
         "requirements*.txt",
         "Dockerfile*",
         "docker-compose*"
     ]
     
-    # 只监控的文件类型
+    #File type monitored only
     RELOAD_INCLUDES: List[str] = [
         "*.py"
     ]
     
-    # 重载延迟（秒）
+    #Reload delay (sec)
     RELOAD_DELAY: float = 0.5
     
-    # 日志配置
+    #Log Configuration
     LOG_LEVEL: str = "info"
     
-    # 是否显示访问日志
+    #Whether to show access logs
     ACCESS_LOG: bool = True
     
     @classmethod
     def get_uvicorn_config(cls, debug: bool = True) -> dict:
-        """获取uvicorn配置"""
-        # 统一禁用reload，避免日志配置冲突
+        """Can not open message"""
+        #Uniquely disable reload to avoid log configuration conflicts
         return {
-            "reload": False,  # 禁用自动重载，手动重启
+            "reload": False,  #Disable auto-reload, restart manually
             "log_level": cls.LOG_LEVEL,
             "access_log": cls.ACCESS_LOG,
-            # 确保使用我们自定义的日志配置
-            "log_config": None  # 禁用uvicorn默认日志配置，使用我们的配置
+            #Ensure the use of our custom log configuration
+            "log_config": None  #Disable uvicorn default log configuration, using our configuration
         }
     
     @classmethod
     def setup_logging(cls, debug: bool = True):
-        """设置简化的日志配置"""
-        # 设置统一的日志格式
+        """Set a simplified log configuration"""
+        #Set a uniform log format
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S',
-            force=True  # 强制重新配置，覆盖之前的设置
+            force=True  #Force reconfiguration to overwrite previous settings
         )
 
         if debug:
-            # 开发环境：减少噪音日志
+            #Development environment: noise reduction log
             logging.getLogger("watchfiles").setLevel(logging.ERROR)
             logging.getLogger("watchfiles.main").setLevel(logging.ERROR)
             logging.getLogger("watchfiles.watcher").setLevel(logging.ERROR)
 
-            # 确保重要日志正常显示
+            #Ensure that important logs are displayed properly
             logging.getLogger("webapi").setLevel(logging.INFO)
             logging.getLogger("app.core.database").setLevel(logging.INFO)
             logging.getLogger("uvicorn.error").setLevel(logging.INFO)
 
-            # 测试webapi logger是否工作
+            #Test whether webapi logger works
             webapi_logger = logging.getLogger("webapi")
-            webapi_logger.info("🔧 DEV_CONFIG: webapi logger 测试消息")
+            webapi_logger.info("Test Message")
         else:
-            # 生产环境：更严格的日志控制
+            #Production environment: stricter log control
             logging.getLogger("watchfiles").setLevel(logging.ERROR)
             logging.getLogger("uvicorn").setLevel(logging.WARNING)
 
 
-# 开发环境快捷配置
+#Develop Environment Shortcut
 DEV_CONFIG = DevConfig()

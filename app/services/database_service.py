@@ -1,5 +1,4 @@
-"""
-数据库管理服务
+"""Database management services
 """
 
 import json
@@ -27,48 +26,48 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseService:
-    """数据库管理服务"""
+    """Database management services"""
 
     def __init__(self):
         self.backup_dir = os.path.join(settings.TRADINGAGENTS_DATA_DIR, "backups")
         self.export_dir = os.path.join(settings.TRADINGAGENTS_DATA_DIR, "exports")
 
-        # 确保目录存在
+        #Ensure directory exists
         os.makedirs(self.backup_dir, exist_ok=True)
         os.makedirs(self.export_dir, exist_ok=True)
 
     async def get_database_status(self) -> Dict[str, Any]:
-        """获取数据库连接状态（委托子模块）"""
+        """Obtain database connectivity (commission submodule)"""
         return await _db_status.get_database_status()
 
     async def _get_mongodb_status(self) -> Dict[str, Any]:
-        """获取MongoDB状态（委托子模块）"""
+        """Get MongoDB status (commissioned submodule)"""
         return await _db_status.get_mongodb_status()
 
     async def _get_redis_status(self) -> Dict[str, Any]:
-        """获取Redis状态（委托子模块）"""
+        """Get Redis status (commission submodule)"""
         return await _db_status.get_redis_status()
 
     async def get_database_stats(self) -> Dict[str, Any]:
-        """获取数据库统计信息"""
+        """Access to database statistics"""
         try:
             db = get_mongo_db()
 
-            # 获取所有集合
+            #Get all the pools.
             collection_names = await db.list_collection_names()
 
             collections_info = []
             total_documents = 0
             total_size = 0
 
-            # 并行获取所有集合的统计信息
+            #Parallel access to all aggregate statistical information
             import asyncio
 
             async def get_collection_stats(collection_name: str):
-                """获取单个集合的统计信息"""
+                """Obtain statistical information from individual pools"""
                 try:
                     stats = await db.command("collStats", collection_name)
-                    # 使用 collStats 中的 count 字段，避免额外的 count_documents 查询
+                    #Use the count field in CollStats to avoid additional count documents queries
                     doc_count = stats.get('count', 0)
 
                     return {
@@ -80,7 +79,7 @@ class DatabaseService:
                         "index_size": stats.get('totalIndexSize', 0)
                     }
                 except Exception as e:
-                    logger.error(f"获取集合 {collection_name} 统计失败: {e}")
+                    logger.error(f"Get a set.{collection_name}Statistics failed:{e}")
                     return {
                         "name": collection_name,
                         "documents": 0,
@@ -90,12 +89,12 @@ class DatabaseService:
                         "index_size": 0
                     }
 
-            # 并行获取所有集合的统计
+            #Get all the aggregate statistics in parallel
             collections_info = await asyncio.gather(
                 *[get_collection_stats(name) for name in collection_names]
             )
 
-            # 计算总计
+            #Total calculated
             for collection_info in collections_info:
                 total_documents += collection_info['documents']
                 total_size += collection_info['storage_size']
@@ -110,27 +109,26 @@ class DatabaseService:
             raise Exception(f"获取数据库统计失败: {str(e)}")
 
     async def test_connections(self) -> Dict[str, Any]:
-        """测试数据库连接（委托子模块）"""
+        """Test database connection (commission submodule)"""
         return await _db_status.test_connections()
 
     async def _test_mongodb_connection(self) -> Dict[str, Any]:
-        """测试MongoDB连接（委托子模块）"""
+        """Test MongoDB connection (commissioned submodule)"""
         return await _db_status.test_mongodb_connection()
 
     async def _test_redis_connection(self) -> Dict[str, Any]:
-        """测试Redis连接（委托子模块）"""
+        """Test Redis connection (commissioned submodule)"""
         return await _db_status.test_redis_connection()
 
     async def create_backup(self, name: str, collections: List[str] = None, user_id: str = None) -> Dict[str, Any]:
-        """
-        创建数据库备份（自动选择最佳方法）
+        """Create database backup (auto-select best method)
 
-        - 如果 mongodump 可用，使用原生备份（快速）
-        - 否则使用 Python 实现（兼容性好但较慢）
-        """
-        # 检查 mongodump 是否可用
+- If mongodump is available, use original backup (quick)
+- Otherwise use Python.
+"""
+        #Check if mongodump is available
         if _db_backups._check_mongodump_available():
-            logger.info("✅ 使用 mongodump 原生备份（推荐）")
+            logger.info("✅ with original backup from mongodump (recommended)")
             return await _db_backups.create_backup_native(
                 name=name,
                 backup_dir=self.backup_dir,
@@ -138,8 +136,8 @@ class DatabaseService:
                 user_id=user_id
             )
         else:
-            logger.warning("⚠️ mongodump 不可用，使用 Python 备份（较慢）")
-            logger.warning("💡 建议安装 MongoDB Database Tools 以获得更快的备份速度")
+            logger.warning("⚠️mongodump is not available, using Python backup (slower)")
+            logger.warning("Suggested installation of MongoDB Data Tools to obtain faster backup speed")
             return await _db_backups.create_backup(
                 name=name,
                 backup_dir=self.backup_dir,
@@ -148,34 +146,34 @@ class DatabaseService:
             )
 
     async def list_backups(self) -> List[Dict[str, Any]]:
-        """获取备份列表（委托子模块）"""
+        """Get Backup List (Commissioner Submodule)"""
         return await _db_backups.list_backups()
 
     async def delete_backup(self, backup_id: str) -> None:
-        """删除备份（委托子模块）"""
+        """Remove Backup (commission submodule)"""
         await _db_backups.delete_backup(backup_id)
 
     async def cleanup_old_data(self, days: int) -> Dict[str, Any]:
-        """清理旧数据（委托子模块）"""
+        """Clear old data (commission submodule)"""
         return await _db_cleanup.cleanup_old_data(days)
 
     async def cleanup_analysis_results(self, days: int) -> Dict[str, Any]:
-        """清理过期分析结果（委托子模块）"""
+        """Clean up outdated analysis results (commissioned submodule)"""
         return await _db_cleanup.cleanup_analysis_results(days)
 
     async def cleanup_operation_logs(self, days: int) -> Dict[str, Any]:
-        """清理操作日志（委托子模块）"""
+        """Clear Operations Log (commissioned submodule)"""
         return await _db_cleanup.cleanup_operation_logs(days)
 
     async def import_data(self, content: bytes, collection: str, format: str = "json",
                          overwrite: bool = False, filename: str = None) -> Dict[str, Any]:
-        """导入数据（委托子模块）"""
+        """Import data (commissioned submodule)"""
         return await _db_backups.import_data(content, collection, format=format, overwrite=overwrite, filename=filename)
 
     async def export_data(self, collections: List[str] = None, format: str = "json", sanitize: bool = False) -> str:
-        """导出数据（委托子模块）"""
+        """Export data (commissioned submodule)"""
         return await _db_backups.export_data(collections, export_dir=self.export_dir, format=format, sanitize=sanitize)
 
     def _serialize_document(self, doc: dict) -> dict:
-        """序列化文档，处理特殊类型（委托子模块）"""
+        """Sequencing documents, processing special types (commissioned submodules)"""
         return _serialize_doc(doc)

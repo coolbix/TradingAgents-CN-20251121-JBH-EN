@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-历史数据查询API
-提供统一的历史K线数据查询接口
+"""Historical DataQuery API
+Provide a unified historical K-line data query interface
 """
 import logging
 from datetime import datetime, date
@@ -17,7 +16,7 @@ router = APIRouter(prefix="/api/historical-data", tags=["历史数据"])
 
 
 class HistoricalDataQuery(BaseModel):
-    """历史数据查询请求"""
+    """Historical data queries"""
     symbol: str = Field(..., description="股票代码")
     start_date: Optional[str] = Field(None, description="开始日期 (YYYY-MM-DD)")
     end_date: Optional[str] = Field(None, description="结束日期 (YYYY-MM-DD)")
@@ -27,7 +26,7 @@ class HistoricalDataQuery(BaseModel):
 
 
 class HistoricalDataResponse(BaseModel):
-    """历史数据响应"""
+    """Historical data response"""
     success: bool
     message: str
     data: Optional[Dict[str, Any]] = None
@@ -42,21 +41,20 @@ async def get_historical_data(
     period: Optional[str] = Query(None, description="数据周期 (daily/weekly/monthly)"),
     limit: Optional[int] = Query(None, ge=1, le=1000, description="限制返回数量")
 ):
-    """
-    查询股票历史数据
-    
-    Args:
-        symbol: 股票代码
-        start_date: 开始日期
-        end_date: 结束日期
-        data_source: 数据源筛选
-        period: 数据周期筛选
-        limit: 限制返回数量
-    """
+    """Search for stock history data
+
+Args:
+symbol: stock code
+Start date: Start date
+End date: End date
+Data source: Data source filter
+period: Data cycle filter
+Limited number of returns
+"""
     try:
         service = await get_historical_data_service()
         
-        # 查询历史数据
+        #Query Historical Data
         results = await service.get_historical_data(
             symbol=symbol,
             start_date=start_date,
@@ -66,7 +64,7 @@ async def get_historical_data(
             limit=limit
         )
         
-        # 格式化响应
+        #Format Response
         response_data = {
             "symbol": symbol,
             "count": len(results),
@@ -87,19 +85,18 @@ async def get_historical_data(
         )
         
     except Exception as e:
-        logger.error(f"查询历史数据失败 {symbol}: {e}")
+        logger.error(f"Failed to query historical data{symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"查询失败: {e}")
 
 
 @router.post("/query", response_model=HistoricalDataResponse)
 async def query_historical_data(request: HistoricalDataQuery):
-    """
-    POST方式查询历史数据
-    """
+    """POST Query Historical Data
+"""
     try:
         service = await get_historical_data_service()
         
-        # 查询历史数据
+        #Query Historical Data
         results = await service.get_historical_data(
             symbol=request.symbol,
             start_date=request.start_date,
@@ -109,7 +106,7 @@ async def query_historical_data(request: HistoricalDataQuery):
             limit=request.limit
         )
         
-        # 格式化响应
+        #Format Response
         response_data = {
             "symbol": request.symbol,
             "count": len(results),
@@ -124,7 +121,7 @@ async def query_historical_data(request: HistoricalDataQuery):
         )
         
     except Exception as e:
-        logger.error(f"查询历史数据失败 {request.symbol}: {e}")
+        logger.error(f"Failed to query historical data{request.symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"查询失败: {e}")
 
 
@@ -133,7 +130,7 @@ async def get_latest_date(
     symbol: str,
     data_source: str = Query(..., description="数据源 (tushare/akshare/baostock)")
 ):
-    """获取股票最新数据日期"""
+    """Date of acquisition of latest stock data"""
     try:
         service = await get_historical_data_service()
         latest_date = await service.get_latest_date(symbol, data_source)
@@ -149,13 +146,13 @@ async def get_latest_date(
         }
         
     except Exception as e:
-        logger.error(f"获取最新日期失败 {symbol}: {e}")
+        logger.error(f"Failed to get latest date{symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"查询失败: {e}")
 
 
 @router.get("/statistics")
 async def get_data_statistics():
-    """获取历史数据统计信息"""
+    """Access to historical data statistics"""
     try:
         service = await get_historical_data_service()
         stats = await service.get_data_statistics()
@@ -167,7 +164,7 @@ async def get_data_statistics():
         }
         
     except Exception as e:
-        logger.error(f"获取统计信息失败: {e}")
+        logger.error(f"Failed to access statistical information:{e}")
         raise HTTPException(status_code=500, detail=f"获取统计信息失败: {e}")
 
 
@@ -176,13 +173,12 @@ async def compare_data_sources(
     symbol: str,
     trade_date: str = Query(..., description="交易日期 (YYYY-MM-DD)")
 ):
-    """
-    对比不同数据源的同一股票同一日期的数据
-    """
+    """Comparison of the same stock at the same date from different data sources
+"""
     try:
         service = await get_historical_data_service()
         
-        # 查询三个数据源的数据
+        #Ask for data from three data sources
         sources = ["tushare", "akshare", "baostock"]
         comparison = {}
         
@@ -212,13 +208,13 @@ async def compare_data_sources(
         }
         
     except Exception as e:
-        logger.error(f"数据对比失败 {symbol}: {e}")
+        logger.error(f"Data Contrast Failed{symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"数据对比失败: {e}")
 
 
 @router.get("/health")
 async def health_check():
-    """健康检查"""
+    """Health screening"""
     try:
         service = await get_historical_data_service()
         stats = await service.get_data_statistics()
@@ -236,7 +232,7 @@ async def health_check():
         }
         
     except Exception as e:
-        logger.error(f"健康检查失败: {e}")
+        logger.error(f"Health check failed:{e}")
         return {
             "success": False,
             "data": {

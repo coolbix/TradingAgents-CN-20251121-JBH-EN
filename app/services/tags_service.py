@@ -1,5 +1,4 @@
-"""
-用户自定义标签服务
+"""User Custom Label Service
 """
 from __future__ import annotations
 from typing import List, Optional, Dict, Any
@@ -23,13 +22,13 @@ class TagsService:
         if self._indexes_ensured:
             return
         db = await self._get_db()
-        # 每个用户的标签名唯一
+        #Only label name per user
         await db.user_tags.create_index([("user_id", 1), ("name", 1)], unique=True, name="uniq_user_tag_name")
         await db.user_tags.create_index([("user_id", 1), ("sort_order", 1)], name="idx_user_tag_sort")
         self._indexes_ensured = True
 
     def _normalize_user_id(self, user_id: str) -> str:
-        # 统一为字符串存储，便于兼容开源版(admin)与未来ObjectId
+        #Harmonized as string storage for compatibility with open source (admin) and futureObjectId
         return str(user_id)
 
     def _format_doc(self, doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -77,7 +76,7 @@ class TagsService:
             update["color"] = color
         if sort_order is not None:
             update["sort_order"] = int(sort_order)
-        if len(update) == 1:  # 只有updated_at
+        if len(update) == 1:  #Only old at
             return True
         result = await db.user_tags.update_one(
             {"_id": ObjectId(tag_id), "user_id": self._normalize_user_id(user_id)},
@@ -92,6 +91,6 @@ class TagsService:
         return result.deleted_count > 0
 
 
-# 全局实例
+#Global Examples
 tags_service = TagsService()
 

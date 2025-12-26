@@ -1,6 +1,5 @@
-"""
-TradingAgents-CN Backend Entry Point
-支持 python -m app 启动方式
+"""TradingAgendas-CN Boxend Entry Point
+Support python-m app startup mode
 """
 
 import uvicorn
@@ -9,20 +8,20 @@ import os
 from pathlib import Path
 
 # ============================================================================
-# 全局 UTF-8 编码设置（必须在最开始，支持 emoji 和中文）
+#Global UTF-8 coding settings (must start at start, support emoji and Chinese)
 # ============================================================================
 if sys.platform == 'win32':
     try:
-        # 1. 设置环境变量，让 Python 全局使用 UTF-8
+        #1. Set up environmental variables to use UTF-8 globally for Python
         os.environ['PYTHONIOENCODING'] = 'utf-8'
         os.environ['PYTHONUTF8'] = '1'
 
-        # 2. 设置标准输出和错误输出为 UTF-8
+        #2. Set standard output and error output to UTF-8
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-        # 3. 尝试设置控制台代码页为 UTF-8 (65001)
+        #3. Attempt to set the console code page to UTF-8 (65001)
         try:
             import ctypes
             ctypes.windll.kernel32.SetConsoleCP(65001)
@@ -31,69 +30,69 @@ if sys.platform == 'win32':
             pass
 
     except Exception as e:
-        # 如果设置失败，打印警告但继续运行
+        #If settings fail, print warning but continue running
         print(f"Warning: Failed to set UTF-8 encoding: {e}", file=sys.stderr)
 
-# 添加项目根目录到Python路径
+#Add Item Root Directory to Python Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-# 检查并打印.env文件加载信息
+#Check and print. Env files to load information
 def check_env_file():
-    """检查并打印.env文件加载信息"""
+    """Check and print. Env files to load information"""
     import logging
     logger = logging.getLogger("app.startup")
     
-    logger.info("🔍 检查环境配置文件...")
+    logger.info("Check the environment profile...")
 
-    # 检查当前工作目录
+    #Check Current Working Directory
     current_dir = Path.cwd()
-    logger.info(f"📂 当前工作目录: {current_dir}")
+    logger.info(f"Current working directory:{current_dir}")
 
-    # 检查项目根目录
-    logger.info(f"📂 项目根目录: {project_root}")
+    #Check project root directory
+    logger.info(f"Project Root Directory:{project_root}")
     
-    # 检查可能的.env文件位置（按优先级排序）
+    #Check for possible .env file locations (in order of priority)
     env_locations = [
-        project_root / ".env",          # 优先：项目根目录（标准位置）
-        current_dir / ".env",           # 次选：当前工作目录
-        Path(__file__).parent / ".env"  # 最后：app目录下（不推荐）
+        project_root / ".env",          #Priority: Project Root Directory (standard location)
+        current_dir / ".env",           #Subselection: Current working directory
+        Path(__file__).parent / ".env"  #Final: under app directory (not recommended)
     ]
 
     env_found = False
 
     for env_path in env_locations:
         if env_path.exists():
-            if not env_found:  # 只显示第一个找到的文件详情
-                logger.info(f"✅ 找到.env文件: {env_path}")
-                logger.info(f"📏 文件大小: {env_path.stat().st_size} bytes")
+            if not env_found:  #Show only first found file details
+                logger.info(f"Found .env files:{env_path}")
+                logger.info(f"File size:{env_path.stat().st_size} bytes")
                 env_found = True
 
-                # 读取并显示部分内容（隐藏敏感信息）
+                #Read and display parts (hidden sensitive information)
                 try:
                     with open(env_path, 'r', encoding='utf-8') as f:
                         lines = f.readlines()
-                    logger.info(f"📄 .env文件内容预览 (共{len(lines)}行):")
-                    for i, line in enumerate(lines[:10]):  # 只显示前10行
+                    logger.info(f"📄.env document preview{len(lines)}Line:")
+                    for i, line in enumerate(lines[:10]):  #Show top 10 lines only
                         line = line.strip()
                         if line and not line.startswith('#'):
-                            # 隐藏敏感信息
+                            #Hide Sensitive Information
                             if any(keyword in line.upper() for keyword in ['SECRET', 'PASSWORD', 'TOKEN', 'KEY']):
                                 key = line.split('=')[0] if '=' in line else line
                                 logger.info(f"  {key}=***")
                             else:
                                 logger.info(f"  {line}")
                     if len(lines) > 10:
-                        logger.info(f"  ... (还有{len(lines) - 10}行)")
+                        logger.info(f"And...{len(lines) - 10}All right.")
                 except Exception as e:
-                    logger.warning(f"⚠️ 读取.env文件时出错: {e}")
+                    logger.warning(f"Error reading.env file:{e}")
             else:
-                # 如果已经找到一个，只记录其他位置也有文件（可能重复）
-                logger.debug(f"ℹ️  其他位置也有.env文件: {env_path}")
+                #If one is found, only other locations are recorded and there are files (possibly repeated)
+                logger.debug(f".env files:{env_path}")
 
     if not env_found:
-        logger.warning("⚠️ 未找到.env文件，将使用默认配置")
-        logger.info(f"💡 提示: 请在项目根目录 ({project_root}) 创建 .env 文件")
+        logger.warning("⚠️ No. env files found, using default configuration")
+        logger.info(f"💡 Hint: Please be at the root of the item(s){project_root}Create .env files")
     
     logger.info("-" * 50)
 
@@ -111,7 +110,7 @@ except Exception as e:
 
 
 def main():
-    """主启动函数"""
+    """Main Start Function"""
     import logging
     logger = logging.getLogger("app.startup")
     
@@ -121,15 +120,15 @@ def main():
     logger.info(f"🐛 Debug Mode: {settings.DEBUG}")
     logger.info(f"📚 API Docs: http://{settings.HOST}:{settings.PORT}/docs" if settings.DEBUG else "📚 API Docs: Disabled in production")
     
-    # 打印关键配置信息
-    logger.info("🔧 关键配置信息:")
+    #Print key configuration information
+    logger.info("Key configuration information:")
     logger.info(f"  📊 MongoDB: {settings.MONGODB_HOST}:{settings.MONGODB_PORT}/{settings.MONGODB_DATABASE}")
     logger.info(f"  🔴 Redis: {settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}")
-    logger.info(f"  🔐 JWT Secret: {'已配置' if settings.JWT_SECRET != 'change-me-in-production' else '⚠️ 使用默认值'}")
-    logger.info(f"  📝 日志级别: {settings.LOG_LEVEL}")
+    logger.info(f"  🔐 JWT Secret: {'Configured' if settings.JWT_SECRET != 'change-me-in-production' else 'Use default value'}")
+    logger.info(f"Log level:{settings.LOG_LEVEL}")
     
-    # 检查环境变量加载状态
-    logger.info("🌍 环境变量加载状态:")
+    #Check the loading status of environmental variables
+    logger.info("State of loading of environmental variables:")
     env_vars_to_check = [
         ('MONGODB_HOST', settings.MONGODB_HOST, 'localhost'),
         ('MONGODB_PORT', str(settings.MONGODB_PORT), '27017'),
@@ -145,20 +144,20 @@ def main():
     
     logger.info("-" * 50)
 
-    # 获取uvicorn配置
+    #Can not open message
     uvicorn_config = DEV_CONFIG.get_uvicorn_config(settings.DEBUG)
 
-    # 设置简化的日志配置
-    logger.info("🔧 正在设置日志配置...")
+    #Set a simplified log configuration
+    logger.info("Setting up log configuration...")
     try:
         from app.core.logging_config import setup_logging as app_setup_logging
         app_setup_logging(settings.LOG_LEVEL)
     except Exception:
-        # 回退到开发环境简化日志配置
+        #Back to development environment simplified log configuration
         DEV_CONFIG.setup_logging(settings.DEBUG)
-    logger.info("✅ 日志配置设置完成")
+    logger.info("Log configuration complete")
 
-    # 在日志系统初始化后检查.env文件
+    #Check .env files after initialization of log system
     logger.info("📋 Configuration Loading Phase:")
     check_env_file()
 
@@ -174,7 +173,7 @@ def main():
     except Exception as e:
         import traceback
         logger.error(f"❌ Failed to start server: {e}")
-        logger.error("📋 详细错误信息:")
+        logger.error("Can not open message")
         logger.error("-" * 50)
         traceback.print_exc()
         logger.error("-" * 50)

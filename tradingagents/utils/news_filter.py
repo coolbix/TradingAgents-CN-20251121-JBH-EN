@@ -1,6 +1,5 @@
-"""
-新闻相关性过滤器
-用于过滤与特定股票/公司不相关的新闻，提高新闻分析质量
+"""News Relevance Filter
+For filtering news that is not relevant to a particular stock/company to improve the quality of news analysis
 """
 
 import pandas as pd
@@ -12,27 +11,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 class NewsRelevanceFilter:
-    """基于规则的新闻相关性过滤器"""
+    """Rules-based news relevance filter"""
     
     def __init__(self, stock_code: str, company_name: str):
-        """
-        初始化过滤器
-        
-        Args:
-            stock_code: 股票代码，如 "600036"
-            company_name: 公司名称，如 "招商银行"
-        """
+        """Initializing Filter
+
+Args:
+Stock code: Stock code, e. g. "600036"
+Company name: Name of the company, e.g. "Rendering Bank"
+"""
         self.stock_code = stock_code.upper()
         self.company_name = company_name
         
-        # 排除关键词 - 这些词出现时降低相关性
+        #Exclude keywords - lower relevance when these words appear
         self.exclude_keywords = [
             'etf', '指数基金', '基金', '指数', 'index', 'fund',
             '权重股', '成分股', '板块', '概念股', '主题基金',
             '跟踪指数', '被动投资', '指数投资', '基金持仓'
         ]
         
-        # 包含关键词 - 这些词出现时提高相关性
+        #Include keywords - they increase relevance when they appear
         self.include_keywords = [
             '业绩', '财报', '公告', '重组', '并购', '分红', '派息',
             '高管', '董事', '股东', '增持', '减持', '回购',
@@ -41,7 +39,7 @@ class NewsRelevanceFilter:
             '投资', '收购', '出售', '转让', '合作', '协议'
         ]
         
-        # 强相关关键词 - 这些词出现时大幅提高相关性
+        #Strongly relevant keywords - significant increase in relevance when they appear
         self.strong_keywords = [
             '停牌', '复牌', '涨停', '跌停', '限售解禁',
             '股权激励', '员工持股', '定增', '配股', '送股',
@@ -49,37 +47,36 @@ class NewsRelevanceFilter:
         ]
     
     def calculate_relevance_score(self, title: str, content: str) -> float:
-        """
-        计算新闻相关性评分
-        
-        Args:
-            title: 新闻标题
-            content: 新闻内容
-            
-        Returns:
-            float: 相关性评分 (0-100)
-        """
+        """Calculate news relevance rating
+
+Args:
+title:
+Content:
+
+Returns:
+float: Relevance rating (0-100)
+"""
         score = 0
         title_lower = title.lower()
         content_lower = content.lower()
         
-        # 1. 直接提及公司名称
+        #1. Direct reference to company name
         if self.company_name in title:
-            score += 50  # 标题中出现公司名称，高分
-            logger.debug(f"[过滤器] 标题包含公司名称 '{self.company_name}': +50分")
+            score += 50  #The name of the company appears in the title. High score.
+            logger.debug(f"[filter] Title contains company name '{self.company_name}': +50 minutes")
         elif self.company_name in content:
-            score += 25  # 内容中出现公司名称，中等分
-            logger.debug(f"[过滤器] 内容包含公司名称 '{self.company_name}': +25分")
+            score += 25  #The name of the company appears in the content, medium
+            logger.debug(f"[filter] Content contains company name '{self.company_name}': +25 minutes")
             
-        # 2. 直接提及股票代码
+        #Direct reference to stock codes
         if self.stock_code in title:
-            score += 40  # 标题中出现股票代码，高分
-            logger.debug(f"[过滤器] 标题包含股票代码 '{self.stock_code}': +40分")
+            score += 40  #Stock code in the title. High score.
+            logger.debug(f"[filter] Title contains stock code '{self.stock_code}': +40 minutes")
         elif self.stock_code in content:
-            score += 20  # 内容中出现股票代码，中等分
-            logger.debug(f"[过滤器] 内容包含股票代码 '{self.stock_code}': +20分")
+            score += 20  #Stock code in content, medium
+            logger.debug(f"[Filter] Content contains stock code '{self.stock_code}': 20 cents")
             
-        # 3. 强相关关键词检查
+        #3. Strongly relevant keyword checks
         strong_matches = []
         for keyword in self.strong_keywords:
             if keyword in title_lower:
@@ -90,9 +87,9 @@ class NewsRelevanceFilter:
                 strong_matches.append(keyword)
         
         if strong_matches:
-            logger.debug(f"[过滤器] 强相关关键词匹配: {strong_matches}")
+            logger.debug(f"[filter] Strongly relevant keyword match:{strong_matches}")
             
-        # 4. 包含关键词检查
+        #Include keyword checks
         include_matches = []
         for keyword in self.include_keywords:
             if keyword in title_lower:
@@ -103,50 +100,49 @@ class NewsRelevanceFilter:
                 include_matches.append(keyword)
         
         if include_matches:
-            logger.debug(f"[过滤器] 相关关键词匹配: {include_matches[:3]}...")  # 只显示前3个
+            logger.debug(f"[Filter] Relevant keyword match:{include_matches[:3]}...")  #Show only first three
             
-        # 5. 排除关键词检查（减分）
+        #5. Exclusion of keyword checks (minus)
         exclude_matches = []
         for keyword in self.exclude_keywords:
             if keyword in title_lower:
-                score -= 40  # 标题中出现排除词，大幅减分
+                score -= 40  #There's an exclusion in the title, and there's a substantial reduction.
                 exclude_matches.append(keyword)
             elif keyword in content_lower:
-                score -= 20  # 内容中出现排除词，中等减分
+                score -= 20  #There's an exclusionary word in the contents, medium reduction.
                 exclude_matches.append(keyword)
         
         if exclude_matches:
-            logger.debug(f"[过滤器] 排除关键词匹配: {exclude_matches[:3]}...")
+            logger.debug(f"[filter] Excludes keyword matching:{exclude_matches[:3]}...")
             
-        # 6. 特殊规则：如果标题完全不包含公司信息但包含排除词，严重减分
+        #6. Special rules: severe deductions if the title does not contain company information at all but contains exclusions
         if (self.company_name not in title and self.stock_code not in title and 
             any(keyword in title_lower for keyword in self.exclude_keywords)):
             score -= 30
-            logger.debug(f"[过滤器] 标题无公司信息但含排除词: -30分")
+            logger.debug(f"[Filter] Title without corporate information but with exclusionary words: -30 min")
         
-        # 确保评分在0-100范围内
+        #Ensure rating in the 0-100 range Internal
         final_score = max(0, min(100, score))
         
-        logger.debug(f"[过滤器] 最终评分: {final_score}分 - 标题: {title[:30]}...")
+        logger.debug(f"[Filter] Final rating:{final_score}Division - Title:{title[:30]}...")
         
         return final_score
     
     def filter_news(self, news_df: pd.DataFrame, min_score: float = 30) -> pd.DataFrame:
-        """
-        过滤新闻DataFrame
-        
-        Args:
-            news_df: 原始新闻DataFrame
-            min_score: 最低相关性评分阈值
-            
-        Returns:
-            pd.DataFrame: 过滤后的新闻DataFrame，按相关性评分排序
-        """
+        """Filter NewsDataFrame
+
+Args:
+News df: RawDataFrame
+min score: Minimum relevance rating threshold
+
+Returns:
+pd. DataFrame: Filtered NewsDataFrame, in order of relevance
+"""
         if news_df.empty:
-            logger.warning("[过滤器] 输入新闻DataFrame为空")
+            logger.warning("[Filter] Enter NewsDataFrame empty")
             return news_df
         
-        logger.info(f"[过滤器] 开始过滤新闻，原始数量: {len(news_df)}条，最低评分阈值: {min_score}")
+        logger.info(f"[filter ] Start filtering news, original number:{len(news_df)}Article, lowest rating threshold:{min_score}")
         
         filtered_news = []
         
@@ -154,7 +150,7 @@ class NewsRelevanceFilter:
             title = row.get('新闻标题', row.get('标题', ''))
             content = row.get('新闻内容', row.get('内容', ''))
             
-            # 计算相关性评分
+            #Calculate relevance rating
             score = self.calculate_relevance_score(title, content)
             
             if score >= min_score:
@@ -162,33 +158,32 @@ class NewsRelevanceFilter:
                 row_dict['relevance_score'] = score
                 filtered_news.append(row_dict)
                 
-                logger.debug(f"[过滤器] 保留新闻 (评分: {score:.1f}): {title[:50]}...")
+                logger.debug(f"[Filter] Keep the news.{score:.1f}): {title[:50]}...")
             else:
-                logger.debug(f"[过滤器] 过滤新闻 (评分: {score:.1f}): {title[:50]}...")
+                logger.debug(f"[Filter] Filter News{score:.1f}): {title[:50]}...")
         
-        # 创建过滤后的DataFrame
+        #Create filtered DataFrame
         if filtered_news:
             filtered_df = pd.DataFrame(filtered_news)
-            # 按相关性评分排序
+            #Sort by relevance
             filtered_df = filtered_df.sort_values('relevance_score', ascending=False)
-            logger.info(f"[过滤器] 过滤完成，保留 {len(filtered_df)}条 新闻")
+            logger.info(f"[filter] Filter complete, keep{len(filtered_df)}Public information")
         else:
             filtered_df = pd.DataFrame()
-            logger.warning(f"[过滤器] 所有新闻都被过滤，无符合条件的新闻")
+            logger.warning(f"[Filter] All news is filtered, no qualified news.")
             
         return filtered_df
     
     def get_filter_statistics(self, original_df: pd.DataFrame, filtered_df: pd.DataFrame) -> Dict:
-        """
-        获取过滤统计信息
-        
-        Args:
-            original_df: 原始新闻DataFrame
-            filtered_df: 过滤后新闻DataFrame
-            
-        Returns:
-            Dict: 统计信息
-        """
+        """Fetch filter statistical information
+
+Args:
+Original df: Raw DataFrame
+filtered df: Post-FilterDataFrame
+
+Returns:
+Dict: Statistical information
+"""
         stats = {
             'original_count': len(original_df),
             'filtered_count': len(filtered_df),
@@ -201,9 +196,9 @@ class NewsRelevanceFilter:
         return stats
 
 
-# 股票代码到公司名称的映射
+#Map of stock code to company name
 STOCK_COMPANY_MAPPING = {
-    # A股主要银行
+    #Major Bank, Unit A
     '600036': '招商银行',
     '000001': '平安银行', 
     '600000': '浦发银行',
@@ -217,7 +212,7 @@ STOCK_COMPANY_MAPPING = {
     '600015': '华夏银行',
     '600016': '民生银行',
     
-    # A股主要白酒股
+    #Main White Wine Unit A
     '000858': '五粮液',
     '600519': '贵州茅台',
     '000568': '泸州老窖',
@@ -226,7 +221,7 @@ STOCK_COMPANY_MAPPING = {
     '603369': '今世缘',
     '000799': '酒鬼酒',
     
-    # A股主要科技股
+    #Major Science and Technology Unit, Unit A
     '000002': '万科A',
     '000858': '五粮液',
     '002415': '海康威视',
@@ -234,54 +229,52 @@ STOCK_COMPANY_MAPPING = {
     '002230': '科大讯飞',
     '300059': '东方财富',
     
-    # 更多股票可以继续添加...
+    #More stocks can continue to add...
 }
 
 def get_company_name(ticker: str) -> str:
-    """
-    获取股票代码对应的公司名称
-    
-    Args:
-        ticker: 股票代码
-        
-    Returns:
-        str: 公司名称
-    """
-    # 清理股票代码（移除后缀）
+    """The name of the company to which the stock code corresponds
+
+Args:
+ticker: Stock code
+
+Returns:
+str: Company name
+"""
+    #Clear stock code (delegate suffix)
     clean_ticker = ticker.split('.')[0]
     
     company_name = STOCK_COMPANY_MAPPING.get(clean_ticker)
     
     if company_name:
-        logger.debug(f"[公司映射] {ticker} -> {company_name}")
+        logger.debug(f"[corporate mapping]{ticker} -> {company_name}")
         return company_name
     else:
-        # 如果没有映射，返回默认名称
+        #If no map, return the default name
         default_name = f"股票{clean_ticker}"
-        logger.warning(f"[公司映射] 未找到 {ticker} 的公司名称映射，使用默认: {default_name}")
+        logger.warning(f"[corporate map] Not found{ticker}, by default:{default_name}")
         return default_name
 
 
 def create_news_filter(ticker: str) -> NewsRelevanceFilter:
-    """
-    创建新闻过滤器的便捷函数
-    
-    Args:
-        ticker: 股票代码
-        
-    Returns:
-        NewsRelevanceFilter: 配置好的过滤器实例
-    """
+    """A convenient function to create a news filter
+
+Args:
+ticker: Stock code
+
+Returns:
+NewsRelevanceFilter: Examples of configured filters
+"""
     company_name = get_company_name(ticker)
     return NewsRelevanceFilter(ticker, company_name)
 
 
-# 使用示例
+#Use Example
 if __name__ == "__main__":
-    # 测试过滤器
+    #Test Filter
     import pandas as pd
     
-    # 模拟新闻数据
+    #Simulation of news data
     test_news = pd.DataFrame([
         {
             '新闻标题': '招商银行发布2024年第三季度业绩报告',
@@ -297,10 +290,10 @@ if __name__ == "__main__":
         }
     ])
     
-    # 创建过滤器
+    #Create Filter
     filter = create_news_filter('600036')
     
-    # 过滤新闻
+    #Filter News
     filtered_news = filter.filter_news(test_news, min_score=30)
     
     print(f"原始新闻: {len(test_news)}条")

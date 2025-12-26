@@ -1,8 +1,7 @@
-"""
-港股数据提供器
+"""Port Unit data provider
 """
 
-# 导入改进的港股工具
+#Import improved port stock tool
 try:
     from .improved_hk import (
         ImprovedHKStockProvider,
@@ -16,7 +15,7 @@ except ImportError:
     get_hk_stock_info_improved = None
     HK_PROVIDER_AVAILABLE = False
 
-# 导入港股数据工具
+#Import Port Unit Data Tool
 try:
     from .hk_stock import HKStockProvider
     HK_STOCK_AVAILABLE = True

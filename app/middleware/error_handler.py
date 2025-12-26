@@ -1,5 +1,4 @@
-"""
-错误处理中间件
+"""Error Processing Middle
 """
 
 from fastapi import Request, Response
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorHandlerMiddleware(BaseHTTPMiddleware):
-    """全局错误处理中间件"""
+    """Global error processing middle"""
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         try:
@@ -23,21 +22,21 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             return await self.handle_error(request, exc)
     
     async def handle_error(self, request: Request, exc: Exception) -> JSONResponse:
-        """处理异常并返回标准化错误响应"""
+        """Deal with anomalies and return standardized errors Response"""
         
-        # 获取请求ID
+        #Get Request ID
         request_id = getattr(request.state, "request_id", "unknown")
         
-        # 记录错误日志
+        #Log Error Log
         logger.error(
-            f"请求异常 - ID: {request_id}, "
-            f"路径: {request.url.path}, "
-            f"方法: {request.method}, "
-            f"异常: {str(exc)}",
+            f"Request abnormal - ID:{request_id}, "
+            f"Path:{request.url.path}, "
+            f"Methodology:{request.method}, "
+            f"Unusual:{str(exc)}",
             exc_info=True
         )
         
-        # 根据异常类型返回不同的错误响应
+        #Returns different bugs according to unusual type Response
         if isinstance(exc, ValueError):
             return JSONResponse(
                 status_code=400,
@@ -75,7 +74,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             )
         
         else:
-            # 未知异常
+            #Unknown anomaly
             return JSONResponse(
                 status_code=500,
                 content={

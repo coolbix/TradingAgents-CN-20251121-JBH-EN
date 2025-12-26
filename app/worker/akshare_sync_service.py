@@ -1,6 +1,5 @@
-"""
-AKShare数据同步服务
-基于AKShare提供器的统一数据同步方案
+"""AKShare Data Sync Service
+Harmonized Data Synchronization Program based on AKShare Providers
 """
 import asyncio
 import logging
@@ -16,60 +15,58 @@ logger = logging.getLogger(__name__)
 
 
 class AKShareSyncService:
-    """
-    AKShare数据同步服务
-    
-    提供完整的数据同步功能：
-    - 股票基础信息同步
-    - 实时行情同步
-    - 历史数据同步
-    - 财务数据同步
-    """
+    """AKShare Data Sync Service
+
+Provide complete data synchronisation:
+- Synchronization of stock base information
+- Real-time line sync
+- Synchronization of historical data
+- Synchronizing financial data
+"""
     
     def __init__(self):
         self.provider = None
-        self.historical_service = None  # 延迟初始化
-        self.news_service = None  # 延迟初始化
+        self.historical_service = None  #Delay Initialization
+        self.news_service = None  #Delay Initialization
         self.db = None
         self.batch_size = 100
-        self.rate_limit_delay = 0.2  # AKShare建议的延迟
+        self.rate_limit_delay = 0.2  #Delay recommended by Akshare
     
     async def initialize(self):
-        """初始化同步服务"""
+        """Initializing Sync Service"""
         try:
-            # 初始化数据库连接
+            #Initialize database connection
             self.db = get_mongo_db()
 
-            # 初始化历史数据服务
+            #Initialization of historical data services
             self.historical_service = await get_historical_data_service()
 
-            # 初始化新闻数据服务
+            #Initialization of news data services
             self.news_service = await get_news_data_service()
 
-            # 初始化AKShare提供器（使用全局单例，确保monkey patch生效）
+            #Initialization of AKShare Provider (use of a global, single example to ensure that Monkey Patch is effective)
             self.provider = get_akshare_provider()
 
-            # 测试连接
+            #Test Connection
             if not await self.provider.test_connection():
                 raise RuntimeError("❌ AKShare连接失败，无法启动同步服务")
 
-            logger.info("✅ AKShare同步服务初始化完成")
+            logger.info("Initialization of the AKShare Sync Service completed")
             
         except Exception as e:
-            logger.error(f"❌ AKShare同步服务初始化失败: {e}")
+            logger.error(f"The initialization of the AKShare sync service failed:{e}")
             raise
     
     async def sync_stock_basic_info(self, force_update: bool = False) -> Dict[str, Any]:
-        """
-        同步股票基础信息
-        
-        Args:
-            force_update: 是否强制更新
-            
-        Returns:
-            同步结果统计
-        """
-        logger.info("🔄 开始同步股票基础信息...")
+        """Sync Equation Basic Information
+
+Args:
+Force update
+
+Returns:
+Sync Results Statistics
+"""
+        logger.info("Start syncing stock base information...")
         
         stats = {
             "total_processed": 0,
@@ -83,55 +80,55 @@ class AKShareSyncService:
         }
         
         try:
-            # 1. 获取股票列表
+            #1. Taking stock lists
             stock_list = await self.provider.get_stock_list()
             if not stock_list:
-                logger.warning("⚠️ 未获取到股票列表")
+                logger.warning("⚠️ Unretrieved list of shares")
                 return stats
             
             stats["total_processed"] = len(stock_list)
-            logger.info(f"📊 获取到 {len(stock_list)} 只股票信息")
+            logger.info(f"Other Organiser{len(stock_list)}Stock information only")
             
-            # 2. 批量处理
+            #2. Batch processing
             for i in range(0, len(stock_list), self.batch_size):
                 batch = stock_list[i:i + self.batch_size]
                 batch_stats = await self._process_basic_info_batch(batch, force_update)
                 
-                # 更新统计
+                #Update statistics
                 stats["success_count"] += batch_stats["success_count"]
                 stats["error_count"] += batch_stats["error_count"]
                 stats["skipped_count"] += batch_stats["skipped_count"]
                 stats["errors"].extend(batch_stats["errors"])
                 
-                # 进度日志
+                #Progress Log
                 progress = min(i + self.batch_size, len(stock_list))
-                logger.info(f"📈 基础信息同步进度: {progress}/{len(stock_list)} "
-                           f"(成功: {stats['success_count']}, 错误: {stats['error_count']})")
+                logger.info(f"📈Sync progress of basic information:{progress}/{len(stock_list)} "
+                           f"(success:{stats['success_count']}, Error:{stats['error_count']})")
                 
-                # API限流
+                #API limit flow
                 if i + self.batch_size < len(stock_list):
                     await asyncio.sleep(self.rate_limit_delay)
             
-            # 3. 完成统计
+            #3. Completion of statistics
             stats["end_time"] = datetime.utcnow()
             stats["duration"] = (stats["end_time"] - stats["start_time"]).total_seconds()
             
-            logger.info(f"🎉 股票基础信息同步完成！")
-            logger.info(f"📊 总计: {stats['total_processed']}只, "
-                       f"成功: {stats['success_count']}, "
-                       f"错误: {stats['error_count']}, "
-                       f"跳过: {stats['skipped_count']}, "
-                       f"耗时: {stats['duration']:.2f}秒")
+            logger.info(f"The stock base is synchronized!")
+            logger.info(f"Total:{stats['total_processed']}Only,"
+                       f"Success:{stats['success_count']}, "
+                       f"Error:{stats['error_count']}, "
+                       f"Skip:{stats['skipped_count']}, "
+                       f"Time-consuming:{stats['duration']:.2f}sec")
             
             return stats
             
         except Exception as e:
-            logger.error(f"❌ 股票基础信息同步失败: {e}")
+            logger.error(f"❌SystemSync failed:{e}")
             stats["errors"].append({"error": str(e), "context": "sync_stock_basic_info"})
             return stats
     
     async def _process_basic_info_batch(self, batch: List[Dict[str, Any]], force_update: bool) -> Dict[str, Any]:
-        """处理基础信息批次"""
+        """Process basic information batch"""
         batch_stats = {
             "success_count": 0,
             "error_count": 0,
@@ -143,18 +140,18 @@ class AKShareSyncService:
             try:
                 code = stock_info["code"]
                 
-                # 检查是否需要更新
+                #Check for updates
                 if not force_update:
                     existing = await self.db.stock_basic_info.find_one({"code": code})
                     if existing and self._is_data_fresh(existing.get("updated_at"), hours=24):
                         batch_stats["skipped_count"] += 1
                         continue
                 
-                # 获取详细基础信息
+                #Access to detailed basic information
                 basic_info = await self.provider.get_stock_basic_info(code)
                 
                 if basic_info:
-                    # 转换为字典格式
+                    #Convert to Dictionary Format
                     if hasattr(basic_info, 'model_dump'):
                         basic_data = basic_info.model_dump()
                     elif hasattr(basic_info, 'dict'):
@@ -162,15 +159,15 @@ class AKShareSyncService:
                     else:
                         basic_data = basic_info
                     
-                    # 🔥 确保 source 字段存在
+                    #Make sure field exists
                     if "source" not in basic_data:
                         basic_data["source"] = "akshare"
 
-                    # 🔥 确保 symbol 字段存在
+                    #Make sure the symbol field exists
                     if "symbol" not in basic_data:
                         basic_data["symbol"] = code
 
-                    # 更新到数据库（使用 code + source 联合查询）
+                    #Update to database (with code + source query)
                     try:
                         await self.db.stock_basic_info.update_one(
                             {"code": code, "source": "akshare"},
@@ -204,7 +201,7 @@ class AKShareSyncService:
         return batch_stats
     
     def _is_data_fresh(self, updated_at: Any, hours: int = 24) -> bool:
-        """检查数据是否新鲜"""
+        """Check if the data is fresh."""
         if not updated_at:
             return False
         
@@ -216,7 +213,7 @@ class AKShareSyncService:
             else:
                 return False
             
-            # 转换为UTC时间进行比较
+            #Convert to UTC time for comparison
             if updated_at.tzinfo is None:
                 updated_at = updated_at.replace(tzinfo=None)
             else:
@@ -228,25 +225,24 @@ class AKShareSyncService:
             return time_diff.total_seconds() < (hours * 3600)
             
         except Exception as e:
-            logger.debug(f"检查数据新鲜度失败: {e}")
+            logger.debug(f"Could not close temporary folder: %s{e}")
             return False
     
     async def sync_realtime_quotes(self, symbols: List[str] = None, force: bool = False) -> Dict[str, Any]:
-        """
-        同步实时行情数据
+        """Sync Real Time Line Data
 
-        Args:
-            symbols: 指定股票代码列表，为空则同步所有股票
-            force: 是否强制执行（跳过交易时间检查），默认 False
+Args:
+symbols: specify a list of stock codes and synchronize all stocks as empty
+force: enforcement ( Skip transaction time check), default False
 
-        Returns:
-            同步结果统计
-        """
-        # 🔥 如果指定了股票列表，记录日志
+Returns:
+Sync Results Statistics
+"""
+        #If a list of shares is specified, logs
         if symbols:
-            logger.info(f"🔄 开始同步指定股票的实时行情（共 {len(symbols)} 只）: {symbols}")
+            logger.info(f"🔄 Start synchronizing the real-time relationship of specified shares{len(symbols)}Only:{symbols}")
         else:
-            logger.info("🔄 开始同步全市场实时行情...")
+            logger.info("We'll start synchronizing the whole market for real time...")
 
         stats = {
             "total_processed": 0,
@@ -259,25 +255,25 @@ class AKShareSyncService:
         }
 
         try:
-            # 1. 确定要同步的股票列表
+            #1. Identification of shares to synchronize
             if symbols is None:
-                # 从数据库获取所有上市状态的股票代码（排除退市股票）
+                #Obtain all listed stock codes from the database (exclusion of refunded stocks)
                 basic_info_cursor = self.db.stock_basic_info.find(
-                    {"list_status": "L"},  # 只获取上市状态的股票
+                    {"list_status": "L"},  #Get only listed shares
                     {"code": 1}
                 )
                 symbols = [doc["code"] async for doc in basic_info_cursor]
 
             if not symbols:
-                logger.warning("⚠️ 没有找到要同步的股票")
+                logger.warning("No shares to synchronize.")
                 return stats
 
             stats["total_processed"] = len(symbols)
-            logger.info(f"📊 准备同步 {len(symbols)} 只股票的行情")
+            logger.info(f"Ready to sync.{len(symbols)}Only stock.")
 
-            # 🔥 优化：如果只同步1只股票，直接调用单个股票接口，不走批量接口
+            #Optimization: if only one stock is synchronized, call directly to the single stock interface without taking a batch interface
             if len(symbols) == 1:
-                logger.info(f"📈 单个股票同步，直接使用 get_stock_quotes 接口")
+                logger.info(f"📈Sync for single stocks, directly using the get stock quotes interface")
                 symbol = symbols[0]
                 success = await self._get_and_save_quotes(symbol)
                 if success:
@@ -290,45 +286,45 @@ class AKShareSyncService:
                         "context": "sync_realtime_quotes_single"
                     })
 
-                logger.info(f"📈 行情同步进度: 1/1 (成功: {stats['success_count']}, 错误: {stats['error_count']})")
+                logger.info(f"📈Sync progress: 1/1 (successful:{stats['success_count']}, Error:{stats['error_count']})")
             else:
-                # 2. 批量同步：一次性获取全市场快照（避免多次调用接口被限流）
-                logger.info("📡 获取全市场实时行情快照...")
+                #2. Batch synchronization: one-time acquisition of market-wide snapshots (avoid multiple calls of interfaces restricted)
+                logger.info("Get a market-wide real-time picture...")
                 quotes_map = await self.provider.get_batch_stock_quotes(symbols)
 
                 if not quotes_map:
-                    logger.warning("⚠️ 获取全市场快照失败，回退到逐个获取模式")
-                    # 回退到逐个获取模式
+                    logger.warning("Getting a full-market snapshot failed, back to the one-by-one mode.")
+                    #Back to Retrieving Mode
                     for i in range(0, len(symbols), self.batch_size):
                         batch = symbols[i:i + self.batch_size]
                         batch_stats = await self._process_quotes_batch_fallback(batch)
 
-                        # 更新统计
+                        #Update statistics
                         stats["success_count"] += batch_stats["success_count"]
                         stats["error_count"] += batch_stats["error_count"]
                         stats["errors"].extend(batch_stats["errors"])
 
-                        # 进度日志
+                        #Progress Log
                         progress = min(i + self.batch_size, len(symbols))
-                        logger.info(f"📈 行情同步进度: {progress}/{len(symbols)} "
-                                   f"(成功: {stats['success_count']}, 错误: {stats['error_count']})")
+                        logger.info(f"Synchronization progress:{progress}/{len(symbols)} "
+                                   f"(success:{stats['success_count']}, Error:{stats['error_count']})")
 
-                        # API限流
+                        #API limit flow
                         if i + self.batch_size < len(symbols):
                             await asyncio.sleep(self.rate_limit_delay)
                 else:
-                    # 3. 使用获取到的全市场数据，分批保存到数据库
-                    logger.info(f"✅ 获取到 {len(quotes_map)} 只股票的行情数据，开始保存...")
+                    #Use of acquired market-wide data to save data in batches Library
+                    logger.info(f"Other Organiser{len(quotes_map)}Only stock data, start saving...")
 
                     for i in range(0, len(symbols), self.batch_size):
                         batch = symbols[i:i + self.batch_size]
 
-                        # 从全市场数据中提取当前批次的数据并保存
+                        #Extract and save current batch data from market-wide data
                         for symbol in batch:
                             try:
                                 quotes = quotes_map.get(symbol)
                                 if quotes:
-                                    # 转换为字典格式
+                                    #Convert to Dictionary Format
                                     if hasattr(quotes, 'model_dump'):
                                         quotes_data = quotes.model_dump()
                                     elif hasattr(quotes, 'dict'):
@@ -336,13 +332,13 @@ class AKShareSyncService:
                                     else:
                                         quotes_data = quotes
 
-                                    # 确保 symbol 和 code 字段存在
+                                    #Ensure that symbol and code fields exist
                                     if "symbol" not in quotes_data:
                                         quotes_data["symbol"] = symbol
                                     if "code" not in quotes_data:
                                         quotes_data["code"] = symbol
 
-                                    # 更新到数据库
+                                    #Update to Database
                                     await self.db.market_quotes.update_one(
                                         {"code": symbol},
                                         {"$set": quotes_data},
@@ -364,30 +360,30 @@ class AKShareSyncService:
                                     "context": "sync_realtime_quotes"
                                 })
 
-                        # 进度日志
+                        #Progress Log
                         progress = min(i + self.batch_size, len(symbols))
-                        logger.info(f"📈 行情保存进度: {progress}/{len(symbols)} "
-                                   f"(成功: {stats['success_count']}, 错误: {stats['error_count']})")
+                        logger.info(f"Save progress:{progress}/{len(symbols)} "
+                                   f"(success:{stats['success_count']}, Error:{stats['error_count']})")
 
-            # 4. 完成统计
+            #4. Completion of statistics
             stats["end_time"] = datetime.utcnow()
             stats["duration"] = (stats["end_time"] - stats["start_time"]).total_seconds()
 
-            logger.info(f"🎉 实时行情同步完成！")
-            logger.info(f"📊 总计: {stats['total_processed']}只, "
-                       f"成功: {stats['success_count']}, "
-                       f"错误: {stats['error_count']}, "
-                       f"耗时: {stats['duration']:.2f}秒")
+            logger.info(f"Real-time synchronised!")
+            logger.info(f"Total:{stats['total_processed']}Only,"
+                       f"Success:{stats['success_count']}, "
+                       f"Error:{stats['error_count']}, "
+                       f"Time-consuming:{stats['duration']:.2f}sec")
 
             return stats
 
         except Exception as e:
-            logger.error(f"❌ 实时行情同步失败: {e}")
+            logger.error(f"Real-time line sync failed:{e}")
             stats["errors"].append({"error": str(e), "context": "sync_realtime_quotes"})
             return stats
     
     async def _process_quotes_batch(self, batch: List[str]) -> Dict[str, Any]:
-        """处理行情批次 - 优化版：一次获取全市场快照"""
+        """Processing batches - Optimized version: a market-wide snapshot at a time"""
         batch_stats = {
             "success_count": 0,
             "error_count": 0,
@@ -395,21 +391,21 @@ class AKShareSyncService:
         }
 
         try:
-            # 一次性获取全市场快照（避免频繁调用接口）
-            logger.debug(f"📊 获取全市场快照以处理 {len(batch)} 只股票...")
+            #One-time acquisition of market-wide snapshots (avoid frequent calls to interfaces)
+            logger.debug(f"Get a market-wide snapshot for processing.{len(batch)}Only stocks...")
             quotes_map = await self.provider.get_batch_stock_quotes(batch)
 
             if not quotes_map:
-                logger.warning("⚠️ 获取全市场快照失败，回退到逐个获取")
-                # 回退到原来的逐个获取方式
+                logger.warning("Getting a full-market snapshot failed. Back to one by one.")
+                #Back to the original pick-up mode.
                 return await self._process_quotes_batch_fallback(batch)
 
-            # 批量保存到数据库
+            #Batch to Database
             for symbol in batch:
                 try:
                     quotes = quotes_map.get(symbol)
                     if quotes:
-                        # 转换为字典格式
+                        #Convert to Dictionary Format
                         if hasattr(quotes, 'model_dump'):
                             quotes_data = quotes.model_dump()
                         elif hasattr(quotes, 'dict'):
@@ -417,13 +413,13 @@ class AKShareSyncService:
                         else:
                             quotes_data = quotes
 
-                        # 确保 symbol 和 code 字段存在
+                        #Ensure that symbol and code fields exist
                         if "symbol" not in quotes_data:
                             quotes_data["symbol"] = symbol
                         if "code" not in quotes_data:
                             quotes_data["code"] = symbol
 
-                        # 更新到数据库
+                        #Update to Database
                         await self.db.market_quotes.update_one(
                             {"code": symbol},
                             {"$set": quotes_data},
@@ -448,19 +444,19 @@ class AKShareSyncService:
             return batch_stats
 
         except Exception as e:
-            logger.error(f"❌ 批量处理行情失败: {e}")
-            # 回退到原来的逐个获取方式
+            logger.error(f"Batch handling failed:{e}")
+            #Back to the original pick-up mode.
             return await self._process_quotes_batch_fallback(batch)
 
     async def _process_quotes_batch_fallback(self, batch: List[str]) -> Dict[str, Any]:
-        """处理行情批次 - 回退方案：逐个获取"""
+        """Processing cases - Backup: individual access"""
         batch_stats = {
             "success_count": 0,
             "error_count": 0,
             "errors": []
         }
 
-        # 逐个获取行情数据（添加延迟避免频率限制）
+        #Retrieving line data on a case-by-case basis (adding delay avoidance frequency limit)
         for symbol in batch:
             try:
                 success = await self._get_and_save_quotes(symbol)
@@ -474,7 +470,7 @@ class AKShareSyncService:
                         "context": "_process_quotes_batch_fallback"
                     })
 
-                # 添加延迟避免频率限制
+                #Add Delay Avoid Frequency Limit
                 await asyncio.sleep(0.1)
 
             except Exception as e:
@@ -488,11 +484,11 @@ class AKShareSyncService:
         return batch_stats
     
     async def _get_and_save_quotes(self, symbol: str) -> bool:
-        """获取并保存单个股票行情"""
+        """Get and save individual stock lines"""
         try:
             quotes = await self.provider.get_stock_quotes(symbol)
             if quotes:
-                # 转换为字典格式
+                #Convert to Dictionary Format
                 if hasattr(quotes, 'model_dump'):
                     quotes_data = quotes.model_dump()
                 elif hasattr(quotes, 'dict'):
@@ -500,33 +496,33 @@ class AKShareSyncService:
                 else:
                     quotes_data = quotes
 
-                # 确保 symbol 字段存在
+                #Ensure that the symbol field exists
                 if "symbol" not in quotes_data:
                     quotes_data["symbol"] = symbol
 
-                # 🔥 打印即将保存到数据库的数据
-                logger.info(f"💾 准备保存 {symbol} 行情到数据库:")
-                logger.info(f"   - 最新价(price): {quotes_data.get('price')}")
-                logger.info(f"   - 最高价(high): {quotes_data.get('high')}")
-                logger.info(f"   - 最低价(low): {quotes_data.get('low')}")
-                logger.info(f"   - 开盘价(open): {quotes_data.get('open')}")
-                logger.info(f"   - 昨收价(pre_close): {quotes_data.get('pre_close')}")
-                logger.info(f"   - 成交量(volume): {quotes_data.get('volume')}")
-                logger.info(f"   - 成交额(amount): {quotes_data.get('amount')}")
-                logger.info(f"   - 涨跌幅(change_percent): {quotes_data.get('change_percent')}%")
+                #Print data that is about to be saved to the database
+                logger.info(f"Ready to save{symbol}Line to database:")
+                logger.info(f"- The latest price (price):{quotes_data.get('price')}")
+                logger.info(f"- Maximum price (high):{quotes_data.get('high')}")
+                logger.info(f"- Minimum price (low):{quotes_data.get('low')}")
+                logger.info(f"- Opening price (open):{quotes_data.get('open')}")
+                logger.info(f"- yesterday's price (pre clos):{quotes_data.get('pre_close')}")
+                logger.info(f"- Volume:{quotes_data.get('volume')}")
+                logger.info(f"- Deal (amount):{quotes_data.get('amount')}")
+                logger.info(f"- Change percent:{quotes_data.get('change_percent')}%")
 
-                # 更新到数据库
+                #Update to Database
                 result = await self.db.market_quotes.update_one(
                     {"code": symbol},
                     {"$set": quotes_data},
                     upsert=True
                 )
 
-                logger.info(f"✅ {symbol} 行情已保存到数据库 (matched={result.matched_count}, modified={result.modified_count}, upserted_id={result.upserted_id})")
+                logger.info(f"✅ {symbol}Lines saved to database{result.matched_count}, modified={result.modified_count}, upserted_id={result.upserted_id})")
                 return True
             return False
         except Exception as e:
-            logger.error(f"❌ 获取 {symbol} 行情失败: {e}", exc_info=True)
+            logger.error(f"Access{symbol}Project failure:{e}", exc_info=True)
             return False
 
     async def sync_historical_data(
@@ -537,21 +533,20 @@ class AKShareSyncService:
         incremental: bool = True,
         period: str = "daily"
     ) -> Dict[str, Any]:
-        """
-        同步历史数据
+        """Sync Historical Data
 
-        Args:
-            start_date: 开始日期
-            end_date: 结束日期
-            symbols: 指定股票代码列表
-            incremental: 是否增量同步
-            period: 数据周期 (daily/weekly/monthly)
+Args:
+Start date: Start date
+End date: End date
+symbols: Specify list of stock codes
+increment: Incremental sync
+period: data cycle (daily/weekly/montly)
 
-        Returns:
-            同步结果统计
-        """
+Returns:
+Sync Results Statistics
+"""
         period_name = {"daily": "日线", "weekly": "周线", "monthly": "月线"}.get(period, "日线")
-        logger.info(f"🔄 开始同步{period_name}历史数据...")
+        logger.info(f"Synchronize{period_name}Historical Data...")
 
         stats = {
             "total_processed": 0,
@@ -565,22 +560,22 @@ class AKShareSyncService:
         }
 
         try:
-            # 1. 确定全局结束日期
+            #1. Determination of global end date
             if not end_date:
                 end_date = datetime.now().strftime('%Y-%m-%d')
 
-            # 2. 确定要同步的股票列表
+            #2. Identification of shares to synchronize
             if symbols is None:
                 basic_info_cursor = self.db.stock_basic_info.find({}, {"code": 1})
                 symbols = [doc["code"] async for doc in basic_info_cursor]
 
             if not symbols:
-                logger.warning("⚠️ 没有找到要同步的股票")
+                logger.warning("No shares to synchronize.")
                 return stats
 
             stats["total_processed"] = len(symbols)
 
-            # 3. 确定全局起始日期（仅用于日志显示）
+            #3. Determination of global start date (for log display only)
             global_start_date = start_date
             if not global_start_date:
                 if incremental:
@@ -588,44 +583,44 @@ class AKShareSyncService:
                 else:
                     global_start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
 
-            logger.info(f"📊 历史数据同步: 结束日期={end_date}, 股票数量={len(symbols)}, 模式={'增量' if incremental else '全量'}")
+            logger.info(f"Historical data sync: End date={end_date}, stock ={len(symbols)}mode ={'Incremental' if incremental else 'Full'}")
 
-            # 4. 批量处理
+            #4. Batch processing
             for i in range(0, len(symbols), self.batch_size):
                 batch = symbols[i:i + self.batch_size]
                 batch_stats = await self._process_historical_batch(
                     batch, start_date, end_date, period, incremental
                 )
 
-                # 更新统计
+                #Update statistics
                 stats["success_count"] += batch_stats["success_count"]
                 stats["error_count"] += batch_stats["error_count"]
                 stats["total_records"] += batch_stats["total_records"]
                 stats["errors"].extend(batch_stats["errors"])
 
-                # 进度日志
+                #Progress Log
                 progress = min(i + self.batch_size, len(symbols))
-                logger.info(f"📈 历史数据同步进度: {progress}/{len(symbols)} "
-                           f"(成功: {stats['success_count']}, 记录: {stats['total_records']})")
+                logger.info(f"Synchronization of historical data:{progress}/{len(symbols)} "
+                           f"(success:{stats['success_count']}, Records:{stats['total_records']})")
 
-                # API限流
+                #API limit flow
                 if i + self.batch_size < len(symbols):
                     await asyncio.sleep(self.rate_limit_delay)
 
-            # 4. 完成统计
+            #4. Completion of statistics
             stats["end_time"] = datetime.utcnow()
             stats["duration"] = (stats["end_time"] - stats["start_time"]).total_seconds()
 
-            logger.info(f"🎉 历史数据同步完成！")
-            logger.info(f"📊 总计: {stats['total_processed']}只股票, "
-                       f"成功: {stats['success_count']}, "
-                       f"记录: {stats['total_records']}条, "
-                       f"耗时: {stats['duration']:.2f}秒")
+            logger.info(f"The historical data is synchronised!")
+            logger.info(f"Total:{stats['total_processed']}It's just stocks."
+                       f"Success:{stats['success_count']}, "
+                       f"Records:{stats['total_records']}Article,"
+                       f"Time-consuming:{stats['duration']:.2f}sec")
 
             return stats
 
         except Exception as e:
-            logger.error(f"❌ 历史数据同步失败: {e}")
+            logger.error(f"History data sync failed:{e}")
             stats["errors"].append({"error": str(e), "context": "sync_historical_data"})
             return stats
 
@@ -637,7 +632,7 @@ class AKShareSyncService:
         period: str = "daily",
         incremental: bool = False
     ) -> Dict[str, Any]:
-        """处理历史数据批次"""
+        """Process historical data batches"""
         batch_stats = {
             "success_count": 0,
             "error_count": 0,
@@ -647,22 +642,22 @@ class AKShareSyncService:
 
         for symbol in batch:
             try:
-                # 确定该股票的起始日期
+                #Determine the start date of the stock
                 symbol_start_date = start_date
                 if not symbol_start_date:
                     if incremental:
-                        # 增量同步：获取该股票的最后日期
+                        #Incremental sync: due date for acquisition of the stock
                         symbol_start_date = await self._get_last_sync_date(symbol)
-                        logger.debug(f"📅 {symbol}: 从 {symbol_start_date} 开始同步")
+                        logger.debug(f"📅 {symbol}From:{symbol_start_date}Start Synchronization")
                     else:
-                        # 全量同步：最近1年
+                        #Full Synchronization: the last year
                         symbol_start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
 
-                # 获取历史数据
+                #Access to historical data
                 hist_data = await self.provider.get_historical_data(symbol, symbol_start_date, end_date, period)
 
                 if hist_data is not None and not hist_data.empty:
-                    # 保存到统一历史数据集合
+                    #Save to Unified Historical Data Collection
                     if self.historical_service is None:
                         self.historical_service = await get_historical_data_service()
 
@@ -676,7 +671,7 @@ class AKShareSyncService:
 
                     batch_stats["success_count"] += 1
                     batch_stats["total_records"] += saved_count
-                    logger.debug(f"✅ {symbol}历史数据同步成功: {saved_count}条记录")
+                    logger.debug(f"✅ {symbol}Historical data synchronization success:{saved_count}Notes")
                 else:
                     batch_stats["error_count"] += 1
                     batch_stats["errors"].append({
@@ -696,42 +691,41 @@ class AKShareSyncService:
         return batch_stats
 
     async def _get_last_sync_date(self, symbol: str = None) -> str:
-        """
-        获取最后同步日期
+        """Get Last Sync Date
 
-        Args:
-            symbol: 股票代码，如果提供则返回该股票的最后日期+1天
+Args:
+symbol: stock code, due date to return the stock if provided + 1 day
 
-        Returns:
-            日期字符串 (YYYY-MM-DD)
-        """
+Returns:
+Date string (YYYY-MM-DD)
+"""
         try:
             if self.historical_service is None:
                 self.historical_service = await get_historical_data_service()
 
             if symbol:
-                # 获取特定股票的最新日期
+                #Recent date of acquisition of specific stocks
                 latest_date = await self.historical_service.get_latest_date(symbol, "akshare")
                 if latest_date:
-                    # 返回最后日期的下一天（避免重复同步）
+                    #Return to the next day of the final date (duplicate)
                     try:
                         last_date_obj = datetime.strptime(latest_date, '%Y-%m-%d')
                         next_date = last_date_obj + timedelta(days=1)
                         return next_date.strftime('%Y-%m-%d')
                     except ValueError:
-                        # 如果日期格式不对，直接返回
+                        #If the date is not formatted correctly, return directly
                         return latest_date
                 else:
-                    # 🔥 没有历史数据时，从上市日期开始全量同步
+                    #Full sync from listing date when no historical data are available
                     stock_info = await self.db.stock_basic_info.find_one(
                         {"code": symbol},
                         {"list_date": 1}
                     )
                     if stock_info and stock_info.get("list_date"):
                         list_date = stock_info["list_date"]
-                        # 处理不同的日期格式
+                        #Deal with different date formats
                         if isinstance(list_date, str):
-                            # 格式可能是 "20100101" 或 "2010-01-01"
+                            #The format could be "201001011" or "2010-01-01."
                             if len(list_date) == 8 and list_date.isdigit():
                                 return f"{list_date[:4]}-{list_date[4:6]}-{list_date[6:]}"
                             else:
@@ -739,29 +733,28 @@ class AKShareSyncService:
                         else:
                             return list_date.strftime('%Y-%m-%d')
 
-                    # 如果没有上市日期，从1990年开始
-                    logger.warning(f"⚠️ {symbol}: 未找到上市日期，从1990-01-01开始同步")
+                    #If no listing date, starting in 1990
+                    logger.warning(f"⚠️ {symbol}: No listing date found, synchronized from 1990-01-01")
                     return "1990-01-01"
 
-            # 默认返回30天前（确保不漏数据）
+            #Default returns 30 days ago (ensure that data are not missing)
             return (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
 
         except Exception as e:
-            logger.error(f"❌ 获取最后同步日期失败 {symbol}: {e}")
-            # 出错时返回30天前，确保不漏数据
+            logger.error(f"Could not close temporary folder: %s{symbol}: {e}")
+            #Returns 30 days before error to ensure that data is not missing
             return (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
 
     async def sync_financial_data(self, symbols: List[str] = None) -> Dict[str, Any]:
-        """
-        同步财务数据
+        """Sync Financial Data
 
-        Args:
-            symbols: 指定股票代码列表
+Args:
+symbols: Specify list of stock codes
 
-        Returns:
-            同步结果统计
-        """
-        logger.info("🔄 开始同步财务数据...")
+Returns:
+Sync Results Statistics
+"""
+        logger.info("Start synchronizing financial data...")
 
         stats = {
             "total_processed": 0,
@@ -774,66 +767,66 @@ class AKShareSyncService:
         }
 
         try:
-            # 1. 确定要同步的股票列表
+            #1. Identification of shares to synchronize
             if symbols is None:
                 basic_info_cursor = self.db.stock_basic_info.find(
                     {
                         "$or": [
-                            {"market_info.market": "CN"},  # 新数据结构
-                            {"category": "stock_cn"},      # 旧数据结构
-                            {"market": {"$in": ["主板", "创业板", "科创板", "北交所"]}}  # 按市场类型
+                            {"market_info.market": "CN"},  #New data structure
+                            {"category": "stock_cn"},      #Old data structure
+                            {"market": {"$in": ["主板", "创业板", "科创板", "北交所"]}}  #By market type
                         ]
                     },
                     {"code": 1}
                 )
                 symbols = [doc["code"] async for doc in basic_info_cursor]
-                logger.info(f"📋 从 stock_basic_info 获取到 {len(symbols)} 只股票")
+                logger.info(f"From stock basic info{len(symbols)}Only stocks")
 
             if not symbols:
-                logger.warning("⚠️ 没有找到要同步的股票")
+                logger.warning("No shares to synchronize.")
                 return stats
 
             stats["total_processed"] = len(symbols)
-            logger.info(f"📊 准备同步 {len(symbols)} 只股票的财务数据")
+            logger.info(f"Ready to sync.{len(symbols)}Financial data for equities only")
 
-            # 2. 批量处理
+            #2. Batch processing
             for i in range(0, len(symbols), self.batch_size):
                 batch = symbols[i:i + self.batch_size]
                 batch_stats = await self._process_financial_batch(batch)
 
-                # 更新统计
+                #Update statistics
                 stats["success_count"] += batch_stats["success_count"]
                 stats["error_count"] += batch_stats["error_count"]
                 stats["errors"].extend(batch_stats["errors"])
 
-                # 进度日志
+                #Progress Log
                 progress = min(i + self.batch_size, len(symbols))
-                logger.info(f"📈 财务数据同步进度: {progress}/{len(symbols)} "
-                           f"(成功: {stats['success_count']}, 错误: {stats['error_count']})")
+                logger.info(f"Synchronization of financial data:{progress}/{len(symbols)} "
+                           f"(success:{stats['success_count']}, Error:{stats['error_count']})")
 
-                # API限流
+                #API limit flow
                 if i + self.batch_size < len(symbols):
                     await asyncio.sleep(self.rate_limit_delay)
 
-            # 3. 完成统计
+            #3. Completion of statistics
             stats["end_time"] = datetime.utcnow()
             stats["duration"] = (stats["end_time"] - stats["start_time"]).total_seconds()
 
-            logger.info(f"🎉 财务数据同步完成！")
-            logger.info(f"📊 总计: {stats['total_processed']}只股票, "
-                       f"成功: {stats['success_count']}, "
-                       f"错误: {stats['error_count']}, "
-                       f"耗时: {stats['duration']:.2f}秒")
+            logger.info(f"Synchronize the financial data!")
+            logger.info(f"Total:{stats['total_processed']}It's just stocks."
+                       f"Success:{stats['success_count']}, "
+                       f"Error:{stats['error_count']}, "
+                       f"Time-consuming:{stats['duration']:.2f}sec")
 
             return stats
 
         except Exception as e:
-            logger.error(f"❌ 财务数据同步失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             stats["errors"].append({"error": str(e), "context": "sync_financial_data"})
             return stats
 
     async def _process_financial_batch(self, batch: List[str]) -> Dict[str, Any]:
-        """处理财务数据批次"""
+        """Processing of financial data batches"""
         batch_stats = {
             "success_count": 0,
             "error_count": 0,
@@ -842,15 +835,15 @@ class AKShareSyncService:
 
         for symbol in batch:
             try:
-                # 获取财务数据
+                #Access to financial data
                 financial_data = await self.provider.get_financial_data(symbol)
 
                 if financial_data:
-                    # 使用统一的财务数据服务保存数据
+                    #Use of harmonized financial data services for data preservation
                     success = await self._save_financial_data(symbol, financial_data)
                     if success:
                         batch_stats["success_count"] += 1
-                        logger.debug(f"✅ {symbol}财务数据保存成功")
+                        logger.debug(f"✅ {symbol}Financial data retention success")
                     else:
                         batch_stats["error_count"] += 1
                         batch_stats["errors"].append({
@@ -877,14 +870,14 @@ class AKShareSyncService:
         return batch_stats
 
     async def _save_financial_data(self, symbol: str, financial_data: Dict[str, Any]) -> bool:
-        """保存财务数据"""
+        """Keep financial data"""
         try:
-            # 使用统一的财务数据服务
+            #Use of harmonized financial data services
             from app.services.financial_data_service import get_financial_data_service
 
             financial_service = await get_financial_data_service()
 
-            # 保存财务数据
+            #Keep financial data
             saved_count = await financial_service.save_financial_data(
                 symbol=symbol,
                 financial_data=financial_data,
@@ -896,21 +889,21 @@ class AKShareSyncService:
             return saved_count > 0
 
         except Exception as e:
-            logger.error(f"❌ 保存 {symbol} 财务数据失败: {e}")
+            logger.error(f"Save{symbol}Financial data failed:{e}")
             return False
 
     async def run_status_check(self) -> Dict[str, Any]:
-        """运行状态检查"""
+        """Run Status Check"""
         try:
-            logger.info("🔍 开始AKShare状态检查...")
+            logger.info("Let's start the AKshare status check...")
 
-            # 检查提供器连接
+            #Check provider connections
             provider_connected = await self.provider.test_connection()
 
-            # 检查数据库集合状态
+            #Check database collection status
             collections_status = {}
 
-            # 检查基础信息集合
+            #Check basic information sets
             basic_count = await self.db.stock_basic_info.count_documents({})
             latest_basic = await self.db.stock_basic_info.find_one(
                 {}, sort=[("updated_at", -1)]
@@ -920,7 +913,7 @@ class AKShareSyncService:
                 "latest_update": latest_basic.get("updated_at") if latest_basic else None
             }
 
-            # 检查行情数据集合
+            #Check line data set
             quotes_count = await self.db.market_quotes.count_documents({})
             latest_quotes = await self.db.market_quotes.find_one(
                 {}, sort=[("updated_at", -1)]
@@ -936,31 +929,30 @@ class AKShareSyncService:
                 "status_time": datetime.utcnow()
             }
 
-            logger.info(f"✅ AKShare状态检查完成: {status_result}")
+            logger.info(f"The AKShare status check is complete:{status_result}")
             return status_result
 
         except Exception as e:
-            logger.error(f"❌ AKShare状态检查失败: {e}")
+            logger.error(f"The AKShare status check failed:{e}")
             return {
                 "provider_connected": False,
                 "error": str(e),
                 "status_time": datetime.utcnow()
             }
 
-    # ==================== 新闻数据同步 ====================
+    #== sync, corrected by elderman == @elder man
 
     async def _get_favorite_stocks(self) -> List[str]:
-        """
-        获取所有用户的自选股列表（去重）
-        注意：只获取最新的文档，避免获取历史旧数据
+        """Retrieving list of selected shares for all users
+Note: Only the most up-to-date documents are obtained and historical data are avoided
 
-        Returns:
-            自选股代码列表
-        """
+Returns:
+List of selected shares
+"""
         try:
             favorite_codes = set()
 
-            # 方法1：从 users 集合的 favorite_stocks 字段获取
+            #Method 1: Retrieved from a group of users
             users_cursor = self.db.users.find(
                 {"favorite_stocks": {"$exists": True, "$ne": []}},
                 {"favorite_stocks.stock_code": 1, "_id": 0}
@@ -972,27 +964,27 @@ class AKShareSyncService:
                     if code:
                         favorite_codes.add(code)
 
-            # 方法2：从 user_favorites 集合获取（兼容旧数据结构）
-            # 🔥 只获取最新的一个文档（按 updated_at 降序排序）
+            #Method 2: Access from user favorites collection (compatible with old data structures)
+            #🔥 Retrieving only the latest document (in descending order)
             latest_doc = await self.db.user_favorites.find_one(
                 {"favorites": {"$exists": True, "$ne": []}},
                 {"favorites.stock_code": 1, "_id": 0},
-                sort=[("updated_at", -1)]  # 按更新时间降序，获取最新的
+                sort=[("updated_at", -1)]  #Get the most up-to-date drop order
             )
 
             if latest_doc:
-                logger.info(f"📌 从 user_favorites 获取最新文档的自选股")
+                logger.info(f"Select units to retrieve up-to-date documents from user favorites")
                 for fav in latest_doc.get("favorites", []):
                     code = fav.get("stock_code")
                     if code:
                         favorite_codes.add(code)
 
             result = sorted(list(favorite_codes))
-            logger.info(f"📌 获取到 {len(result)} 只自选股")
+            logger.info(f"Other Organiser{len(result)}Only selected units")
             return result
 
         except Exception as e:
-            logger.error(f"❌ 获取自选股列表失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return []
 
     async def sync_news_data(
@@ -1002,19 +994,18 @@ class AKShareSyncService:
         force_update: bool = False,
         favorites_only: bool = True
     ) -> Dict[str, Any]:
-        """
-        同步新闻数据
+        """Sync News Data
 
-        Args:
-            symbols: 股票代码列表，为None时根据favorites_only决定同步范围
-            max_news_per_stock: 每只股票最大新闻数量
-            force_update: 是否强制更新
-            favorites_only: 是否只同步自选股（默认True）
+Args:
+symbols: list of stock codes to determine the sync range for Noone based on favorites only
+Max news per stock: Maximum number of news per stock
+Force update
+Favorites only: whether to sync only to the selected unit (defaultTrue)
 
-        Returns:
-            同步结果统计
-        """
-        logger.info("🔄 开始同步AKShare新闻数据...")
+Returns:
+Sync Results Statistics
+"""
+        logger.info("Starting syncing AKshare news data...")
 
         stats = {
             "total_processed": 0,
@@ -1027,65 +1018,65 @@ class AKShareSyncService:
         }
 
         try:
-            # 1. 获取股票列表
+            #1. Taking stock lists
             if symbols is None:
                 if favorites_only:
-                    # 只同步自选股
+                    #Synchronization of selected units only
                     symbols = await self._get_favorite_stocks()
-                    logger.info(f"📌 只同步自选股，共 {len(symbols)} 只")
+                    logger.info(f"All right.{len(symbols)}Only")
                 else:
-                    # 获取所有股票（不限制数据源）
+                    #Access to all stocks (no restrictions on data sources)
                     stock_list = await self.db.stock_basic_info.find(
                         {},
                         {"code": 1, "_id": 0}
                     ).to_list(None)
                     symbols = [stock["code"] for stock in stock_list if stock.get("code")]
-                    logger.info(f"📊 同步所有股票，共 {len(symbols)} 只")
+                    logger.info(f"Synchronization of all stocks,{len(symbols)}Only")
 
             if not symbols:
-                logger.warning("⚠️ 没有找到需要同步新闻的股票")
+                logger.warning("No shares have been found that need to synchronize news.")
                 return stats
 
             stats["total_processed"] = len(symbols)
-            logger.info(f"📊 需要同步 {len(symbols)} 只股票的新闻")
+            logger.info(f"We need to sync.{len(symbols)}Only stock news.")
 
-            # 2. 批量处理
+            #2. Batch processing
             for i in range(0, len(symbols), self.batch_size):
                 batch = symbols[i:i + self.batch_size]
                 batch_stats = await self._process_news_batch(
                     batch, max_news_per_stock
                 )
 
-                # 更新统计
+                #Update statistics
                 stats["success_count"] += batch_stats["success_count"]
                 stats["error_count"] += batch_stats["error_count"]
                 stats["news_count"] += batch_stats["news_count"]
                 stats["errors"].extend(batch_stats["errors"])
 
-                # 进度日志
+                #Progress Log
                 progress = min(i + self.batch_size, len(symbols))
-                logger.info(f"📈 新闻同步进度: {progress}/{len(symbols)} "
-                           f"(成功: {stats['success_count']}, 新闻: {stats['news_count']})")
+                logger.info(f"NewsSync:{progress}/{len(symbols)} "
+                           f"(success:{stats['success_count']}News:{stats['news_count']})")
 
-                # API限流
+                #API limit flow
                 if i + self.batch_size < len(symbols):
                     await asyncio.sleep(self.rate_limit_delay)
 
-            # 3. 完成统计
+            #3. Completion of statistics
             stats["end_time"] = datetime.utcnow()
             stats["duration"] = (stats["end_time"] - stats["start_time"]).total_seconds()
 
-            logger.info(f"✅ AKShare新闻数据同步完成: "
-                       f"总计 {stats['total_processed']} 只股票, "
-                       f"成功 {stats['success_count']} 只, "
-                       f"获取 {stats['news_count']} 条新闻, "
-                       f"错误 {stats['error_count']} 只, "
-                       f"耗时 {stats['duration']:.2f} 秒")
+            logger.info(f"AKShare news data synchronised:"
+                       f"Total{stats['total_processed']}It's just stocks."
+                       f"Success{stats['success_count']}Only,"
+                       f"Access{stats['news_count']}The news,"
+                       f"Error{stats['error_count']}Only,"
+                       f"Time-consuming{stats['duration']:.2f}sec")
 
             return stats
 
         except Exception as e:
-            logger.error(f"❌ AKShare新闻数据同步失败: {e}")
+            logger.error(f"AKShare NewsSync failed:{e}")
             stats["errors"].append({"error": str(e), "context": "sync_news_data"})
             return stats
 
@@ -1094,7 +1085,7 @@ class AKShareSyncService:
         batch: List[str],
         max_news_per_stock: int
     ) -> Dict[str, Any]:
-        """处理新闻批次"""
+        """Processing of news batches"""
         batch_stats = {
             "success_count": 0,
             "error_count": 0,
@@ -1104,14 +1095,14 @@ class AKShareSyncService:
 
         for symbol in batch:
             try:
-                # 从AKShare获取新闻数据
+                #Get news data from Akshare.
                 news_data = await self.provider.get_stock_news(
                     symbol=symbol,
                     limit=max_news_per_stock
                 )
 
                 if news_data:
-                    # 保存新闻数据
+                    #Preservation of news data
                     saved_count = await self.news_service.save_news_data(
                         news_data=news_data,
                         data_source="akshare",
@@ -1121,32 +1112,32 @@ class AKShareSyncService:
                     batch_stats["success_count"] += 1
                     batch_stats["news_count"] += saved_count
 
-                    logger.debug(f"✅ {symbol} 新闻同步成功: {saved_count}条")
+                    logger.debug(f"✅ {symbol}News Synchronization Success:{saved_count}Article")
                 else:
-                    logger.debug(f"⚠️ {symbol} 未获取到新闻数据")
-                    batch_stats["success_count"] += 1  # 没有新闻也算成功
+                    logger.debug(f"⚠️ {symbol}No news data obtained")
+                    batch_stats["success_count"] += 1  #It's a success without news.
 
-                # 🔥 API限流：成功后休眠
+                #🔥API limit flow: successful hibernation
                 await asyncio.sleep(0.2)
 
             except Exception as e:
                 batch_stats["error_count"] += 1
                 error_msg = f"{symbol}: {str(e)}"
                 batch_stats["errors"].append(error_msg)
-                logger.error(f"❌ {symbol} 新闻同步失败: {e}")
+                logger.error(f"❌ {symbol}News Synchronisation Failed:{e}")
 
-                # 🔥 失败后也要休眠，避免"失败雪崩"
-                # 失败时休眠更长时间，给API服务器恢复的机会
+                #And when you fail, you're going to sleep.
+                #Longer hibernation in failure, giving the API server a chance to recover
                 await asyncio.sleep(1.0)
 
         return batch_stats
 
 
-# 全局同步服务实例
+#Examples of global sync services
 _akshare_sync_service = None
 
 async def get_akshare_sync_service() -> AKShareSyncService:
-    """获取AKShare同步服务实例"""
+    """Get instance of AKShare sync service"""
     global _akshare_sync_service
     if _akshare_sync_service is None:
         _akshare_sync_service = AKShareSyncService()
@@ -1154,82 +1145,81 @@ async def get_akshare_sync_service() -> AKShareSyncService:
     return _akshare_sync_service
 
 
-# APScheduler兼容的任务函数
+#Task Functions compatible with APSscheduler
 async def run_akshare_basic_info_sync(force_update: bool = False):
-    """APScheduler任务：同步股票基础信息"""
+    """APScheduler mission: Synchronizing basic stock information"""
     try:
         service = await get_akshare_sync_service()
         result = await service.sync_stock_basic_info(force_update=force_update)
-        logger.info(f"✅ AKShare基础信息同步完成: {result}")
+        logger.info(f"AKshare's basic information is synchronised:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ AKShare基础信息同步失败: {e}")
+        logger.error(f"AKShare's base message failed:{e}")
         raise
 
 
 async def run_akshare_quotes_sync(force: bool = False):
-    """
-    APScheduler任务：同步实时行情
+    """APSscheduler mission: Sync real-time patterns
 
-    Args:
-        force: 是否强制执行（跳过交易时间检查），默认 False
-    """
+Args:
+force: enforcement ( Skip transaction time check), default False
+"""
     try:
         service = await get_akshare_sync_service()
-        # 注意：AKShare 没有交易时间检查逻辑，force 参数仅用于接口一致性
+        #Note: AKShare has no transaction time check logic, force parameters only for interface consistency
         result = await service.sync_realtime_quotes(force=force)
-        logger.info(f"✅ AKShare行情同步完成: {result}")
+        logger.info(f"The AKShare line has been synchronized:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ AKShare行情同步失败: {e}")
+        logger.error(f"The AKShare line failed:{e}")
         raise
 
 
 async def run_akshare_historical_sync(incremental: bool = True):
-    """APScheduler任务：同步历史数据"""
+    """APScheduler: Synchronizing historical data"""
     try:
         service = await get_akshare_sync_service()
         result = await service.sync_historical_data(incremental=incremental)
-        logger.info(f"✅ AKShare历史数据同步完成: {result}")
+        logger.info(f"AKShare's historical data are synchronised:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ AKShare历史数据同步失败: {e}")
+        logger.error(f"AKShare's historical data sync failed:{e}")
         raise
 
 
 async def run_akshare_financial_sync():
-    """APScheduler任务：同步财务数据"""
+    """APSscheduler mission: Synchronization of financial data"""
     try:
         service = await get_akshare_sync_service()
         result = await service.sync_financial_data()
-        logger.info(f"✅ AKShare财务数据同步完成: {result}")
+        logger.info(f"Synchronization of AKShare financial data:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ AKShare财务数据同步失败: {e}")
+        logger.error(f"AKShare's financial data synchronised failed:{e}")
         raise
 
 
 async def run_akshare_status_check():
-    """APScheduler任务：状态检查"""
+    """APScheduler mission: status check"""
     try:
         service = await get_akshare_sync_service()
         result = await service.run_status_check()
-        logger.info(f"✅ AKShare状态检查完成: {result}")
+        logger.info(f"The AKShare status check is complete:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ AKShare状态检查失败: {e}")
+        logger.error(f"The AKShare status check failed:{e}")
         raise
 
 
 async def run_akshare_news_sync(max_news_per_stock: int = 20):
-    """APScheduler任务：同步新闻数据"""
+    """APSscheduler mission: Synchronizing news data"""
     try:
         service = await get_akshare_sync_service()
         result = await service.sync_news_data(
             max_news_per_stock=max_news_per_stock
         )
-        logger.info(f"✅ AKShare新闻数据同步完成: {result}")
+        logger.info(f"AKShare news data synchronised:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ AKShare新闻数据同步失败: {e}")
+        logger.error(f"AKShare NewsSync failed:{e}")
         raise

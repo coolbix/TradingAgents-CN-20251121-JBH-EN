@@ -1,6 +1,5 @@
-"""
-基于数据库的认证路由 - 改进版
-替代原有的基于配置文件的认证机制
+"""Database-based authentication route - improved version
+Alternative to the original configuration-based authentication mechanism
 """
 
 import time
@@ -15,18 +14,18 @@ from app.models.user import UserCreate, UserUpdate
 from app.services.operation_log_service import log_operation
 from app.models.operation_log import ActionType
 
-# 尝试导入日志管理器
+#Try Import Log Manager
 try:
     from tradingagents.utils.logging_manager import get_logger
 except ImportError:
-    # 如果导入失败，使用标准日志
+    #Use standard log if import failed
     import logging
     def get_logger(name: str) -> logging.Logger:
         return logging.getLogger(name)
 
 logger = get_logger('auth_db')
 
-# 统一响应格式
+#Harmonized Response Format
 class ApiResponse(BaseModel):
     success: bool = True
     data: dict = {}
@@ -67,42 +66,42 @@ class CreateUserRequest(BaseModel):
     is_admin: bool = False
 
 async def get_current_user(authorization: Optional[str] = Header(default=None)) -> dict:
-    """获取当前用户信息"""
-    logger.debug(f"🔐 认证检查开始")
+    """Get Current User Information"""
+    logger.debug(f"The authentication check begins.")
     logger.debug(f"📋 Authorization header: {authorization[:50] if authorization else 'None'}...")
 
     if not authorization:
-        logger.warning("❌ 没有Authorization header")
+        logger.warning("No Authorizehead.")
         raise HTTPException(status_code=401, detail="No authorization header")
 
     if not authorization.lower().startswith("bearer "):
-        logger.warning(f"❌ Authorization header格式错误: {authorization[:20]}...")
+        logger.warning(f"Autoration header error:{authorization[:20]}...")
         raise HTTPException(status_code=401, detail="Invalid authorization format")
 
     token = authorization.split(" ", 1)[1]
-    logger.debug(f"🎫 提取的token长度: {len(token)}")
-    logger.debug(f"🎫 Token前20位: {token[:20]}...")
+    logger.debug(f"Token length extracted:{len(token)}")
+    logger.debug(f"Token top 20:{token[:20]}...")
 
     token_data = AuthService.verify_token(token)
-    logger.debug(f"🔍 Token验证结果: {token_data is not None}")
+    logger.debug(f"Token:{token_data is not None}")
 
     if not token_data:
-        logger.warning("❌ Token验证失败")
+        logger.warning("Token authentication failed")
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # 从数据库获取用户信息
+    #Get user information from the database
     user = await user_service.get_user_by_username(token_data.sub)
     if not user:
-        logger.warning(f"❌ 用户不存在: {token_data.sub}")
+        logger.warning(f"The user does not exist:{token_data.sub}")
         raise HTTPException(status_code=401, detail="User not found")
 
     if not user.is_active:
-        logger.warning(f"❌ 用户已禁用: {token_data.sub}")
+        logger.warning(f"User disabled:{token_data.sub}")
         raise HTTPException(status_code=401, detail="User is inactive")
 
-    logger.debug(f"✅ 认证成功，用户: {token_data.sub}")
+    logger.debug(f"Could not close temporary folder: %s{token_data.sub}")
 
-    # 返回完整的用户信息，包括偏好设置
+    #Returns complete user information, including preferences
     return {
         "id": str(user.id),
         "username": user.username,
@@ -115,19 +114,19 @@ async def get_current_user(authorization: Optional[str] = Header(default=None)) 
 
 @router.post("/login")
 async def login(payload: LoginRequest, request: Request):
-    """用户登录"""
+    """User Login"""
     start_time = time.time()
 
-    # 获取客户端信息
+    #Get Client Information
     ip_address = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "")
 
-    logger.info(f"🔐 登录请求 - 用户名: {payload.username}, IP: {ip_address}")
+    logger.info(f"Login request - username:{payload.username}, IP: {ip_address}")
 
     try:
-        # 验证输入
+        #Validate input
         if not payload.username or not payload.password:
-            logger.warning(f"❌ 登录失败 - 用户名或密码为空")
+            logger.warning(f"Could not close temporary folder: %s")
             await log_operation(
                 user_id="unknown",
                 username=payload.username or "unknown",
@@ -142,15 +141,15 @@ async def login(payload: LoginRequest, request: Request):
             )
             raise HTTPException(status_code=400, detail="用户名和密码不能为空")
 
-        logger.info(f"🔍 开始认证用户: {payload.username}")
+        logger.info(f"Could not close temporary folder: %s{payload.username}")
 
-        # 使用数据库认证
+        #Use database authentication
         user = await user_service.authenticate_user(payload.username, payload.password)
 
-        logger.info(f"🔍 认证结果: user={'存在' if user else '不存在'}")
+        logger.info(f"Authentication results: user={'Existence' if user else 'does not exist'}")
 
         if not user:
-            logger.warning(f"❌ 登录失败 - 用户名或密码错误: {payload.username}")
+            logger.warning(f"Could not close temporary folder: %s{payload.username}")
             await log_operation(
                 user_id="unknown",
                 username=payload.username,
@@ -165,11 +164,11 @@ async def login(payload: LoginRequest, request: Request):
             )
             raise HTTPException(status_code=401, detail="用户名或密码错误")
 
-        # 生成 token
+        #Generate token
         token = AuthService.create_access_token(sub=user.username)
-        refresh_token = AuthService.create_access_token(sub=user.username, expires_delta=60*60*24*7)  # 7天有效期
+        refresh_token = AuthService.create_access_token(sub=user.username, expires_delta=60*60*24*7)  #7 days valid
 
-        # 记录登录成功日志
+        #Login Login Success Log
         await log_operation(
             user_id=str(user.id),
             username=user.username,
@@ -201,7 +200,7 @@ async def login(payload: LoginRequest, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 登录异常: {e}")
+        logger.error(f"It's an anomaly.{e}")
         await log_operation(
             user_id="unknown",
             username=payload.username or "unknown",
@@ -218,36 +217,36 @@ async def login(payload: LoginRequest, request: Request):
 
 @router.post("/refresh")
 async def refresh_token(payload: RefreshTokenRequest):
-    """刷新访问令牌"""
+    """Refresh Access Cards"""
     try:
-        logger.debug(f"🔄 收到refresh token请求")
-        logger.debug(f"📝 Refresh token长度: {len(payload.refresh_token) if payload.refresh_token else 0}")
+        logger.debug(f"Request received from refresh token")
+        logger.debug(f"Refresh token length:{len(payload.refresh_token) if payload.refresh_token else 0}")
 
         if not payload.refresh_token:
-            logger.warning("❌ Refresh token为空")
+            logger.warning("Refresh token is empty.")
             raise HTTPException(status_code=401, detail="Refresh token is required")
 
-        # 验证refresh token
+        #Verify refresh token
         token_data = AuthService.verify_token(payload.refresh_token)
-        logger.debug(f"🔍 Token验证结果: {token_data is not None}")
+        logger.debug(f"Token:{token_data is not None}")
 
         if not token_data:
-            logger.warning("❌ Refresh token验证失败")
+            logger.warning("Refresh token authentication failed")
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-        # 验证用户是否仍然存在且激活
+        #Verify if user still exists and active
         user = await user_service.get_user_by_username(token_data.sub)
         if not user or not user.is_active:
-            logger.warning(f"❌ 用户不存在或已禁用: {token_data.sub}")
+            logger.warning(f"The user does not exist or is disabled:{token_data.sub}")
             raise HTTPException(status_code=401, detail="User not found or inactive")
 
-        logger.debug(f"✅ Token验证成功，用户: {token_data.sub}")
+        logger.debug(f"Token's confirmed. User:{token_data.sub}")
 
-        # 生成新的tokens
+        #Generate new tokens
         new_token = AuthService.create_access_token(sub=token_data.sub)
         new_refresh_token = AuthService.create_access_token(sub=token_data.sub, expires_delta=60*60*24*7)
 
-        logger.debug(f"🎉 新token生成成功")
+        logger.debug(f"New token was successfully created.")
 
         return {
             "success": True,
@@ -261,20 +260,20 @@ async def refresh_token(payload: RefreshTokenRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Refresh token处理异常: {str(e)}")
+        logger.error(f"Refresh token handles anomalies:{str(e)}")
         raise HTTPException(status_code=401, detail=f"Token refresh failed: {str(e)}")
 
 @router.post("/logout")
 async def logout(request: Request, user: dict = Depends(get_current_user)):
-    """用户登出"""
+    """User Logout"""
     start_time = time.time()
 
-    # 获取客户端信息
+    #Get Client Information
     ip_address = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "")
 
     try:
-        # 记录登出日志
+        #Logout Log
         await log_operation(
             user_id=user["id"],
             username=user["username"],
@@ -293,7 +292,7 @@ async def logout(request: Request, user: dict = Depends(get_current_user)):
             "message": "登出成功"
         }
     except Exception as e:
-        logger.error(f"记录登出日志失败: {e}")
+        logger.error(f"Logout log failed:{e}")
         return {
             "success": True,
             "data": {},
@@ -302,7 +301,7 @@ async def logout(request: Request, user: dict = Depends(get_current_user)):
 
 @router.get("/me")
 async def me(user: dict = Depends(get_current_user)):
-    """获取当前用户信息"""
+    """Get Current User Information"""
     return {
         "success": True,
         "data": user,
@@ -314,47 +313,47 @@ async def update_me(
     payload: dict,
     user: dict = Depends(get_current_user)
 ):
-    """更新当前用户信息"""
+    """Update current user information"""
     try:
         from app.models.user import UserUpdate, UserPreferences
 
-        # 构建更新数据
+        #Build Update Data
         update_data = {}
 
-        # 更新邮箱
+        #Update Mailbox
         if "email" in payload:
             update_data["email"] = payload["email"]
 
-        # 更新偏好设置（支持部分更新）
+        #Update preferences (support partial updates)
         if "preferences" in payload:
-            # 获取当前偏好
+            #Fetch current preferences
             current_prefs = user.get("preferences", {})
 
-            # 合并新的偏好设置
+            #Merge new preferences
             merged_prefs = {**current_prefs, **payload["preferences"]}
 
-            # 创建 UserPreferences 对象
+            #Create UserPreferences Object
             update_data["preferences"] = UserPreferences(**merged_prefs)
 
-        # 如果有语言设置，更新到偏好中
+        #Update to preferences if language settings exist Medium
         if "language" in payload:
             if "preferences" not in update_data:
-                # 获取当前偏好
+                #Fetch current preferences
                 current_prefs = user.get("preferences", {})
                 update_data["preferences"] = UserPreferences(**current_prefs)
             update_data["preferences"].language = payload["language"]
 
-        # 如果有时区设置，更新到偏好中（如果需要）
-        # 注意：时区通常是系统级设置，不是用户级设置
+        #Update to preferences (if needed)
+        #Note: Time zones are usually system-level settings, not user-level settings
 
-        # 调用服务更新用户
+        #Call service update users
         user_update = UserUpdate(**update_data)
         updated_user = await user_service.update_user(user["username"], user_update)
 
         if not updated_user:
             raise HTTPException(status_code=400, detail="更新失败，邮箱可能已被使用")
 
-        # 返回更新后的用户信息
+        #Returns updated user information
         return {
             "success": True,
             "data": updated_user.model_dump(by_alias=True),
@@ -363,7 +362,7 @@ async def update_me(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"更新用户信息失败: {e}", exc_info=True)
+        logger.error(f"Could not close temporary folder: %s{e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"更新用户信息失败: {str(e)}")
 
 @router.post("/change-password")
@@ -372,9 +371,9 @@ async def change_password(
     request: Request,
     user: dict = Depends(get_current_user)
 ):
-    """修改密码"""
+    """Change Password"""
     try:
-        # 使用数据库服务修改密码
+        #Change password using database services
         success = await user_service.change_password(
             user["username"], 
             payload.old_password, 
@@ -392,7 +391,7 @@ async def change_password(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"修改密码失败: {e}")
+        logger.error(f"Change password failed:{e}")
         raise HTTPException(status_code=500, detail=f"修改密码失败: {str(e)}")
 
 @router.post("/reset-password")
@@ -401,13 +400,13 @@ async def reset_password(
     request: Request,
     user: dict = Depends(get_current_user)
 ):
-    """重置密码（管理员操作）"""
+    """Reset password (administrator operation)"""
     try:
-        # 检查权限
+        #Inspection Permissions
         if not user.get("is_admin", False):
             raise HTTPException(status_code=403, detail="权限不足")
 
-        # 重置密码
+        #Reset Password
         success = await user_service.reset_password(payload.username, payload.new_password)
         
         if not success:
@@ -421,7 +420,7 @@ async def reset_password(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"重置密码失败: {e}")
+        logger.error(f"Reset password failed:{e}")
         raise HTTPException(status_code=500, detail=f"重置密码失败: {str(e)}")
 
 @router.post("/create-user")
@@ -430,13 +429,13 @@ async def create_user(
     request: Request,
     user: dict = Depends(get_current_user)
 ):
-    """创建用户（管理员操作）"""
+    """Create User (Administrator Operations)"""
     try:
-        # 检查权限
+        #Inspection Permissions
         if not user.get("is_admin", False):
             raise HTTPException(status_code=403, detail="权限不足")
 
-        # 创建用户
+        #Create User
         user_create = UserCreate(
             username=payload.username,
             email=payload.email,
@@ -448,7 +447,7 @@ async def create_user(
         if not new_user:
             raise HTTPException(status_code=400, detail="用户名或邮箱已存在")
 
-        # 如果需要设置为管理员
+        #If needed to set as administrator
         if payload.is_admin:
             from pymongo import MongoClient
             from app.core.config import settings
@@ -472,7 +471,7 @@ async def create_user(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"创建用户失败: {e}")
+        logger.error(f"Synchronising {e}")
         raise HTTPException(status_code=500, detail=f"创建用户失败: {str(e)}")
 
 @router.get("/users")
@@ -481,9 +480,9 @@ async def list_users(
     limit: int = 100,
     user: dict = Depends(get_current_user)
 ):
-    """获取用户列表（管理员操作）"""
+    """Get User List (Administrator Operations)"""
     try:
-        # 检查权限
+        #Inspection Permissions
         if not user.get("is_admin", False):
             raise HTTPException(status_code=403, detail="权限不足")
 
@@ -500,5 +499,5 @@ async def list_users(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"获取用户列表失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取用户列表失败: {str(e)}")

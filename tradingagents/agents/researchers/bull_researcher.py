@@ -2,14 +2,14 @@ from langchain_core.messages import AIMessage
 import time
 import json
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
 
 def create_bull_researcher(llm, memory):
     def bull_node(state) -> dict:
-        logger.debug(f"🐂 [DEBUG] ===== 看涨研究员节点开始 =====")
+        logger.debug(f"== sync, corrected by elderman == @elder man")
 
         investment_debate_state = state["investment_debate_state"]
         history = investment_debate_state.get("history", "")
@@ -21,34 +21,34 @@ def create_bull_researcher(llm, memory):
         news_report = state["news_report"]
         fundamentals_report = state["fundamentals_report"]
 
-        # 使用统一的股票类型检测
+        #Use common stock type testing
         ticker = state.get('company_of_interest', 'Unknown')
         from tradingagents.utils.stock_utils import StockUtils
         market_info = StockUtils.get_market_info(ticker)
         is_china = market_info['is_china']
 
-        # 获取公司名称
+        #Get company names
         def _get_company_name(ticker_code: str, market_info_dict: dict) -> str:
-            """根据股票代码获取公司名称"""
+            """Get company names by stock code"""
             try:
                 if market_info_dict['is_china']:
                     from tradingagents.dataflows.interface import get_china_stock_info_unified
                     stock_info = get_china_stock_info_unified(ticker_code)
                     if stock_info and "股票名称:" in stock_info:
                         name = stock_info.split("股票名称:")[1].split("\n")[0].strip()
-                        logger.info(f"✅ [多头研究员] 成功获取中国股票名称: {ticker_code} -> {name}")
+                        logger.info(f"[Many Fellows]{ticker_code} -> {name}")
                         return name
                     else:
-                        # 降级方案
+                        #Downscaling programme
                         try:
                             from tradingagents.dataflows.data_source_manager import get_china_stock_info_unified as get_info_dict
                             info_dict = get_info_dict(ticker_code)
                             if info_dict and info_dict.get('name'):
                                 name = info_dict['name']
-                                logger.info(f"✅ [多头研究员] 降级方案成功获取股票名称: {ticker_code} -> {name}")
+                                logger.info(f"✅ [Multi-League Fellow] Successfully acquired stock names:{ticker_code} -> {name}")
                                 return name
                         except Exception as e:
-                            logger.error(f"❌ [多头研究员] 降级方案也失败: {e}")
+                            logger.error(f"The demotion programme also failed:{e}")
                 elif market_info_dict['is_hk']:
                     try:
                         from tradingagents.dataflows.providers.hk.improved_hk import get_hk_company_name_improved
@@ -65,7 +65,7 @@ def create_bull_researcher(llm, memory):
                     }
                     return us_stock_names.get(ticker_code.upper(), f"美股{ticker_code}")
             except Exception as e:
-                logger.error(f"❌ [多头研究员] 获取公司名称失败: {e}")
+                logger.error(f"[Many Fellows]{e}")
             return f"股票代码{ticker_code}"
 
         company_name = _get_company_name(ticker, market_info)
@@ -75,22 +75,22 @@ def create_bull_researcher(llm, memory):
         currency = market_info['currency_name']
         currency_symbol = market_info['currency_symbol']
 
-        logger.debug(f"🐂 [DEBUG] 接收到的报告:")
-        logger.debug(f"🐂 [DEBUG] - 市场报告长度: {len(market_research_report)}")
-        logger.debug(f"🐂 [DEBUG] - 情绪报告长度: {len(sentiment_report)}")
-        logger.debug(f"🐂 [DEBUG] - 新闻报告长度: {len(news_report)}")
-        logger.debug(f"🐂 [DEBUG] - 基本面报告长度: {len(fundamentals_report)}")
-        logger.debug(f"🐂 [DEBUG] - 基本面报告前200字符: {fundamentals_report[:200]}...")
-        logger.debug(f"🐂 [DEBUG] - 股票代码: {ticker}, 公司名称: {company_name}, 类型: {market_info['market_name']}, 货币: {currency}")
-        logger.debug(f"🐂 [DEBUG] - 市场详情: 中国A股={is_china}, 港股={is_hk}, 美股={is_us}")
+        logger.debug(f"[DBUG] Report received:")
+        logger.debug(f"[DBUG] - Market Report Length:{len(market_research_report)}")
+        logger.debug(f"[DEBUG] - Emotional report length:{len(sentiment_report)}")
+        logger.debug(f"[DBUG] - News Report Length:{len(news_report)}")
+        logger.debug(f"[DBUG] - Basic report length:{len(fundamentals_report)}")
+        logger.debug(f"[DEBUG] - 200 characters in front of basic face report:{fundamentals_report[:200]}...")
+        logger.debug(f"[DBUG] - Stock code:{ticker}, company name:{company_name}type:{market_info['market_name']}, currency:{currency}")
+        logger.debug(f"[DBUG] - Market details: China A ={is_china}Port Unit ={is_hk}♪ America ♪{is_us}")
 
         curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
 
-        # 安全检查：确保memory不为None
+        #Security check: ensure memory is not None
         if memory is not None:
             past_memories = memory.get_memories(curr_situation, n_matches=2)
         else:
-            logger.warning(f"⚠️ [DEBUG] memory为None，跳过历史记忆检索")
+            logger.warning(f"[DEBUG] memory is None, skip historical memory search")
             past_memories = []
 
         past_memory_str = ""
@@ -130,7 +130,7 @@ def create_bull_researcher(llm, memory):
         argument = f"Bull Analyst: {response.content}"
 
         new_count = investment_debate_state["count"] + 1
-        logger.info(f"🐂 [多头研究员] 发言完成，计数: {investment_debate_state['count']} -> {new_count}")
+        logger.info(f"[Many Fellows]{investment_debate_state['count']} -> {new_count}")
 
         new_investment_debate_state = {
             "history": history + "\n" + argument,

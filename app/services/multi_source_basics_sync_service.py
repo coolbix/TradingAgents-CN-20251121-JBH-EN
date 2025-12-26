@@ -31,7 +31,7 @@ JOB_KEY = "stock_basics_multi_source"
 
 
 class DataSourcePriority(Enum):
-    """数据源优先级枚举"""
+    """Data source priority count"""
     TUSHARE = 1
     AKSHARE = 2
     BAOSTOCK = 3
@@ -39,9 +39,9 @@ class DataSourcePriority(Enum):
 
 @dataclass
 class SyncStats:
-    """同步统计信息"""
+    """Sync Statistical Information"""
     job: str = JOB_KEY
-    data_type: str = "stock_basics"  # 添加data_type字段以符合数据库索引要求
+    data_type: str = "stock_basics"  #Add a Data type field to meet database index requirements
     status: str = "idle"
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
@@ -56,7 +56,7 @@ class SyncStats:
 
 
 class MultiSourceBasicsSyncService:
-    """多数据源股票基础信息同步服务"""
+    """Multidata Source Basic Information Synchronization Service"""
 
     def __init__(self):
         self._lock = asyncio.Lock()
@@ -64,24 +64,24 @@ class MultiSourceBasicsSyncService:
         self._last_status: Optional[Dict[str, Any]] = None
 
     async def get_status(self) -> Dict[str, Any]:
-        """获取同步状态"""
+        """Get Sync Status"""
         if self._last_status:
             return self._last_status
 
         db = get_mongo_db()
         doc = await db[STATUS_COLLECTION].find_one({"job": JOB_KEY})
         if doc:
-            # 移除MongoDB的_id字段以避免序列化问题
+            #Remove the  id field of MongoDB to avoid serialization problems
             doc.pop("_id", None)
             return doc
         return {"job": JOB_KEY, "status": "never_run"}
 
     async def _persist_status(self, db: AsyncIOMotorDatabase, stats: Dict[str, Any]) -> None:
-        """持久化同步状态"""
+        """Sustained Sync Status"""
         stats["job"] = JOB_KEY
 
-        # 使用 upsert 来避免重复键错误
-        # 基于 data_type 和 job 进行更新或插入
+        #Use upset to avoid errors
+        #Update or insert based on data  type and job
         filter_query = {
             "data_type": stats.get("data_type", "stock_basics"),
             "job": JOB_KEY
@@ -101,17 +101,16 @@ class MultiSourceBasicsSyncService:
         operations: List,
         max_retries: int = 3
     ) -> Tuple[int, int]:
-        """
-        执行批量写入，带重试机制
+        """Implementation batch writing with retry mechanism
 
-        Args:
-            db: MongoDB数据库实例
-            operations: 批量操作列表
-            max_retries: 最大重试次数
+Args:
+db: Example of MongoDB database
+Organisations: Batch Operations List
+max retries: maximum number of retries
 
-        Returns:
-            (新增数量, 更新数量)
-        """
+Returns:
+(Add, Update)
+"""
         inserted = 0
         updated = 0
         retry_count = 0
@@ -121,33 +120,32 @@ class MultiSourceBasicsSyncService:
                 result = await db[COLLECTION_NAME].bulk_write(operations, ordered=False)
                 inserted = result.upserted_count
                 updated = result.modified_count
-                logger.debug(f"✅ 批量写入成功: 新增 {inserted}, 更新 {updated}")
+                logger.debug(f"Bulk writing success: Add{inserted}Update{updated}")
                 return inserted, updated
 
             except asyncio.TimeoutError as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    wait_time = 2 ** retry_count  # 指数退避：2秒、4秒、8秒
-                    logger.warning(f"⚠️ 批量写入超时 (第{retry_count}次重试)，等待{wait_time}秒后重试...")
+                    wait_time = 2 ** retry_count  #Index retreat: 2 seconds, 4 seconds, 8 seconds
+                    logger.warning(f"⚠️ Bulk writing timeout (no.{retry_count}Try again, wait{wait_time}Try again in seconds...")
                     await asyncio.sleep(wait_time)
                 else:
-                    logger.error(f"❌ 批量写入失败，已重试{max_retries}次: {e}")
+                    logger.error(f"Failed to write batch ❌. Try again{max_retries}Times:{e}")
                     return 0, 0
 
             except Exception as e:
-                logger.error(f"❌ 批量写入失败: {e}")
+                logger.error(f"Batch writing failed:{e}")
                 return 0, 0
 
         return inserted, updated
 
     async def run_full_sync(self, force: bool = False, preferred_sources: List[str] = None) -> Dict[str, Any]:
-        """
-        运行完整同步
+        """Run Full Sync
 
-        Args:
-            force: 是否强制运行（即使已在运行中）
-            preferred_sources: 优先使用的数据源列表
-        """
+Args:
+force: whether to enforce (even if already in operation)
+Prefered sources: Priority list of data sources
+"""
         async with self._lock:
             if self._running and not force:
                 logger.info("Multi-source stock basics sync already running; skip start")
@@ -161,7 +159,7 @@ class MultiSourceBasicsSyncService:
         await self._persist_status(db, stats.__dict__.copy())
 
         try:
-            # Step 1: 获取数据源管理器
+            #Step 1: Access data source manager
             from app.services.data_sources.manager import DataSourceManager
             manager = DataSourceManager()
             available_adapters = manager.get_available_adapters()
@@ -171,11 +169,11 @@ class MultiSourceBasicsSyncService:
 
             logger.info(f"Available data sources: {[adapter.name for adapter in available_adapters]}")
 
-            # 如果指定了优先数据源，记录日志
+            #Log if priority data source is specified
             if preferred_sources:
                 logger.info(f"Using preferred data sources: {preferred_sources}")
 
-            # Step 2: 尝试从数据源获取股票列表
+            #Step 2: Try to retrieve the list of shares from data sources
             stock_df, source_used = await asyncio.to_thread(
                 manager.get_stock_list_with_fallback, preferred_sources
             )
@@ -185,7 +183,7 @@ class MultiSourceBasicsSyncService:
             stats.data_sources_used.append(f"stock_list:{source_used}")
             logger.info(f"Successfully fetched {len(stock_df)} stocks from {source_used}")
 
-            # Step 3: 获取最新交易日期和财务数据
+            #Step 3: Obtain updated transaction dates and financial data
             latest_trade_date = await asyncio.to_thread(
                 manager.find_latest_trade_date_with_fallback, preferred_sources
             )
@@ -204,17 +202,17 @@ class MultiSourceBasicsSyncService:
                             daily_data_map[ts_code] = row.to_dict()
                     stats.data_sources_used.append(f"daily_data:{daily_source}")
 
-            # Step 5: 处理和更新数据（分批处理）
+            #Step 5: Processing and updating of data (various processing)
             ops = []
             inserted = updated = errors = 0
-            batch_size = 500  # 🔥 每批处理 500 只股票，避免超时
+            batch_size = 500  #500 shares per batch to avoid time overruns
             total_stocks = len(stock_df)
 
-            logger.info(f"🚀 开始处理 {total_stocks} 只股票，数据源: {source_used}")
+            logger.info(f"Let's go.{total_stocks}Stock only, data source:{source_used}")
 
             for idx, (_, row) in enumerate(stock_df.iterrows(), 1):
                 try:
-                    # 提取基础信息
+                    #Extract Basic Information
                     name = row.get("name") or ""
                     area = row.get("area") or ""
                     industry = row.get("industry") or ""
@@ -222,14 +220,14 @@ class MultiSourceBasicsSyncService:
                     list_date = row.get("list_date") or ""
                     ts_code = row.get("ts_code") or ""
 
-                    # 提取6位股票代码
+                    #Extract 6-bit stock code.
                     if isinstance(ts_code, str) and "." in ts_code:
                         code = ts_code.split(".")[0]
                     else:
                         symbol = row.get("symbol") or ""
                         code = str(symbol).zfill(6) if symbol else ""
 
-                    # 根据 ts_code 判断交易所
+                    #Based on ts code
                     if isinstance(ts_code, str):
                         if ts_code.endswith(".SH"):
                             sse = "上海证券交易所"
@@ -244,69 +242,69 @@ class MultiSourceBasicsSyncService:
 
                     category = "stock_cn"
 
-                    # 获取财务数据
+                    #Access to financial data
                     daily_metrics = {}
                     if isinstance(ts_code, str) and ts_code in daily_data_map:
                         daily_metrics = daily_data_map[ts_code]
 
-                    # 生成 full_symbol（确保不为空）
+                    #Generate full symbol
                     full_symbol = ts_code if ts_code else self._generate_full_symbol(code)
 
-                    # 🔥 确定数据源标识
-                    # 根据实际使用的数据源设置 source 字段
-                    # 注意：不再使用 "multi_source" 作为默认值，必须有明确的数据源
+                    #Identification of data sources
+                    #Set the source field according to the actual data source used
+                    #Note: no longer using "multi source" as default, there must be clear data Source
                     if not source_used:
-                        logger.warning(f"⚠️ 股票 {code} 没有明确的数据源，跳过")
+                        logger.warning(f"Equities{code}No clear data source, skip")
                         errors += 1
                         continue
                     data_source = source_used
 
-                    # 构建文档
+                    #Build Document
                     doc = {
                         "code": code,
-                        "symbol": code,  # 添加 symbol 字段（标准化字段）
+                        "symbol": code,  #Add symbol field (standardized field)
                         "name": name,
                         "area": area,
                         "industry": industry,
                         "market": market,
                         "list_date": list_date,
                         "sse": sse,
-                        "full_symbol": full_symbol,  # 添加 full_symbol 字段
+                        "full_symbol": full_symbol,  #Add full symbol field
                         "category": category,
-                        "source": data_source,  # 🔥 使用实际数据源
+                        "source": data_source,  #Using actual data sources 🔥
                         "updated_at": datetime.now(),
                     }
 
-                    # 添加财务指标
+                    #Add Financial Indicators
                     self._add_financial_metrics(doc, daily_metrics)
 
-                    # 🔥 使用 (code, source) 联合查询条件
+                    #Use (code, source) of joint query conditions
                     ops.append(UpdateOne({"code": code, "source": data_source}, {"$set": doc}, upsert=True))
 
                 except Exception as e:
                     logger.error(f"Error processing stock {row.get('ts_code', 'unknown')}: {e}")
                     errors += 1
 
-                # 🔥 分批执行数据库操作
+                #🔥 Phased database operation
                 if len(ops) >= batch_size or idx == total_stocks:
                     if ops:
                         progress_pct = (idx / total_stocks) * 100
-                        logger.info(f"📝 执行批量写入: {len(ops)} 条记录 ({idx}/{total_stocks}, {progress_pct:.1f}%)")
+                        logger.info(f"The execution batch 📝 reads:{len(ops)}Article record(){idx}/{total_stocks}, {progress_pct:.1f}%)")
 
                         batch_inserted, batch_updated = await self._execute_bulk_write_with_retry(db, ops)
 
                         if batch_inserted > 0 or batch_updated > 0:
                             inserted += batch_inserted
                             updated += batch_updated
-                            logger.info(f"✅ 批量写入完成: 新增 {batch_inserted}, 更新 {batch_updated} | 累计: 新增 {inserted}, 更新 {updated}, 错误 {errors}")
+                            logger.info(f"Volume completed:{batch_inserted}Update{batch_updated}Cumulative: Add{inserted}Update{updated}, Error{errors}")
                         else:
                             errors += len(ops)
-                            logger.warning(f"⚠️ 批量写入失败，标记 {len(ops)} 条记录为错误")
+                            logger.warning(f"Batch writing failed, tag{len(ops)}Record as error")
 
-                        ops = []  # 清空操作列表
+                        ops = []  #Empty Operation List
 
-            # Step 7: 更新统计信息
-            stats.total = total_stocks  # 🔥 使用总股票数
+            #Step 7: Update statistical information
+            stats.total = total_stocks  #Use of total stocks
             stats.inserted = inserted
             stats.updated = updated
             stats.errors = errors
@@ -334,47 +332,46 @@ class MultiSourceBasicsSyncService:
 
 
     def _add_financial_metrics(self, doc: Dict, daily_metrics: Dict) -> None:
-        """委托到 basics_sync.processing.add_financial_metrics"""
+        """Entrusted to Basics sync.procing.add financial medias"""
         return _add_financial_metrics_util(doc, daily_metrics)
 
     def _generate_full_symbol(self, code: str) -> str:
-        """
-        根据股票代码生成完整标准化代码
+        """Generate full standard code by stock code
 
-        Args:
-            code: 6位股票代码
+Args:
+code: 6-bit stock code
 
-        Returns:
-            完整标准化代码，如果无法识别则返回原始代码（确保不为空）
-        """
-        # 确保 code 不为空
+Returns:
+Full standardized code, return original code if unidentifiable (ensure not to be empty)
+"""
+        #Make sure the code isn't empty.
         if not code:
             return ""
 
-        # 标准化为字符串并去除空格
+        #Standardise as string and remove spaces
         code = str(code).strip()
 
-        # 如果长度不是 6，返回原始代码
+        #If length is not 6, return original code
         if len(code) != 6:
             return code
 
-        # 根据代码前缀判断交易所
-        if code.startswith(('60', '68', '90')):  # 上海证券交易所
+        #By prefixing the exchange
+        if code.startswith(('60', '68', '90')):  #Shanghai Stock Exchange
             return f"{code}.SS"
-        elif code.startswith(('00', '30', '20')):  # 深圳证券交易所
+        elif code.startswith(('00', '30', '20')):  #Shenzhen Stock Exchange
             return f"{code}.SZ"
-        elif code.startswith(('8', '4')):  # 北京证券交易所
+        elif code.startswith(('8', '4')):  #Beijing Stock Exchange
             return f"{code}.BJ"
         else:
-            # 无法识别的代码，返回原始代码（确保不为空）
+            #Unidentifiable code, return original code (ensure not to be empty)
             return code if code else ""
 
 
-# 全局服务实例
+#Examples of global services
 _multi_source_sync_service = None
 
 def get_multi_source_sync_service() -> MultiSourceBasicsSyncService:
-    """获取多数据源同步服务实例"""
+    """Examples of accessing multiple data sources sync service"""
     global _multi_source_sync_service
     if _multi_source_sync_service is None:
         _multi_source_sync_service = MultiSourceBasicsSyncService()

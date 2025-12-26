@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-BaoStock初始化API路由
-提供BaoStock数据初始化的RESTful API接口
+"""BaoStock Initialize API Route
+RESTful API interface for the initialization of BaoStock data
 """
 import asyncio
 import logging
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/baostock-init", tags=["BaoStock初始化"])
 
-# 全局状态管理
+#Global Status Management
 _initialization_status = {
     "is_running": False,
     "current_task": None,
@@ -28,13 +27,13 @@ _initialization_status = {
 
 
 class InitializationRequest(BaseModel):
-    """初始化请求模型"""
+    """Initialization request model"""
     historical_days: int = Field(default=365, ge=1, le=3650, description="历史数据天数")
     force: bool = Field(default=False, description="是否强制重新初始化")
 
 
 class InitializationResponse(BaseModel):
-    """初始化响应模型"""
+    """Initialized Response Model"""
     success: bool
     message: str
     task_id: Optional[str] = None
@@ -43,7 +42,7 @@ class InitializationResponse(BaseModel):
 
 @router.get("/status", response_model=Dict[str, Any])
 async def get_database_status():
-    """获取数据库状态"""
+    """Get database status"""
     try:
         service = BaoStockInitService()
         status = await service.check_database_status()
@@ -55,13 +54,13 @@ async def get_database_status():
         }
         
     except Exception as e:
-        logger.error(f"获取数据库状态失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取数据库状态失败: {e}")
 
 
 @router.get("/connection-test", response_model=Dict[str, Any])
 async def test_baostock_connection():
-    """测试BaoStock连接"""
+    """Test BaoStock Connection"""
     try:
         service = BaoStockSyncService()
         connected = await service.provider.test_connection()
@@ -76,7 +75,7 @@ async def test_baostock_connection():
         }
         
     except Exception as e:
-        logger.error(f"BaoStock连接测试失败: {e}")
+        logger.error(f"BaoStock connection test failed:{e}")
         raise HTTPException(status_code=500, detail=f"连接测试失败: {e}")
 
 
@@ -85,7 +84,7 @@ async def start_full_initialization(
     request: InitializationRequest,
     background_tasks: BackgroundTasks
 ):
-    """启动完整初始化"""
+    """Start Full Initialization"""
     global _initialization_status
     
     if _initialization_status["is_running"]:
@@ -95,10 +94,10 @@ async def start_full_initialization(
         )
     
     try:
-        # 生成任务ID
+        #Generate Task ID
         task_id = f"baostock_full_init_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # 更新状态
+        #Update Status
         _initialization_status.update({
             "is_running": True,
             "current_task": "full_initialization",
@@ -107,7 +106,7 @@ async def start_full_initialization(
             "last_update": datetime.now()
         })
         
-        # 启动后台任务
+        #Start Backstage Task
         background_tasks.add_task(
             _run_full_initialization_task,
             request.historical_days,
@@ -128,13 +127,13 @@ async def start_full_initialization(
         
     except Exception as e:
         _initialization_status["is_running"] = False
-        logger.error(f"启动完整初始化失败: {e}")
+        logger.error(f"Starting full initialization failed:{e}")
         raise HTTPException(status_code=500, detail=f"启动初始化失败: {e}")
 
 
 @router.post("/start-basic", response_model=InitializationResponse)
 async def start_basic_initialization(background_tasks: BackgroundTasks):
-    """启动基础初始化"""
+    """Start Basic Initialization"""
     global _initialization_status
     
     if _initialization_status["is_running"]:
@@ -144,10 +143,10 @@ async def start_basic_initialization(background_tasks: BackgroundTasks):
         )
     
     try:
-        # 生成任务ID
+        #Generate Task ID
         task_id = f"baostock_basic_init_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
-        # 更新状态
+        #Update Status
         _initialization_status.update({
             "is_running": True,
             "current_task": "basic_initialization",
@@ -156,7 +155,7 @@ async def start_basic_initialization(background_tasks: BackgroundTasks):
             "last_update": datetime.now()
         })
         
-        # 启动后台任务
+        #Start Backstage Task
         background_tasks.add_task(_run_basic_initialization_task, task_id)
         
         return InitializationResponse(
@@ -170,19 +169,19 @@ async def start_basic_initialization(background_tasks: BackgroundTasks):
         
     except Exception as e:
         _initialization_status["is_running"] = False
-        logger.error(f"启动基础初始化失败: {e}")
+        logger.error(f"Starting base initialization failed:{e}")
         raise HTTPException(status_code=500, detail=f"启动初始化失败: {e}")
 
 
 @router.get("/initialization-status", response_model=Dict[str, Any])
 async def get_initialization_status():
-    """获取初始化状态"""
+    """Get Initialization"""
     global _initialization_status
     
     try:
         status = _initialization_status.copy()
         
-        # 计算运行时间
+        #Calculate running time
         if status["start_time"]:
             if status["is_running"]:
                 duration = (datetime.now() - status["start_time"]).total_seconds()
@@ -190,7 +189,7 @@ async def get_initialization_status():
                 duration = (status["last_update"] - status["start_time"]).total_seconds() if status["last_update"] else 0
             status["duration"] = duration
         
-        # 格式化统计信息
+        #Format Statistical Information
         if status["stats"]:
             stats = status["stats"]
             status["progress"] = {
@@ -214,13 +213,13 @@ async def get_initialization_status():
         }
         
     except Exception as e:
-        logger.error(f"获取初始化状态失败: {e}")
+        logger.error(f"Failed to get initialization:{e}")
         raise HTTPException(status_code=500, detail=f"获取状态失败: {e}")
 
 
 @router.post("/stop", response_model=Dict[str, Any])
 async def stop_initialization():
-    """停止初始化任务"""
+    """Stop Initialising Tasks"""
     global _initialization_status
     
     if not _initialization_status["is_running"]:
@@ -231,7 +230,7 @@ async def stop_initialization():
         }
     
     try:
-        # 更新状态
+        #Update Status
         _initialization_status.update({
             "is_running": False,
             "current_task": None,
@@ -245,16 +244,16 @@ async def stop_initialization():
         }
         
     except Exception as e:
-        logger.error(f"停止初始化任务失败: {e}")
+        logger.error(f"Failed to stop initializing task:{e}")
         raise HTTPException(status_code=500, detail=f"停止任务失败: {e}")
 
 
 async def _run_full_initialization_task(historical_days: int, force: bool, task_id: str):
-    """运行完整初始化任务"""
+    """Run a full initial task"""
     global _initialization_status
     
     try:
-        logger.info(f"🚀 开始BaoStock完整初始化任务: {task_id}")
+        logger.info(f"Starting the BaoStock mission:{task_id}")
         
         service = BaoStockInitService()
         stats = await service.full_initialization(
@@ -262,7 +261,7 @@ async def _run_full_initialization_task(historical_days: int, force: bool, task_
             force=force
         )
         
-        # 更新状态
+        #Update Status
         _initialization_status.update({
             "is_running": False,
             "stats": stats,
@@ -270,12 +269,12 @@ async def _run_full_initialization_task(historical_days: int, force: bool, task_
         })
         
         if stats.completed_steps == stats.total_steps:
-            logger.info(f"✅ BaoStock完整初始化任务完成: {task_id}")
+            logger.info(f"BaoStock complete initialization mission completed:{task_id}")
         else:
-            logger.warning(f"⚠️ BaoStock完整初始化任务部分完成: {task_id}")
+            logger.warning(f"BaoStock was partially completed:{task_id}")
         
     except Exception as e:
-        logger.error(f"❌ BaoStock完整初始化任务失败: {task_id}, 错误: {e}")
+        logger.error(f"BaoStock failed:{task_id}, Error:{e}")
         _initialization_status.update({
             "is_running": False,
             "last_update": datetime.now()
@@ -283,16 +282,16 @@ async def _run_full_initialization_task(historical_days: int, force: bool, task_
 
 
 async def _run_basic_initialization_task(task_id: str):
-    """运行基础初始化任务"""
+    """Operation Base Initialisation Task"""
     global _initialization_status
     
     try:
-        logger.info(f"🚀 开始BaoStock基础初始化任务: {task_id}")
+        logger.info(f"Starting the BaoStock Foundation Initialization mission:{task_id}")
         
         service = BaoStockInitService()
         stats = await service.basic_initialization()
         
-        # 更新状态
+        #Update Status
         _initialization_status.update({
             "is_running": False,
             "stats": stats,
@@ -300,12 +299,12 @@ async def _run_basic_initialization_task(task_id: str):
         })
         
         if stats.completed_steps == stats.total_steps:
-            logger.info(f"✅ BaoStock基础初始化任务完成: {task_id}")
+            logger.info(f"The initialization of BaoStock Foundation was completed:{task_id}")
         else:
-            logger.warning(f"⚠️ BaoStock基础初始化任务部分完成: {task_id}")
+            logger.warning(f"Part of BaoStock Foundation Initialization was completed:{task_id}")
         
     except Exception as e:
-        logger.error(f"❌ BaoStock基础初始化任务失败: {task_id}, 错误: {e}")
+        logger.error(f"The initialization of BaoStock Foundation failed:{task_id}, Error:{e}")
         _initialization_status.update({
             "is_running": False,
             "last_update": datetime.now()
@@ -314,7 +313,7 @@ async def _run_basic_initialization_task(task_id: str):
 
 @router.get("/service-status", response_model=Dict[str, Any])
 async def get_service_status():
-    """获取BaoStock服务状态"""
+    """Get BaoStock Service Status"""
     try:
         service = BaoStockSyncService()
         status = await service.check_service_status()
@@ -326,5 +325,5 @@ async def get_service_status():
         }
         
     except Exception as e:
-        logger.error(f"获取服务状态失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取服务状态失败: {e}")

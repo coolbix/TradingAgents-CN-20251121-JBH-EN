@@ -1,5 +1,4 @@
-"""
-分析报告管理API路由
+"""Analytical reports manage API routers
 """
 import os
 import json
@@ -18,33 +17,32 @@ import logging
 
 logger = logging.getLogger("webapi")
 
-# 股票名称缓存
+#Stock Name Cache
 _stock_name_cache = {}
 
 def get_stock_name(stock_code: str) -> str:
-    """
-    获取股票名称
-    优先级：缓存 -> MongoDB（按数据源优先级） -> 默认返回股票代码
-    """
+    """Get stock names
+Priority: Cache - > MongoDB (data source priority) - > Default return stock code
+"""
     global _stock_name_cache
 
-    # 检查缓存
+    #Check Cache
     if stock_code in _stock_name_cache:
         return _stock_name_cache[stock_code]
 
     try:
-        # 从 MongoDB 获取股票名称
+        #Fetch stock names from MongoDB
         from ..core.database import get_mongo_db_sync
         from ..core.unified_config import UnifiedConfigManager
 
         db = get_mongo_db_sync()
         code6 = str(stock_code).zfill(6)
 
-        # 🔥 按数据源优先级查询
+        #🔥Query by data source priority
         config = UnifiedConfigManager()
         data_source_configs = config.get_data_source_configs()
 
-        # 提取启用的数据源，按优先级排序
+        #Extract enabled data sources in order of priority
         enabled_sources = [
             ds.type.lower() for ds in data_source_configs
             if ds.enabled and ds.type.lower() in ['tushare', 'akshare', 'baostock']
@@ -53,39 +51,39 @@ def get_stock_name(stock_code: str) -> str:
         if not enabled_sources:
             enabled_sources = ['tushare', 'akshare', 'baostock']
 
-        # 按数据源优先级查询
+        #Query by Data Source Priority
         stock_info = None
         for data_source in enabled_sources:
             stock_info = db.stock_basic_info.find_one(
                 {"$or": [{"symbol": code6}, {"code": code6}], "source": data_source}
             )
             if stock_info:
-                logger.debug(f"✅ 使用数据源 {data_source} 获取股票名称 {code6}")
+                logger.debug(f"Using data sources{data_source}Get stock names{code6}")
                 break
 
-        # 如果所有数据源都没有，尝试不带 source 条件查询（兼容旧数据）
+        #Try without source condition query (compatible with old data) if all data sources are missing
         if not stock_info:
             stock_info = db.stock_basic_info.find_one(
                 {"$or": [{"symbol": code6}, {"code": code6}]}
             )
             if stock_info:
-                logger.warning(f"⚠️ 使用旧数据（无 source 字段）获取股票名称 {code6}")
+                logger.warning(f"⚠️ Use old data (no source field) for stock names{code6}")
 
         if stock_info and stock_info.get("name"):
             stock_name = stock_info["name"]
             _stock_name_cache[stock_code] = stock_name
             return stock_name
 
-        # 如果没有找到，返回股票代码
+        #If not found, return the stock code.
         _stock_name_cache[stock_code] = stock_code
         return stock_code
 
     except Exception as e:
-        logger.warning(f"⚠️ 获取股票名称失败 {stock_code}: {e}")
+        logger.warning(f"Failed to get stock name{stock_code}: {e}")
         return stock_code
 
 
-# 统一构建报告查询：支持 _id(ObjectId) / analysis_id / task_id 三种
+#Unified Build Report Query: Support  id (ObjectID) / anallysis id / task id
 def _build_report_query(report_id: str) -> Dict[str, Any]:
     ors = [
         {"analysis_id": report_id},
@@ -101,7 +99,7 @@ def _build_report_query(report_id: str) -> Dict[str, Any]:
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 class ReportFilter(BaseModel):
-    """报告筛选参数"""
+    """Report filter parameters"""
     search_keyword: Optional[str] = None
     market_filter: Optional[str] = None
     start_date: Optional[str] = None
@@ -110,7 +108,7 @@ class ReportFilter(BaseModel):
     report_type: Optional[str] = None
 
 class ReportListResponse(BaseModel):
-    """报告列表响应"""
+    """Report List Response"""
     reports: List[Dict[str, Any]]
     total: int
     page: int
@@ -127,16 +125,16 @@ async def get_reports_list(
     stock_code: Optional[str] = Query(None, description="股票代码"),
     user: dict = Depends(get_current_user)
 ):
-    """获取分析报告列表"""
+    """Get List of Analytical Reports"""
     try:
-        logger.info(f"🔍 获取报告列表: 用户={user['id']}, 页码={page}, 每页={page_size}, 市场={market_filter}")
+        logger.info(f"Can not get folder: %s: %s{user['id']}, page number={page}, per page ={page_size}market ={market_filter}")
 
         db = get_mongo_db()
 
-        # 构建查询条件
+        #Build query conditions
         query = {}
 
-        # 搜索关键词
+        #Search keywords
         if search_keyword:
             query["$or"] = [
                 {"stock_symbol": {"$regex": search_keyword, "$options": "i"}},
@@ -144,15 +142,15 @@ async def get_reports_list(
                 {"summary": {"$regex": search_keyword, "$options": "i"}}
             ]
 
-        # 市场筛选
+        #Market screening
         if market_filter:
             query["market_type"] = market_filter
 
-        # 股票代码筛选
+        #Stock code filter
         if stock_code:
             query["stock_symbol"] = stock_code
 
-        # 日期范围筛选
+        #Date range filter
         if start_date or end_date:
             date_query = {}
             if start_date:
@@ -161,25 +159,25 @@ async def get_reports_list(
                 date_query["$lte"] = end_date
             query["analysis_date"] = date_query
 
-        logger.info(f"📊 查询条件: {query}")
+        logger.info(f"Other Organiser{query}")
 
-        # 计算总数
+        #Total calculated
         total = await db.analysis_reports.count_documents(query)
 
-        # 分页查询
+        #Page Break Query
         skip = (page - 1) * page_size
         cursor = db.analysis_reports.find(query).sort("created_at", -1).skip(skip).limit(page_size)
 
         reports = []
         async for doc in cursor:
-            # 转换为前端需要的格式
+            #Convert to the format required for the front end
             stock_code = doc.get("stock_symbol", "")
-            # 🔥 优先使用MongoDB中保存的股票名称，如果没有则查询
+            #🔥 Prefer to the name of the stock stored in MongoDB or, if not, query
             stock_name = doc.get("stock_name")
             if not stock_name:
                 stock_name = get_stock_name(stock_code)
 
-            # 🔥 获取市场类型，如果没有则根据股票代码推断
+            #🔥 Market type of acquisition, if not extrapolated by stock code
             market_type = doc.get("market_type")
             if not market_type:
                 from tradingagents.utils.stock_utils import StockUtils
@@ -192,9 +190,9 @@ async def get_reports_list(
                 }
                 market_type = market_type_map.get(market_info.get("market", "unknown"), "A股")
 
-            # 获取创建时间（数据库中是 UTC 时间，需要转换为 UTC+8）
+            #Fetch creation time (UTC time in database, requiring conversion to UTC+8)
             created_at = doc.get("created_at", datetime.utcnow())
-            created_at_tz = to_config_tz(created_at)  # 转换为 UTC+8 并添加时区信息
+            created_at_tz = to_config_tz(created_at)  #Convert to UTC+8 and add time zone information
 
             report = {
                 "id": str(doc["_id"]),
@@ -202,23 +200,23 @@ async def get_reports_list(
                 "title": f"{stock_name}({stock_code}) 分析报告",
                 "stock_code": stock_code,
                 "stock_name": stock_name,
-                "market_type": market_type,  # 🔥 添加市场类型字段
-                "model_info": doc.get("model_info", "Unknown"),  # 🔥 添加模型信息字段
-                "type": "single",  # 目前主要是单股分析
-                "format": "markdown",  # 主要格式
+                "market_type": market_type,  #Add market-type fields
+                "model_info": doc.get("model_info", "Unknown"),  #Add Model Information Fields
+                "type": "single",  #It's mainly a single analysis.
+                "format": "markdown",  #Main Format
                 "status": doc.get("status", "completed"),
                 "created_at": created_at_tz.isoformat() if created_at_tz else str(created_at),
                 "analysis_date": doc.get("analysis_date", ""),
                 "analysts": doc.get("analysts", []),
                 "research_depth": doc.get("research_depth", 1),
                 "summary": doc.get("summary", ""),
-                "file_size": len(str(doc.get("reports", {}))),  # 估算大小
+                "file_size": len(str(doc.get("reports", {}))),  #Estimated Size
                 "source": doc.get("source", "unknown"),
                 "task_id": doc.get("task_id", "")
             }
             reports.append(report)
 
-        logger.info(f"✅ 查询完成: 总数={total}, 返回={len(reports)}")
+        logger.info(f"Other Organiser{total}returns ={len(reports)}")
 
         return {
             "success": True,
@@ -232,7 +230,7 @@ async def get_reports_list(
         }
 
     except Exception as e:
-        logger.error(f"❌ 获取报告列表失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{report_id}/detail")
@@ -240,19 +238,19 @@ async def get_report_detail(
     report_id: str,
     user: dict = Depends(get_current_user)
 ):
-    """获取报告详情"""
+    """Access to report details"""
     try:
-        logger.info(f"🔍 获取报告详情: {report_id}")
+        logger.info(f"For more information:{report_id}")
 
         db = get_mongo_db()
 
-        # 支持 ObjectId / analysis_id / task_id
+        #Support for Objective Id / anallysis id / task id
         query = _build_report_query(report_id)
         doc = await db.analysis_reports.find_one(query)
 
         if not doc:
-            # 兜底：从 analysis_tasks.result 中还原报告详情
-            logger.info(f"⚠️ 未在analysis_reports找到，尝试从analysis_tasks还原: {report_id}")
+            #End: Restore details of the report from analysis tasks.result
+            logger.info(f"It was not found in analysis reports, trying to recover from analysis tasks:{report_id}")
             tasks_doc = await db.analysis_tasks.find_one(
                 {"$or": [{"task_id": report_id}, {"result.analysis_id": report_id}]},
                 {"result": 1, "task_id": 1, "stock_code": 1, "created_at": 1, "completed_at": 1}
@@ -264,7 +262,7 @@ async def get_report_detail(
             created_at = tasks_doc.get("created_at")
             updated_at = tasks_doc.get("completed_at") or created_at
 
-            # 转换时区：数据库中是 UTC 时间，转换为 UTC+8
+            #Conversion time zone: UTC time in database converted to UTC+8
             created_at_tz = to_config_tz(created_at)
             updated_at_tz = to_config_tz(updated_at)
 
@@ -282,8 +280,8 @@ async def get_report_detail(
                 "id": tasks_doc.get("task_id", report_id),
                 "analysis_id": r.get("analysis_id", ""),
                 "stock_symbol": stock_symbol,
-                "stock_name": stock_name,  # 🔥 添加股票名称字段
-                "model_info": r.get("model_info", "Unknown"),  # 🔥 添加模型信息字段
+                "stock_name": stock_name,  #Add stock name field 🔥
+                "model_info": r.get("model_info", "Unknown"),  #Add Model Information Fields
                 "analysis_date": r.get("analysis_date", ""),
                 "status": r.get("status", "completed"),
                 "created_at": to_iso(created_at_tz),
@@ -302,17 +300,17 @@ async def get_report_detail(
                 "tokens_used": r.get("tokens_used", 0)
             }
         else:
-            # 转换为详细格式（analysis_reports 命中）
+            #Convert to detailed format (analysis reports hit)
             stock_symbol = doc.get("stock_symbol", "")
             stock_name = doc.get("stock_name")
             if not stock_name:
                 stock_name = get_stock_name(stock_symbol)
 
-            # 获取时间（数据库中是 UTC 时间，需要转换为 UTC+8）
+            #Retrieving time (UTC time in database, requiring conversion to UTC+8)
             created_at = doc.get("created_at", datetime.utcnow())
             updated_at = doc.get("updated_at", datetime.utcnow())
 
-            # 转换时区：数据库中是 UTC 时间，转换为 UTC+8
+            #Conversion time zone: UTC time in database converted to UTC+8
             created_at_tz = to_config_tz(created_at)
             updated_at_tz = to_config_tz(updated_at)
 
@@ -320,8 +318,8 @@ async def get_report_detail(
                 "id": str(doc["_id"]),
                 "analysis_id": doc.get("analysis_id", ""),
                 "stock_symbol": stock_symbol,
-                "stock_name": stock_name,  # 🔥 添加股票名称字段
-                "model_info": doc.get("model_info", "Unknown"),  # 🔥 添加模型信息字段
+                "stock_name": stock_name,  #Add stock name field 🔥
+                "model_info": doc.get("model_info", "Unknown"),  #Add Model Information Fields
                 "analysis_date": doc.get("analysis_date", ""),
                 "status": doc.get("status", "completed"),
                 "created_at": created_at_tz.isoformat() if created_at_tz else str(created_at),
@@ -349,7 +347,7 @@ async def get_report_detail(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 获取报告详情失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{report_id}/content/{module}")
@@ -358,13 +356,13 @@ async def get_report_module_content(
     module: str,
     user: dict = Depends(get_current_user)
 ):
-    """获取报告特定模块的内容"""
+    """Get the contents of the specific module of the report"""
     try:
-        logger.info(f"🔍 获取报告模块内容: {report_id}/{module}")
+        logger.info(f"For the report module:{report_id}/{module}")
 
         db = get_mongo_db()
 
-        # 查询报告（支持多种ID）
+        #Query report (multiple ID support)
         query = _build_report_query(report_id)
         doc = await db.analysis_reports.find_one(query)
 
@@ -391,7 +389,7 @@ async def get_report_module_content(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 获取报告模块内容失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/{report_id}")
@@ -399,20 +397,20 @@ async def delete_report(
     report_id: str,
     user: dict = Depends(get_current_user)
 ):
-    """删除报告"""
+    """Delete Report"""
     try:
-        logger.info(f"🗑️ 删除报告: {report_id}")
+        logger.info(f"Delete the report:{report_id}")
 
         db = get_mongo_db()
 
-        # 查询报告（支持多种ID）
+        #Query report (multiple ID support)
         query = _build_report_query(report_id)
         result = await db.analysis_reports.delete_one(query)
 
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="报告不存在")
 
-        logger.info(f"✅ 报告删除成功: {report_id}")
+        logger.info(f"Successfully deleted report:{report_id}")
 
         return {
             "success": True,
@@ -422,7 +420,7 @@ async def delete_report(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 删除报告失败: {e}")
+        logger.error(f"Delete report failed:{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{report_id}/download")
@@ -431,20 +429,20 @@ async def download_report(
     format: str = Query("markdown", description="下载格式: markdown, json, pdf, docx"),
     user: dict = Depends(get_current_user)
 ):
-    """下载报告
+    """Download Report
 
-    支持的格式:
-    - markdown: Markdown 格式（默认）
-    - json: JSON 格式（包含完整数据）
-    - docx: Word 文档格式（需要 pandoc）
-    - pdf: PDF 格式（需要 pandoc 和 PDF 引擎）
-    """
+Supported format:
+- markdown: Markdown format (default)
+- json: JSON format (with complete data)
+-docx: Word Document Formatting (needs pandoc)
+-pdf: PDF format (needs pandoc and PDF engines)
+"""
     try:
-        logger.info(f"📥 下载报告: {report_id}, 格式: {format}")
+        logger.info(f"Downloading report:{report_id}, format:{format}")
 
         db = get_mongo_db()
 
-        # 查询报告（支持多种ID）
+        #Query report (multiple ID support)
         query = _build_report_query(report_id)
         doc = await db.analysis_reports.find_one(query)
 
@@ -455,12 +453,12 @@ async def download_report(
         analysis_date = doc.get("analysis_date", datetime.now().strftime("%Y-%m-%d"))
 
         if format == "json":
-            # JSON格式下载
+            #JSON format download
             content = json.dumps(doc, ensure_ascii=False, indent=2, default=str)
             filename = f"{stock_symbol}_{analysis_date}_report.json"
             media_type = "application/json"
 
-            # 返回文件流
+            #Return File Stream
             def generate():
                 yield content.encode('utf-8')
 
@@ -471,24 +469,24 @@ async def download_report(
             )
 
         elif format == "markdown":
-            # Markdown格式下载
+            #Markdown download
             reports = doc.get("reports", {})
             content_parts = []
 
-            # 添加标题
+            #Add Title
             content_parts.append(f"# {stock_symbol} 分析报告")
             content_parts.append(f"**分析日期**: {analysis_date}")
             content_parts.append(f"**分析师**: {', '.join(doc.get('analysts', []))}")
             content_parts.append(f"**研究深度**: {doc.get('research_depth', 1)}")
             content_parts.append("")
 
-            # 添加摘要
+            #Add Summary
             if doc.get("summary"):
                 content_parts.append("## 执行摘要")
                 content_parts.append(doc["summary"])
                 content_parts.append("")
 
-            # 添加各模块内容
+            #Add module contents
             for module_name, module_content in reports.items():
                 if isinstance(module_content, str) and module_content.strip():
                     content_parts.append(f"## {module_name}")
@@ -499,7 +497,7 @@ async def download_report(
             filename = f"{stock_symbol}_{analysis_date}_report.md"
             media_type = "text/markdown"
 
-            # 返回文件流
+            #Return File Stream
             def generate():
                 yield content.encode('utf-8')
 
@@ -510,7 +508,7 @@ async def download_report(
             )
 
         elif format == "docx":
-            # Word 文档格式下载
+            #Word Document Format Download
             from app.utils.report_exporter import report_exporter
 
             if not report_exporter.pandoc_available:
@@ -520,11 +518,11 @@ async def download_report(
                 )
 
             try:
-                # 生成 Word 文档
+                #Generate Word Document
                 docx_content = report_exporter.generate_docx_report(doc)
                 filename = f"{stock_symbol}_{analysis_date}_report.docx"
 
-                # 返回文件流
+                #Return File Stream
                 def generate():
                     yield docx_content
 
@@ -534,11 +532,11 @@ async def download_report(
                     headers={"Content-Disposition": f"attachment; filename={filename}"}
                 )
             except Exception as e:
-                logger.error(f"❌ Word 文档生成失败: {e}")
+                logger.error(f"Could not close temporary folder: %s{e}")
                 raise HTTPException(status_code=500, detail=f"Word 文档生成失败: {str(e)}")
 
         elif format == "pdf":
-            # PDF 格式下载
+            #PDF format download
             from app.utils.report_exporter import report_exporter
 
             if not report_exporter.pandoc_available:
@@ -548,11 +546,11 @@ async def download_report(
                 )
 
             try:
-                # 生成 PDF 文档
+                #Generate PDF documents
                 pdf_content = report_exporter.generate_pdf_report(doc)
                 filename = f"{stock_symbol}_{analysis_date}_report.pdf"
 
-                # 返回文件流
+                #Return File Stream
                 def generate():
                     yield pdf_content
 
@@ -562,7 +560,7 @@ async def download_report(
                     headers={"Content-Disposition": f"attachment; filename={filename}"}
                 )
             except Exception as e:
-                logger.error(f"❌ PDF 文档生成失败: {e}")
+                logger.error(f"Could not close temporary folder: %s{e}")
                 raise HTTPException(status_code=500, detail=f"PDF 文档生成失败: {str(e)}")
 
         else:
@@ -571,5 +569,5 @@ async def download_report(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 下载报告失败: {e}")
+        logger.error(f"The download report failed:{e}")
         raise HTTPException(status_code=500, detail=str(e))

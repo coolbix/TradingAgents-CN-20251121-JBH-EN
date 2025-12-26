@@ -1,10 +1,9 @@
-"""
-统一数据源提供器包
-按市场分类组织数据提供器
+"""Unified data source supply package
+Organization of data providers by market
 """
 from .base_provider import BaseStockDataProvider
 
-# 导入中国市场提供器（新路径）
+#Import China Market Provider (New Path)
 try:
     from .china import (
         AKShareProvider,
@@ -15,7 +14,7 @@ try:
         BAOSTOCK_AVAILABLE
     )
 except ImportError:
-    # 向后兼容：尝试从旧路径导入
+    #Backcompatibility: trying to import from old paths
     try:
         from .tushare_provider import TushareProvider
     except ImportError:
@@ -35,7 +34,7 @@ except ImportError:
     TUSHARE_AVAILABLE = TushareProvider is not None
     BAOSTOCK_AVAILABLE = BaoStockProvider is not None
 
-# 导入港股提供器
+#Import port unit provider
 try:
     from .hk import (
         ImprovedHKStockProvider,
@@ -47,7 +46,7 @@ except ImportError:
     get_improved_hk_provider = None
     HK_PROVIDER_AVAILABLE = False
 
-# 导入美股提供器
+#Import U.S. stock provider
 try:
     from .us import (
         YFinanceUtils,
@@ -58,7 +57,7 @@ try:
         FINNHUB_AVAILABLE
     )
 except ImportError:
-    # 向后兼容：尝试从旧路径导入
+    #Backcompatibility: trying to import from old paths
     try:
         from ..yfin_utils import YFinanceUtils
     except ImportError:
@@ -78,7 +77,7 @@ except ImportError:
     OPTIMIZED_US_AVAILABLE = OptimizedUSDataProvider is not None
     FINNHUB_AVAILABLE = get_data_in_range is not None
 
-# 其他提供器（预留）
+#Other providers (set aside)
 try:
     from .yahoo_provider import YahooProvider
 except ImportError:
@@ -89,17 +88,17 @@ try:
 except ImportError:
     FinnhubProvider = None
 
-# TDXProvider 已移除
+#TDXProvider removed
 # try:
 #     from .tdx_provider import TDXProvider
 # except ImportError:
 #     TDXProvider = None
 
 __all__ = [
-    # 基类
+    #Base Category
     'BaseStockDataProvider',
 
-    # 中国市场
+    #China Market
     'TushareProvider',
     'AKShareProvider',
     'BaoStockProvider',
@@ -107,12 +106,12 @@ __all__ = [
     'TUSHARE_AVAILABLE',
     'BAOSTOCK_AVAILABLE',
 
-    # 港股
+    #Port Unit
     'ImprovedHKStockProvider',
     'get_improved_hk_provider',
     'HK_PROVIDER_AVAILABLE',
 
-    # 美股
+    #United States share
     'YFinanceUtils',
     'OptimizedUSDataProvider',
     'get_data_in_range',
@@ -120,8 +119,8 @@ __all__ = [
     'OPTIMIZED_US_AVAILABLE',
     'FINNHUB_AVAILABLE',
 
-    # 其他（预留）
+    #Other (reserved)
     'YahooProvider',
     'FinnhubProvider',
-    # 'TDXProvider'  # 已移除
+    #'TDXProvider '# Removed
 ]

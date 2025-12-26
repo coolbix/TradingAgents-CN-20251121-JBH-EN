@@ -1,9 +1,8 @@
-"""
-技术指标计算模块
-提供各种技术分析指标的计算功能
+"""Module on calculation of technical indicators
+Provision of computing functions for various technical analysis indicators
 """
 
-# 导入 stockstats
+#Import stockstats
 try:
     from .stockstats import StockstatsUtils
     STOCKSTATS_AVAILABLE = True

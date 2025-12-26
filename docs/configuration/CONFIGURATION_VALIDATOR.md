@@ -87,7 +87,7 @@ class ValidationResult:
 | 配置项 | 描述 | 获取地址 |
 |--------|------|----------|
 | `DEEPSEEK_API_KEY` | DeepSeek API密钥 | https://platform.deepseek.com/ |
-| `DASHSCOPE_API_KEY` | 阿里百炼API密钥 | https://dashscope.aliyun.com/ |
+| `DASHSCOPE_API_KEY` | 阿里百炼API密钥 | https://dashscope-int.aliyun.com/ |
 | `TUSHARE_TOKEN` | Tushare Token | https://tushare.pro/register?reg=tacn |
 
 #### 安全检查

@@ -82,7 +82,7 @@ DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 #### 选项2：通义千问（国产，稳定）
 
 ```bash
-# 获取地址：https://dashscope.aliyun.com/
+# 获取地址：https://dashscope-int.aliyun.com/
 # 注册阿里云 -> 开通百炼 -> 获取密钥
 DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxx
 ```

@@ -2,7 +2,7 @@
 
 from typing import Dict, Any
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 from tradingagents.agents.utils.agent_states import (
@@ -25,8 +25,8 @@ class Propagator:
         """Create the initial state for the agent graph."""
         from langchain_core.messages import HumanMessage
 
-        # 🔥 修复：创建明确的分析请求消息，而不是只传递股票代码
-        # 这样可以确保所有LLM（包括DeepSeek）都能理解任务
+        #🔥 fix: create a clear analysis of the request for information, rather than simply transmitting the stock code
+        #This will ensure that all LLMs understand the mission.
         analysis_request = f"请对股票 {company_name} 进行全面分析，交易日期为 {trade_date}。"
 
         return {
@@ -58,8 +58,8 @@ class Propagator:
             use_progress_callback: If True, use 'updates' mode for node-level progress tracking.
                                   If False, use 'values' mode for complete state updates.
         """
-        # 使用 'updates' 模式可以获取节点级别的更新，用于进度跟踪
-        # 使用 'values' 模式可以获取完整的状态更新
+        #Use 'updates' to get updates at node level for progress tracking
+        #Use 'values' mode to get complete status updates
         stream_mode = "updates" if use_progress_callback else "values"
 
         return {

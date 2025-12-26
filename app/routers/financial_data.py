@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-财务数据API路由
-提供财务数据查询和同步管理接口
+"""Financial data API route
+Provide financial data queries and synchronized management interfaces
 """
 import logging
 from typing import Dict, Any, List, Optional
@@ -17,10 +16,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/financial-data", tags=["财务数据"])
 
 
-# ==================== 请求模型 ====================
+#== sync, corrected by elderman == @elder man
 
 class FinancialSyncRequest(BaseModel):
-    """财务数据同步请求"""
+    """Financial Data Synchronization Request"""
     symbols: Optional[List[str]] = Field(None, description="股票代码列表，为空则同步所有股票")
     data_sources: Optional[List[str]] = Field(
         ["tushare", "akshare", "baostock"], 
@@ -35,7 +34,7 @@ class FinancialSyncRequest(BaseModel):
 
 
 class SingleStockSyncRequest(BaseModel):
-    """单股票财务数据同步请求"""
+    """Single stock financial data synchronization request"""
     symbol: str = Field(..., description="股票代码")
     data_sources: Optional[List[str]] = Field(
         ["tushare", "akshare", "baostock"], 
@@ -44,7 +43,7 @@ class SingleStockSyncRequest(BaseModel):
 
 
 
-# ==================== API端点 ====================
+#== sync, corrected by elderman == @elder man
 
 @router.get("/query/{symbol}", summary="查询股票财务数据")
 async def query_financial_data(
@@ -54,15 +53,14 @@ async def query_financial_data(
     report_type: Optional[str] = Query(None, description="报告类型筛选"),
     limit: Optional[int] = Query(10, description="限制返回数量", ge=1, le=100)
 ) -> dict:
-    """
-    查询股票财务数据
-    
-    - **symbol**: 股票代码 (必填)
-    - **report_period**: 报告期筛选，格式YYYYMMDD
-    - **data_source**: 数据源筛选 (tushare/akshare/baostock)
-    - **report_type**: 报告类型筛选 (quarterly/annual)
-    - **limit**: 限制返回数量，默认10条
-    """
+    """Search for stock financial data
+
+- **symbol**: stock code (mandatory)
+- **report period**: Screening for reporting period, format YYYMMDD
+- **data source**: data source filter (tushare/akshare/baostock)
+-**report type**: Report type filter (quarterly/annual)
+-**Limit**: Limit number of returns, default 10
+"""
     try:
         service = await get_financial_data_service()
         
@@ -83,7 +81,7 @@ async def query_financial_data(
         )
         
     except Exception as e:
-        logger.error(f"❌ 查询财务数据失败 {symbol}: {e}")
+        logger.error(f"Could not close temporary folder: %s{symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"查询财务数据失败: {str(e)}")
 
 
@@ -92,12 +90,11 @@ async def get_latest_financial_data(
     symbol: str,
     data_source: Optional[str] = Query(None, description="数据源筛选")
 ) -> dict:
-    """
-    获取股票最新财务数据
-    
-    - **symbol**: 股票代码 (必填)
-    - **data_source**: 数据源筛选 (tushare/akshare/baostock)
-    """
+    """Obtain updated financial data on equities
+
+- **symbol**: stock code (mandatory)
+- **data source**: data source filter (tushare/akshare/baostock)
+"""
     try:
         service = await get_financial_data_service()
         
@@ -116,20 +113,19 @@ async def get_latest_financial_data(
             )
         
     except Exception as e:
-        logger.error(f"❌ 获取最新财务数据失败 {symbol}: {e}")
+        logger.error(f"Failed to obtain latest financial data{symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"获取最新财务数据失败: {str(e)}")
 
 
 @router.get("/statistics", summary="获取财务数据统计")
 async def get_financial_statistics() -> dict:
-    """
-    获取财务数据统计信息
-    
-    返回各数据源的财务数据统计，包括：
-    - 总记录数
-    - 总股票数
-    - 按数据源和报告类型分组的统计
-    """
+    """Access to financial data statistics
+
+Return financial data statistics from various data sources, including:
+- Total records.
+- Total stocks
+- Statistics grouped by data source and type of report
+"""
     try:
         service = await get_financial_data_service()
         
@@ -140,7 +136,7 @@ async def get_financial_statistics() -> dict:
         )
         
     except Exception as e:
-        logger.error(f"❌ 获取财务数据统计失败: {e}")
+        logger.error(f"Access to financial data statistics failed:{e}")
         raise HTTPException(status_code=500, detail=f"获取财务数据统计失败: {str(e)}")
 
 
@@ -149,19 +145,18 @@ async def start_financial_sync(
     request: FinancialSyncRequest,
     background_tasks: BackgroundTasks
 ) -> dict:
-    """
-    启动财务数据同步任务
-    
-    支持配置：
-    - 股票代码列表（为空则同步所有股票）
-    - 数据源选择
-    - 报告类型选择
-    - 批处理大小和延迟设置
-    """
+    """Other Organiser
+
+Support configuration:
+- List of stock codes (sync all stocks if empty)
+- Data source selection
+- Selection of types of reports
+- Batch size and delay settings
+"""
     try:
         service = await get_financial_sync_service()
         
-        # 在后台执行同步任务
+        #Synchronise Tasks in Backstage
         background_tasks.add_task(
             _execute_financial_sync,
             service,
@@ -176,7 +171,7 @@ async def start_financial_sync(
         )
         
     except Exception as e:
-        logger.error(f"❌ 启动财务数据同步失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"启动财务数据同步失败: {str(e)}")
 
 
@@ -184,12 +179,11 @@ async def start_financial_sync(
 async def sync_single_stock_financial(
     request: SingleStockSyncRequest
 ) -> dict:
-    """
-    同步单只股票的财务数据
-    
-    - **symbol**: 股票代码 (必填)
-    - **data_sources**: 数据源列表，默认使用所有数据源
-    """
+    """Synchronize single equity financial data
+
+- **symbol**: stock code (mandatory)
+-**data sources**: list of data sources, default for all data sources
+"""
     try:
         service = await get_financial_sync_service()
         
@@ -213,17 +207,16 @@ async def sync_single_stock_financial(
         )
         
     except Exception as e:
-        logger.error(f"❌ 单股票财务数据同步失败 {request.symbol}: {e}")
+        logger.error(f"Unsync of single stock financial data failed{request.symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"单股票财务数据同步失败: {str(e)}")
 
 
 @router.get("/sync/statistics", summary="获取同步统计信息")
 async def get_sync_statistics() -> dict:
-    """
-    获取财务数据同步统计信息
-    
-    返回各数据源的同步统计，包括记录数、股票数等
-    """
+    """Obtain financial data synchronized statistical information
+
+Returns synchronized statistics from data sources, including records, shares, etc.
+"""
     try:
         service = await get_financial_sync_service()
         
@@ -234,23 +227,22 @@ async def get_sync_statistics() -> dict:
         )
         
     except Exception as e:
-        logger.error(f"❌ 获取同步统计信息失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取同步统计信息失败: {str(e)}")
 
 
 @router.get("/health", summary="财务数据服务健康检查")
 async def health_check() -> dict:
-    """
-    财务数据服务健康检查
-    
-    检查服务状态和数据库连接
-    """
+    """Health screening of financial data services
+
+Check service status and database connection
+"""
     try:
-        # 检查服务初始化状态
+        #Initial status of inspection services
         service = await get_financial_data_service()
         sync_service = await get_financial_sync_service()
         
-        # 简单的数据库连接测试
+        #Simple database connection test
         stats = await service.get_financial_statistics()
         
         return ok(data={
@@ -263,7 +255,7 @@ async def health_check() -> dict:
         )
         
     except Exception as e:
-        logger.error(f"❌ 财务数据服务健康检查失败: {e}")
+        logger.error(f"The FDS health check failed:{e}")
         return ok(success=False, data={
                 "service_status": "unhealthy",
                 "error": str(e)
@@ -272,15 +264,15 @@ async def health_check() -> dict:
         )
 
 
-# ==================== 后台任务 ====================
+#== sync, corrected by elderman == @elder man
 
 async def _execute_financial_sync(
     service: Any,
     request: FinancialSyncRequest
 ):
-    """执行财务数据同步后台任务"""
+    """Perform financial data synchronization back-office tasks"""
     try:
-        logger.info(f"🚀 开始执行财务数据同步任务: {request.dict()}")
+        logger.info(f"🚀starts the process of synchronizing financial data:{request.dict()}")
         
         results = await service.sync_financial_data(
             symbols=request.symbols,
@@ -290,17 +282,17 @@ async def _execute_financial_sync(
             delay_seconds=request.delay_seconds
         )
         
-        # 统计总体结果
+        #Overall statistical results
         total_success = sum(stats.success_count for stats in results.values())
         total_symbols = sum(stats.total_symbols for stats in results.values())
         
-        logger.info(f"✅ 财务数据同步任务完成: {total_success}/{total_symbols} 成功")
+        logger.info(f"Synchronization of financial data completed:{total_success}/{total_symbols}Success")
         
-        # 这里可以添加通知逻辑，比如发送邮件或消息
+        #Here you can add a notification logic, e-mail or message.
         
     except Exception as e:
-        logger.error(f"❌ 财务数据同步任务执行失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
 
 
-# 导入datetime用于时间戳
+#Import datetime for time stamp
 from datetime import datetime

@@ -279,7 +279,7 @@ TradingAgents-CN是**学习工具**，提供的分析仅供参考，不构成投
 
 **国内模型（推荐）**：
 - **DeepSeek V3.1**：https://platform.deepseek.com（控制台 → API Keys）
-- **通义千问（DashScope）**：https://dashscope.aliyun.com（控制台 → API Keys）
+- **通义千问（DashScope）**：https://dashscope-int.aliyun.com（控制台 → API Keys）
 - （可选）文心一言：https://cloud.baidu.com；讯飞星火：https://xinghuo.xfyun.cn
 
 **国际模型（可选）**：

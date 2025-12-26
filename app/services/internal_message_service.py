@@ -1,6 +1,5 @@
-"""
-内部消息数据服务
-提供统一的内部消息存储、查询和管理功能
+"""Internal Message Data Service
+Provide harmonized internal message storage, query and management functions
 """
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime, timedelta
@@ -16,15 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 def convert_objectid_to_str(data: Union[Dict, List[Dict]]) -> Union[Dict, List[Dict]]:
-    """
-    转换 MongoDB ObjectId 为字符串，避免 JSON 序列化错误
+    """Convert MongoDB ObjectId to a string to avoid a serialization error by JSON
 
-    Args:
-        data: 单个文档或文档列表
+Args:
+Data: Single document or list of documents
 
-    Returns:
-        转换后的数据
-    """
+Returns:
+Converted Data
+"""
     if isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and '_id' in item:
@@ -39,7 +37,7 @@ def convert_objectid_to_str(data: Union[Dict, List[Dict]]) -> Union[Dict, List[D
 
 @dataclass
 class InternalMessageQueryParams:
-    """内部消息查询参数"""
+    """Internal message query parameters"""
     symbol: Optional[str] = None
     symbols: Optional[List[str]] = None
     message_type: Optional[str] = None  # research_report/insider_info/analyst_note/meeting_minutes/internal_analysis
@@ -63,7 +61,7 @@ class InternalMessageQueryParams:
 
 @dataclass
 class InternalMessageStats:
-    """内部消息统计信息"""
+    """Internal Message Statistics"""
     total_count: int = 0
     message_types: Dict[str, int] = field(default_factory=dict)
     categories: Dict[str, int] = field(default_factory=dict)
@@ -71,11 +69,11 @@ class InternalMessageStats:
     importance_levels: Dict[str, int] = field(default_factory=dict)
     ratings: Dict[str, int] = field(default_factory=dict)
     avg_confidence: float = 0.0
-    recent_count: int = 0  # 最近24小时
+    recent_count: int = 0  #Last 24 hours.
 
 
 class InternalMessageService:
-    """内部消息数据服务"""
+    """Internal Message Data Service"""
     
     def __init__(self):
         self.db = None
@@ -83,17 +81,17 @@ class InternalMessageService:
         self.logger = logging.getLogger(self.__class__.__name__)
     
     async def initialize(self):
-        """初始化服务"""
+        """Initialization services"""
         try:
             self.db = get_database()
             self.collection = self.db.internal_messages
-            self.logger.info("✅ 内部消息数据服务初始化成功")
+            self.logger.info("✅ Internal message data service initialised successfully")
         except Exception as e:
-            self.logger.error(f"❌ 内部消息数据服务初始化失败: {e}")
+            self.logger.error(f"The initialization of the internal message data service failed:{e}")
             raise
     
     async def _get_collection(self):
-        """获取集合实例"""
+        """Get Collective Examples"""
         if self.collection is None:
             await self.initialize()
         return self.collection
@@ -102,40 +100,39 @@ class InternalMessageService:
         self, 
         messages: List[Dict[str, Any]]
     ) -> Dict[str, int]:
-        """
-        批量保存内部消息
-        
-        Args:
-            messages: 内部消息列表
-            
-        Returns:
-            保存统计信息
-        """
+        """Batch Save Internal Messages
+
+Args:
+Messages: Internal Message List
+
+Returns:
+Save statistical information
+"""
         if not messages:
             return {"saved": 0, "failed": 0}
         
         try:
             collection = await self._get_collection()
             
-            # 准备批量操作
+            #Prepare batch operations
             operations = []
             for message in messages:
-                # 添加时间戳
+                #Add Timetamp
                 message["created_at"] = datetime.utcnow()
                 message["updated_at"] = datetime.utcnow()
                 
-                # 使用message_id作为唯一标识
+                #Use message id as unique identifier
                 filter_dict = {
                     "message_id": message.get("message_id")
                 }
                 
                 operations.append(ReplaceOne(filter_dict, message, upsert=True))
             
-            # 执行批量操作
+            #Execute Batch Operations
             result = await collection.bulk_write(operations, ordered=False)
             
             saved_count = result.upserted_count + result.modified_count
-            self.logger.info(f"✅ 内部消息批量保存完成: {saved_count}/{len(messages)}")
+            self.logger.info(f"Can not open message{saved_count}/{len(messages)}")
             
             return {
                 "saved": saved_count,
@@ -145,33 +142,32 @@ class InternalMessageService:
             }
             
         except BulkWriteError as e:
-            self.logger.error(f"❌ 内部消息批量保存部分失败: {e.details}")
+            self.logger.error(f"The internal message saver failed:{e.details}")
             return {
                 "saved": e.details.get("nUpserted", 0) + e.details.get("nModified", 0),
                 "failed": len(e.details.get("writeErrors", [])),
                 "errors": e.details.get("writeErrors", [])
             }
         except Exception as e:
-            self.logger.error(f"❌ 内部消息保存失败: {e}")
+            self.logger.error(f"Can not open message{e}")
             return {"saved": 0, "failed": len(messages), "error": str(e)}
     
     async def query_internal_messages(
         self, 
         params: InternalMessageQueryParams
     ) -> List[Dict[str, Any]]:
-        """
-        查询内部消息
-        
-        Args:
-            params: 查询参数
-            
-        Returns:
-            内部消息列表
-        """
+        """Query Internal Message
+
+Args:
+Params: query parameters
+
+Returns:
+Internal Message List
+"""
         try:
             collection = await self._get_collection()
             
-            # 构建查询条件
+            #Build query conditions
             query = {}
             
             if params.symbol:
@@ -220,26 +216,26 @@ class InternalMessageService:
             if params.tags:
                 query["tags"] = {"$in": params.tags}
             
-            # 执行查询
+            #Execute queries
             cursor = collection.find(query)
             
-            # 排序
+            #Sort
             cursor = cursor.sort(params.sort_by, params.sort_order)
             
-            # 分页
+            #Page Break
             cursor = cursor.skip(params.skip).limit(params.limit)
             
-            # 获取结果
+            #Get results
             messages = await cursor.to_list(length=params.limit)
 
-            # 🔧 转换 ObjectId 为字符串，避免 JSON 序列化错误
+            #Convert ObjectId to a string to avoid serialization errors in JSON
             messages = convert_objectid_to_str(messages)
 
-            self.logger.debug(f"📊 查询到 {len(messages)} 条内部消息")
+            self.logger.debug(f"Other Organiser{len(messages)}Internal Message")
             return messages
             
         except Exception as e:
-            self.logger.error(f"❌ 内部消息查询失败: {e}")
+            self.logger.error(f"Internal message query failed:{e}")
             return []
     
     async def get_latest_messages(
@@ -249,7 +245,7 @@ class InternalMessageService:
         access_level: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """获取最新内部消息"""
+        """Get an update on the inside."""
         params = InternalMessageQueryParams(
             symbol=symbol,
             message_type=message_type,
@@ -267,11 +263,11 @@ class InternalMessageService:
         access_level: str = None,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """全文搜索内部消息"""
+        """Other Organiser"""
         try:
             collection = await self._get_collection()
             
-            # 构建搜索条件
+            #Build search conditions
             search_query = {
                 "$text": {"$search": query}
             }
@@ -282,7 +278,7 @@ class InternalMessageService:
             if access_level:
                 search_query["access_level"] = access_level
             
-            # 执行搜索
+            #Execute Search
             cursor = collection.find(
                 search_query,
                 {"score": {"$meta": "textScore"}}
@@ -290,11 +286,11 @@ class InternalMessageService:
             
             messages = await cursor.limit(limit).to_list(length=limit)
             
-            self.logger.debug(f"🔍 搜索到 {len(messages)} 条相关消息")
+            self.logger.debug(f"Other Organiser{len(messages)}Can not open message")
             return messages
             
         except Exception as e:
-            self.logger.error(f"❌ 内部消息搜索失败: {e}")
+            self.logger.error(f"Internal message search failed:{e}")
             return []
     
     async def get_research_reports(
@@ -303,7 +299,7 @@ class InternalMessageService:
         department: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """获取研究报告"""
+        """Access to studies"""
         params = InternalMessageQueryParams(
             symbol=symbol,
             message_type="research_report",
@@ -320,7 +316,7 @@ class InternalMessageService:
         author: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """获取分析师笔记"""
+        """Get the analyst's notes."""
         params = InternalMessageQueryParams(
             symbol=symbol,
             message_type="analyst_note",
@@ -337,11 +333,11 @@ class InternalMessageService:
         start_time: datetime = None,
         end_time: datetime = None
     ) -> InternalMessageStats:
-        """获取内部消息统计信息"""
+        """Get internal news statistics"""
         try:
             collection = await self._get_collection()
             
-            # 构建匹配条件
+            #Build Match Conditions
             match_stage = {}
             if symbol:
                 match_stage["symbol"] = symbol
@@ -353,7 +349,7 @@ class InternalMessageService:
                     time_query["$lte"] = end_time
                 match_stage["created_time"] = time_query
             
-            # 聚合管道
+            #Aggregation Conduit
             pipeline = []
             if match_stage:
                 pipeline.append({"$match": match_stage})
@@ -373,13 +369,13 @@ class InternalMessageService:
                 }
             ])
             
-            # 执行聚合
+            #Execute Convergence
             result = await collection.aggregate(pipeline).to_list(length=1)
             
             if result:
                 stats_data = result[0]
                 
-                # 统计各类别数量
+                #Number of statistical categories
                 def count_items(items):
                     counts = {}
                     for item in items:
@@ -400,15 +396,15 @@ class InternalMessageService:
                 return InternalMessageStats()
                 
         except Exception as e:
-            self.logger.error(f"❌ 内部消息统计失败: {e}")
+            self.logger.error(f"Internal news count failed:{e}")
             return InternalMessageStats()
 
 
-# 全局服务实例
+#Examples of global services
 _internal_message_service = None
 
 async def get_internal_message_service() -> InternalMessageService:
-    """获取内部消息数据服务实例"""
+    """Examples of accessing internal message data services"""
     global _internal_message_service
     if _internal_message_service is None:
         _internal_message_service = InternalMessageService()

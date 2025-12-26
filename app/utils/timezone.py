@@ -44,14 +44,13 @@ def to_config_tz(dt: Optional[datetime]) -> Optional[datetime]:
 
 
 def ensure_timezone(dt: Optional[datetime]) -> Optional[datetime]:
-    """
-    确保 datetime 对象包含时区信息
-    如果没有时区信息，假定为配置的时区（默认 Asia/Shanghai）
-    """
+    """Ensure that datetime objects contain time zone information
+If no time zone information is available, the configured time zone is assumed (default Asia/Shanghai)
+"""
     if dt is None:
         return None
     if dt.tzinfo is None:
-        # 如果没有时区信息，假定为配置的时区
+        #If no time zone information is available, the configured time zone is assumed
         return dt.replace(tzinfo=get_tz())
     return dt
 

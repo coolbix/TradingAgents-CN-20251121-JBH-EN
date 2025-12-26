@@ -1,6 +1,5 @@
-"""
-社媒消息数据API路由
-提供社媒消息的查询、搜索和统计接口
+"""Social Media Data API Route
+Provision of social media queries, searches and statistical interfaces
 """
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
@@ -18,7 +17,7 @@ router = APIRouter(prefix="/api/social-media", tags=["social-media"])
 
 
 class SocialMediaMessage(BaseModel):
-    """社媒消息模型"""
+    """Social Media Model"""
     message_id: str
     platform: str
     message_type: str = "post"
@@ -41,13 +40,13 @@ class SocialMediaMessage(BaseModel):
 
 
 class SocialMediaBatchRequest(BaseModel):
-    """批量保存社媒消息请求"""
+    """Batch Save Media Message Request"""
     symbol: str = Field(..., description="股票代码")
     messages: List[SocialMediaMessage] = Field(..., description="社媒消息列表")
 
 
 class SocialMediaQueryRequest(BaseModel):
-    """社媒消息查询请求"""
+    """Media Information Request"""
     symbol: Optional[str] = None
     symbols: Optional[List[str]] = None
     platform: Optional[str] = None
@@ -67,18 +66,18 @@ class SocialMediaQueryRequest(BaseModel):
 
 @router.post("/save", response_model=dict)
 async def save_social_media_messages(request: SocialMediaBatchRequest):
-    """批量保存社媒消息"""
+    """Batch Save Media Messages"""
     try:
         service = await get_social_media_service()
 
-        # 转换消息格式并添加股票代码
+        #Convert messages and add stock codes
         messages = []
         for msg in request.messages:
             message_dict = msg.dict()
             message_dict["symbol"] = request.symbol
             messages.append(message_dict)
 
-        # 保存消息
+        #Can not open message
         result = await service.save_social_media_messages(messages)
 
         return ok(
@@ -92,11 +91,11 @@ async def save_social_media_messages(request: SocialMediaBatchRequest):
 
 @router.post("/query", response_model=dict)
 async def query_social_media_messages(request: SocialMediaQueryRequest):
-    """查询社媒消息"""
+    """Search for media messages"""
     try:
         service = await get_social_media_service()
 
-        # 构建查询参数
+        #Build query parameters
         params = SocialMediaQueryParams(
             symbol=request.symbol,
             symbols=request.symbols,
@@ -115,7 +114,7 @@ async def query_social_media_messages(request: SocialMediaQueryRequest):
             skip=request.skip
         )
 
-        # 执行查询
+        #Execute queries
         messages = await service.query_social_media_messages(params)
 
         return ok(
@@ -137,7 +136,7 @@ async def get_latest_messages(
     platform: Optional[str] = Query(None, description="平台类型"),
     limit: int = Query(20, ge=1, le=100, description="返回数量")
 ):
-    """获取最新社媒消息"""
+    """Get an update on the media."""
     try:
         service = await get_social_media_service()
         messages = await service.get_latest_messages(symbol, platform, limit)
@@ -162,7 +161,7 @@ async def search_messages(
     platform: Optional[str] = Query(None, description="平台类型"),
     limit: int = Query(50, ge=1, le=200, description="返回数量")
 ):
-    """全文搜索社媒消息"""
+    """Other Organiser"""
     try:
         service = await get_social_media_service()
         messages = await service.search_messages(query, symbol, platform, limit)
@@ -187,11 +186,11 @@ async def get_statistics(
     symbol: Optional[str] = Query(None, description="股票代码"),
     hours_back: int = Query(24, ge=1, le=168, description="回溯小时数")
 ):
-    """获取社媒消息统计信息"""
+    """Access to media statistics"""
     try:
         service = await get_social_media_service()
         
-        # 计算时间范围
+        #Calculate the time frame
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=hours_back)
         
@@ -215,7 +214,7 @@ async def get_statistics(
 
 @router.get("/platforms", response_model=dict)
 async def get_supported_platforms():
-    """获取支持的社媒平台列表"""
+    """List of media platforms to obtain support"""
     platforms = [
         {
             "code": "weibo",
@@ -268,15 +267,15 @@ async def get_sentiment_analysis(
     platform: Optional[str] = Query(None, description="平台类型"),
     hours_back: int = Query(24, ge=1, le=168, description="回溯小时数")
 ):
-    """获取股票的社媒情绪分析"""
+    """Media Emotional Analysis for Taking Stock"""
     try:
         service = await get_social_media_service()
         
-        # 计算时间范围
+        #Calculate the time frame
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=hours_back)
         
-        # 查询消息
+        #Query Message
         params = SocialMediaQueryParams(
             symbol=symbol,
             platform=platform,
@@ -287,7 +286,7 @@ async def get_sentiment_analysis(
         
         messages = await service.query_social_media_messages(params)
         
-        # 分析情绪分布
+        #Analysis of emotional distribution
         sentiment_counts = {"positive": 0, "negative": 0, "neutral": 0}
         platform_sentiment = {}
         hourly_sentiment = {}
@@ -296,13 +295,13 @@ async def get_sentiment_analysis(
             sentiment = msg.get("sentiment", "neutral")
             sentiment_counts[sentiment] += 1
             
-            # 按平台统计
+            #By platform
             msg_platform = msg.get("platform", "unknown")
             if msg_platform not in platform_sentiment:
                 platform_sentiment[msg_platform] = {"positive": 0, "negative": 0, "neutral": 0}
             platform_sentiment[msg_platform][sentiment] += 1
             
-            # 按小时统计
+            #By hour
             publish_time = msg.get("publish_time")
             if publish_time:
                 hour_key = publish_time.strftime("%Y-%m-%d %H:00")
@@ -310,7 +309,7 @@ async def get_sentiment_analysis(
                     hourly_sentiment[hour_key] = {"positive": 0, "negative": 0, "neutral": 0}
                 hourly_sentiment[hour_key][sentiment] += 1
         
-        # 计算情绪指数 (positive: +1, neutral: 0, negative: -1)
+        #Calculate emotional index (positive: +1, emotional: 0, emotional:-1)
         total_messages = len(messages)
         sentiment_score = 0
         if total_messages > 0:
@@ -338,11 +337,11 @@ async def get_sentiment_analysis(
 
 @router.get("/health", response_model=dict)
 async def health_check():
-    """健康检查"""
+    """Health screening"""
     try:
         service = await get_social_media_service()
         
-        # 简单的连接测试
+        #Simple connection test
         collection = await service._get_collection()
         count = await collection.estimated_document_count()
         

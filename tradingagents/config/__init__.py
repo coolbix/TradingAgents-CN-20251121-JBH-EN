@@ -1,5 +1,4 @@
-"""
-配置管理模块
+"""Configure Management Module
 """
 
 from .config_manager import config_manager, token_tracker, ModelConfig, PricingConfig, UsageRecord

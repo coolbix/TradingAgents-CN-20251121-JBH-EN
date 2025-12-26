@@ -203,7 +203,7 @@ A: 请检查以下几点：
 **Q: 如何获取真实的 API Key？**
 
 A: 请访问对应服务商的官网：
-- 通义千问: https://dashscope.aliyun.com/
+- 通义千问: https://dashscope-int.aliyun.com/
 - DeepSeek: https://platform.deepseek.com/
 - OpenAI: https://platform.openai.com/
 - Anthropic: https://console.anthropic.com/

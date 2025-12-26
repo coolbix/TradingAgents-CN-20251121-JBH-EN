@@ -1,6 +1,5 @@
-"""
-常量定义模块
-统一管理系统中使用的常量
+"""Constant definition module
+Constants used in the integrated management system
 """
 
 from .data_sources import (

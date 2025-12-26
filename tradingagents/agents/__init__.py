@@ -19,7 +19,7 @@ from .managers.risk_manager import create_risk_manager
 
 from .trader.trader import create_trader
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 

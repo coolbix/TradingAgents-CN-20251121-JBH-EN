@@ -1,9 +1,8 @@
-"""
-新闻数据获取模块
-统一管理各种新闻数据源
+"""News data acquisition module
+Integrated management of information sources
 """
 
-# 导入 Google News
+#Import Google News
 try:
     from .google_news import getNewsData
     GOOGLE_NEWS_AVAILABLE = True
@@ -11,7 +10,7 @@ except ImportError:
     getNewsData = None
     GOOGLE_NEWS_AVAILABLE = False
 
-# 导入 Reddit
+#Import Reddit
 try:
     from .reddit import fetch_top_from_category
     REDDIT_AVAILABLE = True
@@ -19,7 +18,7 @@ except ImportError:
     fetch_top_from_category = None
     REDDIT_AVAILABLE = False
 
-# 导入实时新闻
+#Import Real Time News
 try:
     from .realtime_news import (
         get_realtime_news,
@@ -33,7 +32,7 @@ except ImportError:
     search_news_by_keyword = None
     REALTIME_NEWS_AVAILABLE = False
 
-# 导入中国财经数据聚合器
+#Import Chinese Financial Data Aggregator
 try:
     from .chinese_finance import ChineseFinanceDataAggregator
     CHINESE_FINANCE_AVAILABLE = True

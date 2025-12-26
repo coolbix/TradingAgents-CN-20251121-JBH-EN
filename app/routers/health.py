@@ -6,19 +6,19 @@ router = APIRouter()
 
 
 def get_version() -> str:
-    """从 VERSION 文件读取版本号"""
+    """Read version numbers from Version files"""
     try:
         version_file = Path(__file__).parent.parent.parent / "VERSION"
         if version_file.exists():
             return version_file.read_text(encoding='utf-8').strip()
     except Exception:
         pass
-    return "0.1.16"  # 默认版本号
+    return "0.1.16"  #Default Version Number
 
 
 @router.get("/health")
 async def health():
-    """健康检查接口 - 前端使用"""
+    """Health check interface - front-end use"""
     return {
         "success": True,
         "data": {
@@ -32,10 +32,10 @@ async def health():
 
 @router.get("/healthz")
 async def healthz():
-    """Kubernetes健康检查"""
+    """Kubernetes Health Examination"""
     return {"status": "ok"}
 
 @router.get("/readyz")
 async def readyz():
-    """Kubernetes就绪检查"""
+    """Kubernetes readiness check"""
     return {"ready": True}

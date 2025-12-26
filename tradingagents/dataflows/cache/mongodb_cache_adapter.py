@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-"""
-MongoDB 缓存适配器
-根据 TA_USE_APP_CACHE 配置，优先使用 MongoDB 中的同步数据
+"""MongoDB cache adapter
+According to TA USE APP CACHE configuration, priority is given to simultaneous data from MongoDB
 """
 
 import pandas as pd
 from typing import Optional, Dict, Any, List, Union
 from datetime import datetime, timedelta, timezone
 
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
-# 导入配置
+#Import Configuration
 from tradingagents.config.runtime_settings import use_app_cache_enabled
 
 class MongoDBCacheAdapter:
-    """MongoDB 缓存适配器（从 app 的 MongoDB 读取同步数据）"""
+    """MongoDB cache adapter (read synchronized data from MongoDB in app)"""
     
     def __init__(self):
         self.use_app_cache = use_app_cache_enabled(False)
@@ -25,27 +24,27 @@ class MongoDBCacheAdapter:
         
         if self.use_app_cache:
             self._init_mongodb_connection()
-            logger.info("🔄 MongoDB缓存适配器已启用 - 优先使用MongoDB数据")
+            logger.info("MongoDB cache adapter enabled - Priority is given to MongoDB data")
         else:
-            logger.info("📁 MongoDB缓存适配器使用传统缓存模式")
+            logger.info("MongoDB Cache Adapter uses traditional cache mode")
     
     def _init_mongodb_connection(self):
-        """初始化MongoDB连接"""
+        """Initialize MongoDB connection"""
         try:
             from tradingagents.config.database_manager import get_mongodb_client
             self.mongodb_client = get_mongodb_client()
             if self.mongodb_client:
                 self.db = self.mongodb_client.get_database('tradingagents')
-                logger.debug("✅ MongoDB连接初始化成功")
+                logger.debug("The MongoDB connection was successfully initialized")
             else:
-                logger.warning("⚠️ MongoDB客户端不可用，回退到传统模式")
+                logger.warning("MongoDB client not available, back to traditional mode")
                 self.use_app_cache = False
         except Exception as e:
-            logger.warning(f"⚠️ MongoDB连接初始化失败: {e}")
+            logger.warning(f"The initialization of the MongoDB connection failed:{e}")
             self.use_app_cache = False
     
     def get_stock_basic_info(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """获取股票基础信息（按数据源优先级查询）"""
+        """Access to stock base information (data source priority query)"""
         if not self.use_app_cache or self.db is None:
             return None
 
@@ -53,43 +52,42 @@ class MongoDBCacheAdapter:
             code6 = str(symbol).zfill(6)
             collection = self.db.stock_basic_info
 
-            # 🔥 获取数据源优先级
+            #Access to data source priorities
             source_priority = self._get_data_source_priority(symbol)
 
-            # 🔥 按优先级查询
+            #Query by priority
             doc = None
             for src in source_priority:
                 doc = collection.find_one({"code": code6, "source": src}, {"_id": 0})
                 if doc:
-                    logger.debug(f"✅ 从MongoDB获取基础信息: {symbol}, 数据源: {src}")
+                    logger.debug(f"Get basic information from MongoDB:{symbol}, data source:{src}")
                     return doc
 
-            # 如果所有数据源都没有，尝试不带 source 条件查询（兼容旧数据）
+            #Try without source condition query (compatible with old data) if all data sources are missing
             if not doc:
                 doc = collection.find_one({"code": code6}, {"_id": 0})
                 if doc:
-                    logger.debug(f"✅ 从MongoDB获取基础信息（旧数据）: {symbol}")
+                    logger.debug(f"Basic information from MongoDB (old data):{symbol}")
                     return doc
                 else:
-                    logger.debug(f"📊 MongoDB中未找到基础信息: {symbol}")
+                    logger.debug(f"Basic information not found in MongoDB:{symbol}")
                     return None
 
         except Exception as e:
-            logger.warning(f"⚠️ 获取基础信息失败: {e}")
+            logger.warning(f"Access to basic information failed:{e}")
             return None
     
     def _get_data_source_priority(self, symbol: str) -> list:
-        """
-        获取数据源优先级顺序
+        """Get data source priorities
 
-        Args:
-            symbol: 股票代码
+Args:
+symbol: stock code
 
-        Returns:
-            按优先级排序的数据源列表，例如: ["tushare", "akshare", "baostock"]
-        """
+Returns:
+List of data sources in order of priority, e.g.: ["tushare", "akshare", "baostock"]
+"""
         try:
-            # 1. 识别市场分类
+            #1. Identification of market classifications
             from tradingagents.utils.stock_utils import StockUtils, StockMarket
             market = StockUtils.identify_stock_market(symbol)
 
@@ -99,9 +97,9 @@ class MongoDBCacheAdapter:
                 StockMarket.HONG_KONG: 'hk_stocks',
             }
             market_category = market_mapping.get(market)
-            logger.info(f"📊 [数据源优先级] 股票代码: {symbol}, 市场分类: {market_category}")
+            logger.info(f"[Data source priority] Stock code:{symbol}, market classification:{market_category}")
 
-            # 2. 从数据库读取配置
+            #2. Read configuration from the database
             if self.db is not None:
                 config_collection = self.db.system_configs
                 config_data = config_collection.find_one(
@@ -111,9 +109,9 @@ class MongoDBCacheAdapter:
 
                 if config_data and config_data.get('data_source_configs'):
                     configs = config_data['data_source_configs']
-                    logger.info(f"📊 [数据源优先级] 从数据库读取到 {len(configs)} 个数据源配置")
+                    logger.info(f"[Data Source Priority]{len(configs)}Data source configuration")
 
-                    # 3. 过滤启用的数据源
+                    #3. Filter enabled data sources
                     enabled = []
                     for ds in configs:
                         ds_type = ds.get('type', '')
@@ -121,56 +119,55 @@ class MongoDBCacheAdapter:
                         ds_priority = ds.get('priority', 0)
                         ds_categories = ds.get('market_categories', [])
 
-                        logger.info(f"📊 [数据源配置] 类型: {ds_type}, 启用: {ds_enabled}, 优先级: {ds_priority}, 市场: {ds_categories}")
+                        logger.info(f"[Data source configuration] Type:{ds_type}, enabled:{ds_enabled}, priority:{ds_priority}, Market:{ds_categories}")
 
                         if not ds_enabled:
-                            logger.info(f"⚠️ [数据源优先级] {ds_type} 未启用，跳过")
+                            logger.info(f"[Data source priority]{ds_type}Not enabled, Skip")
                             continue
 
-                        # 检查市场分类
+                        #Check market classifications
                         if ds_categories and market_category:
                             if market_category not in ds_categories:
-                                logger.info(f"⚠️ [数据源优先级] {ds_type} 不支持市场 {market_category}，跳过")
+                                logger.info(f"[Data source priority]{ds_type}Not supporting markets{market_category}Skip")
                                 continue
 
                         enabled.append(ds)
 
-                    logger.info(f"📊 [数据源优先级] 过滤后启用的数据源: {len(enabled)} 个")
+                    logger.info(f"[Data source priority]{len(enabled)}individual")
 
-                    # 4. 按优先级排序（数字越大优先级越高）
+                    #4. Prioritization (the larger the number, the higher the priority)
                     enabled.sort(key=lambda x: x.get('priority', 0), reverse=True)
 
-                    # 5. 返回数据源类型列表
+                    #Return list of data source types
                     result = [ds.get('type', '').lower() for ds in enabled if ds.get('type')]
                     if result:
-                        logger.info(f"✅ [数据源优先级] {symbol} ({market_category}): {result}")
+                        logger.info(f"[Data source priority]{symbol} ({market_category}): {result}")
                         return result
                     else:
-                        logger.warning(f"⚠️ [数据源优先级] 没有可用的数据源配置，使用默认顺序")
+                        logger.warning(f"⚠️ [Data Source Priority] No data source configuration available, use default order")
                 else:
-                    logger.warning(f"⚠️ [数据源优先级] 数据库中没有找到数据源配置")
+                    logger.warning(f"⚠️ [data source priority] No data source configuration found in the database")
 
         except Exception as e:
-            logger.error(f"❌ 获取数据源优先级失败: {e}", exc_info=True)
+            logger.error(f"Access to data source priority failed:{e}", exc_info=True)
 
-        # 默认顺序：Tushare > AKShare > BaoStock
-        logger.info(f"📊 [数据源优先级] 使用默认顺序: ['tushare', 'akshare', 'baostock']")
+        #Default order: Tushare > AKshare > BaoStock
+        logger.info(f"['tushare', 'akshare', 'baostock']")
         return ['tushare', 'akshare', 'baostock']
 
     def get_historical_data(self, symbol: str, start_date: str = None, end_date: str = None,
                           period: str = "daily") -> Optional[pd.DataFrame]:
-        """
-        获取历史数据，支持多周期，按数据源优先级查询
+        """Access to historical data to support multi-cycle queries by data source priority
 
-        Args:
-            symbol: 股票代码
-            start_date: 开始日期
-            end_date: 结束日期
-            period: 数据周期（daily/weekly/monthly），默认为daily
+Args:
+symbol: stock code
+Start date: Start date
+End date: End date
+period: data cycle (daily/weekly/monthly), default is Daily
 
-        Returns:
-            DataFrame: 历史数据
-        """
+Returns:
+DataFrame: Historical data
+"""
         if not self.use_app_cache or self.db is None:
             return None
 
@@ -178,16 +175,16 @@ class MongoDBCacheAdapter:
             code6 = str(symbol).zfill(6)
             collection = self.db.stock_daily_quotes
 
-            # 获取数据源优先级
+            #Acquiring Data Source Priority
             priority_order = self._get_data_source_priority(symbol)
 
-            # 按优先级查询
+            #Query by Priority
             for data_source in priority_order:
-                # 构建查询条件
+                #Build query conditions
                 query = {
                     "symbol": code6,
                     "period": period,
-                    "data_source": data_source  # 指定数据源
+                    "data_source": data_source  #Specify data source
                 }
 
                 if start_date:
@@ -198,28 +195,28 @@ class MongoDBCacheAdapter:
                     else:
                         query["trade_date"] = {"$lte": end_date}
 
-                # 查询数据
-                logger.debug(f"🔍 [MongoDB查询] 尝试数据源: {data_source}, symbol={code6}, period={period}")
+                #Query Data
+                logger.debug(f"[MongoDB query]{data_source}, symbol={code6}, period={period}")
                 cursor = collection.find(query, {"_id": 0}).sort("trade_date", 1)
                 data = list(cursor)
 
                 if data:
                     df = pd.DataFrame(data)
-                    logger.info(f"✅ [数据来源: MongoDB-{data_source}] {symbol}, {len(df)}条记录 (period={period})")
+                    logger.info(f"[Data source: MongoDB-{data_source}] {symbol}, {len(df)}Record (period=){period})")
                     return df
                 else:
-                    logger.debug(f"⚠️ [MongoDB-{data_source}] 未找到{period}数据: {symbol}")
+                    logger.debug(f"⚠️ [MongoDB-{data_source}Not found{period}Data:{symbol}")
 
-            # 所有数据源都没有数据
-            logger.warning(f"⚠️ [数据来源: MongoDB] 所有数据源({', '.join(priority_order)})都没有{period}数据: {symbol}，降级到其他数据源")
+            #All data sources have no data.
+            logger.warning(f"⚠️ [data source: MongoDB] All data sources{', '.join(priority_order)}None.{period}Data:{symbol}down to other data sources")
             return None
 
         except Exception as e:
-            logger.warning(f"⚠️ 获取历史数据失败: {e}")
+            logger.warning(f"This post is part of our special coverage Egypt Protests 2011.{e}")
             return None
     
     def get_financial_data(self, symbol: str, report_period: str = None) -> Optional[Dict[str, Any]]:
-        """获取财务数据，按数据源优先级查询"""
+        """Obtain financial data, query by data source priority"""
         if not self.use_app_cache or self.db is None:
             return None
 
@@ -227,105 +224,105 @@ class MongoDBCacheAdapter:
             code6 = str(symbol).zfill(6)
             collection = self.db.stock_financial_data
 
-            # 获取数据源优先级
+            #Acquiring Data Source Priority
             priority_order = self._get_data_source_priority(symbol)
 
-            # 按优先级查询
+            #Query by Priority
             for data_source in priority_order:
-                # 构建查询条件
+                #Build query conditions
                 query = {
                     "code": code6,
-                    "data_source": data_source  # 指定数据源
+                    "data_source": data_source  #Specify data source
                 }
                 if report_period:
                     query["report_period"] = report_period
 
-                # 获取最新的财务数据
+                #Access to up-to-date financial data
                 doc = collection.find_one(query, {"_id": 0}, sort=[("report_period", -1)])
 
                 if doc:
-                    logger.info(f"✅ [数据来源: MongoDB-{data_source}] {symbol}财务数据")
-                    logger.debug(f"📊 [财务数据] 成功提取{symbol}的财务数据，包含字段: {list(doc.keys())}")
+                    logger.info(f"[Data source: MongoDB-{data_source}] {symbol}Financial data")
+                    logger.debug(f"📊 [Financial data] Successful extraction{symbol}, containing fields:{list(doc.keys())}")
                     return doc
 
-            # 所有数据源都没有数据
-            logger.debug(f"📊 [数据来源: MongoDB] 所有数据源都没有财务数据: {symbol}")
+            #All data sources have no data.
+            logger.debug(f"All data sources have no financial data:{symbol}")
             return None
 
         except Exception as e:
-            logger.warning(f"⚠️ [数据来源: MongoDB-财务数据] 获取财务数据失败: {e}")
+            logger.warning(f"⚠️ [Data source: MongoDB-financial data]{e}")
             return None
     
     def get_news_data(self, symbol: str = None, hours_back: int = 24, limit: int = 20) -> Optional[List[Dict[str, Any]]]:
-        """获取新闻数据"""
+        """Access to news data"""
         if not self.use_app_cache or self.db is None:
             return None
 
         try:
-            collection = self.db.stock_news  # 修正集合名称
+            collection = self.db.stock_news  #Fix Collective Name
             
-            # 构建查询条件
+            #Build query conditions
             query = {}
             if symbol:
                 code6 = str(symbol).zfill(6)
                 query["symbol"] = code6
             
-            # 时间范围
+            #Time frame
             if hours_back:
                 start_time = datetime.now(timezone.utc) - timedelta(hours=hours_back)
                 query["publish_time"] = {"$gte": start_time}
             
-            # 查询数据
+            #Query Data
             cursor = collection.find(query, {"_id": 0}).sort("publish_time", -1).limit(limit)
             data = list(cursor)
             
             if data:
-                logger.debug(f"✅ [数据来源: MongoDB-新闻数据] 从MongoDB获取新闻数据: {len(data)}条")
+                logger.debug(f"✅ [Data source: MongoDB-news data]{len(data)}Article")
                 return data
             else:
-                logger.debug(f"📊 [数据来源: MongoDB-新闻数据] MongoDB中未找到新闻数据")
+                logger.debug(f"No news data found in MongoDB")
                 return None
 
         except Exception as e:
-            logger.warning(f"⚠️ [数据来源: MongoDB-新闻数据] 获取新闻数据失败: {e}")
+            logger.warning(f"⚠️ [Data source: MongoDB-news data]{e}")
             return None
     
     def get_social_media_data(self, symbol: str = None, hours_back: int = 24, limit: int = 20) -> Optional[List[Dict[str, Any]]]:
-        """获取社媒数据"""
+        """Access to media data"""
         if not self.use_app_cache or self.db is None:
             return None
             
         try:
             collection = self.db.social_media_messages
             
-            # 构建查询条件
+            #Build query conditions
             query = {}
             if symbol:
                 code6 = str(symbol).zfill(6)
                 query["symbol"] = code6
             
-            # 时间范围
+            #Time frame
             if hours_back:
                 start_time = datetime.now(timezone.utc) - timedelta(hours=hours_back)
                 query["publish_time"] = {"$gte": start_time}
             
-            # 查询数据
+            #Query Data
             cursor = collection.find(query, {"_id": 0}).sort("publish_time", -1).limit(limit)
             data = list(cursor)
             
             if data:
-                logger.debug(f"✅ 从MongoDB获取社媒数据: {len(data)}条")
+                logger.debug(f"Get media data from MongoDB:{len(data)}Article")
                 return data
             else:
-                logger.debug(f"📊 MongoDB中未找到社媒数据")
+                logger.debug(f"Social data not found in MongoDB")
                 return None
                 
         except Exception as e:
-            logger.warning(f"⚠️ 获取社媒数据失败: {e}")
+            logger.warning(f"Access to media data failed:{e}")
             return None
     
     def get_market_quotes(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """获取实时行情数据"""
+        """Get Real Time Line Data"""
         if not self.use_app_cache or self.db is None:
             return None
             
@@ -333,91 +330,89 @@ class MongoDBCacheAdapter:
             code6 = str(symbol).zfill(6)
             collection = self.db.market_quotes
             
-            # 获取最新行情
+            #Get Updates
             doc = collection.find_one({"code": code6}, {"_id": 0}, sort=[("timestamp", -1)])
             
             if doc:
-                logger.debug(f"✅ 从MongoDB获取行情数据: {symbol}")
+                logger.debug(f"Get the data from MongoDB:{symbol}")
                 return doc
             else:
-                logger.debug(f"📊 MongoDB中未找到行情数据: {symbol}")
+                logger.debug(f"No line data found in MongoDB:{symbol}")
                 return None
                 
         except Exception as e:
-            logger.warning(f"⚠️ 获取行情数据失败: {e}")
+            logger.warning(f"Can not get folder: %s: %s{e}")
             return None
 
 
-# 全局实例
+#Global Examples
 _mongodb_cache_adapter = None
 
 def get_mongodb_cache_adapter() -> MongoDBCacheAdapter:
-    """获取 MongoDB 缓存适配器实例"""
+    """Get instance of a MongoDB cache adapter"""
     global _mongodb_cache_adapter
     if _mongodb_cache_adapter is None:
         _mongodb_cache_adapter = MongoDBCacheAdapter()
     return _mongodb_cache_adapter
 
-# 向后兼容的别名
+#Backward compatible aliases
 def get_enhanced_data_adapter() -> MongoDBCacheAdapter:
-    """获取增强数据适配器实例（向后兼容，推荐使用 get_mongodb_cache_adapter）"""
+    """Example of acquisition of enhanced data adapter (postcompatibility, recommended for use"""
     return get_mongodb_cache_adapter()
 
 
 def get_stock_data_with_fallback(symbol: str, start_date: str = None, end_date: str = None, 
                                 fallback_func=None) -> Union[pd.DataFrame, str, None]:
-    """
-    带降级的股票数据获取
-    
-    Args:
-        symbol: 股票代码
-        start_date: 开始日期
-        end_date: 结束日期
-        fallback_func: 降级函数
-    
-    Returns:
-        优先返回MongoDB数据，失败时调用降级函数
-    """
+    """Degraded stock acquisition
+
+Args:
+symbol: stock code
+Start date: Start date
+End date: End date
+fallback func: downgrade function
+
+Returns:
+Prioritize returns of MongoDB data, and call downgrade if failure
+"""
     adapter = get_enhanced_data_adapter()
     
-    # 尝试从MongoDB获取
+    #Try to get from MongoDB
     if adapter.use_app_cache:
         df = adapter.get_historical_data(symbol, start_date, end_date)
         if df is not None and not df.empty:
-            logger.info(f"📊 使用MongoDB历史数据: {symbol}")
+            logger.info(f"Using MongoDB historical data:{symbol}")
             return df
     
-    # 降级到传统方式
+    #Down to the traditional way.
     if fallback_func:
-        logger.info(f"🔄 降级到传统数据源: {symbol}")
+        logger.info(f"Degraded to traditional data sources:{symbol}")
         return fallback_func(symbol, start_date, end_date)
     
     return None
 
 
 def get_financial_data_with_fallback(symbol: str, fallback_func=None) -> Union[Dict[str, Any], str, None]:
-    """
-    带降级的财务数据获取
-    
-    Args:
-        symbol: 股票代码
-        fallback_func: 降级函数
-    
-    Returns:
-        优先返回MongoDB数据，失败时调用降级函数
-    """
+    """Access to downgraded financial data
+
+Args:
+symbol: stock code
+fallback func: downgrade function
+
+Returns:
+Prioritize returns of MongoDB data, and call downgrade if failure
+"""
     adapter = get_enhanced_data_adapter()
     
-    # 尝试从MongoDB获取
+    #Try to get from MongoDB
     if adapter.use_app_cache:
         data = adapter.get_financial_data(symbol)
         if data:
-            logger.info(f"💰 使用MongoDB财务数据: {symbol}")
+            logger.info(f"Using MongoDB financial data:{symbol}")
             return data
     
-    # 降级到传统方式
+    #Down to the traditional way.
     if fallback_func:
-        logger.info(f"🔄 降级到传统数据源: {symbol}")
+        logger.info(f"Degraded to traditional data sources:{symbol}")
         return fallback_func(symbol)
     
     return None

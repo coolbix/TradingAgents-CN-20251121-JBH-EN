@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-优化的A股数据获取工具
-集成缓存策略和Tushare数据接口，提高数据获取效率
+"""Optimized data acquisition tool for Unit A
+Integrated cache strategy and Tushare data interface to improve data acquisition efficiency
 """
 
 import os
@@ -15,16 +14,16 @@ from .cache import get_cache
 from tradingagents.config.config_manager import config_manager
 
 from tradingagents.config.runtime_settings import get_float, get_timezone_name
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
-# 导入 MongoDB 缓存适配器
+#Import MongoDB cache adapter
 from .cache.mongodb_cache_adapter import get_mongodb_cache_adapter, get_stock_data_with_fallback, get_financial_data_with_fallback
 
 
 class OptimizedChinaDataProvider:
-    """优化的A股数据提供器 - 集成缓存和Tushare数据接口"""
+    """Optimized A unit data provider - integrated cache and Tushare data interface"""
 
     def __init__(self):
         self.cache = get_cache()
@@ -32,10 +31,10 @@ class OptimizedChinaDataProvider:
         self.last_api_call = 0
         self.min_api_interval = get_float("TA_CHINA_MIN_API_INTERVAL_SECONDS", "ta_china_min_api_interval_seconds", 0.5)
 
-        logger.info(f"📊 优化A股数据提供器初始化完成")
+        logger.info(f"Optimizing the initialization of the data provider for Unit A")
 
     def _wait_for_rate_limit(self):
-        """等待API限制"""
+        """Waiting for API Limit"""
         current_time = time.time()
         time_since_last_call = current_time - self.last_api_call
 
@@ -46,16 +45,16 @@ class OptimizedChinaDataProvider:
         self.last_api_call = time.time()
 
     def _format_financial_data_to_fundamentals(self, financial_data: Dict[str, Any], symbol: str) -> str:
-        """将MongoDB财务数据转换为基本面分析格式"""
+        """Convert MongoDB financial data into basic face analysis format"""
         try:
-            # 提取关键财务指标
+            #Extracting key financial indicators
             revenue = financial_data.get('total_revenue', 'N/A')
             net_profit = financial_data.get('net_profit', 'N/A')
             total_assets = financial_data.get('total_assets', 'N/A')
             total_equity = financial_data.get('total_equity', 'N/A')
             report_period = financial_data.get('report_period', 'N/A')
 
-            # 格式化数值（如果是数字则添加千分位，否则显示原值）
+            #Formatting value (add thousands if numbers, otherwise show original values)
             def format_number(value):
                 if isinstance(value, (int, float)):
                     return f"{value:,.2f}"
@@ -66,7 +65,7 @@ class OptimizedChinaDataProvider:
             total_assets_str = format_number(total_assets)
             total_equity_str = format_number(total_equity)
 
-            # 计算财务比率
+            #Calculation of financial ratios
             roe = 'N/A'
             if isinstance(net_profit, (int, float)) and isinstance(total_equity, (int, float)) and total_equity != 0:
                 roe = f"{(net_profit / total_equity * 100):.2f}%"
@@ -75,7 +74,7 @@ class OptimizedChinaDataProvider:
             if isinstance(net_profit, (int, float)) and isinstance(total_assets, (int, float)) and total_assets != 0:
                 roa = f"{(net_profit / total_assets * 100):.2f}%"
 
-            # 格式化输出
+            #Format Output
             fundamentals_report = f"""
 # {symbol} 基本面数据分析
 
@@ -98,57 +97,56 @@ class OptimizedChinaDataProvider:
             return fundamentals_report.strip()
 
         except Exception as e:
-            logger.warning(f"⚠️ 格式化财务数据失败: {e}")
+            logger.warning(f"Financial data formatted failed:{e}")
             return f"# {symbol} 基本面数据\n\n❌ 数据格式化失败: {str(e)}"
 
     def get_stock_data(self, symbol: str, start_date: str, end_date: str,
                       force_refresh: bool = False) -> str:
-        """
-        获取A股数据 - 优先使用缓存
+        """Get A-unit data - Prioritize Cache
 
-        Args:
-            symbol: 股票代码（6位数字）
-            start_date: 开始日期 (YYYY-MM-DD)
-            end_date: 结束日期 (YYYY-MM-DD)
-            force_refresh: 是否强制刷新缓存
+Args:
+symbol: stock code (6-digit)
+Start date: Start date (YYYYY-MM-DD)
+End date: End Date (YYYYY-MM-DD)
+source refresh: whether to forcibly refresh the cache
 
-        Returns:
-            格式化的股票数据字符串
-        """
-        logger.info(f"📈 获取A股数据: {symbol} ({start_date} 到 {end_date})")
+Returns:
+Formatted stock data string
+"""
+        logger.info(f"For unit A data:{symbol} ({start_date}Present.{end_date})")
 
-        # 1. 优先尝试从MongoDB获取（如果启用了TA_USE_APP_CACHE）
+        #1. Preferably try to get it from MongoDB (if TA USE APP CACHE is enabled)
         if not force_refresh:
             adapter = get_mongodb_cache_adapter()
             if adapter.use_app_cache:
                 df = adapter.get_historical_data(symbol, start_date, end_date)
                 if df is not None and not df.empty:
-                    logger.info(f"📊 [数据来源: MongoDB] 使用MongoDB历史数据: {symbol} ({len(df)}条记录)")
+                    logger.info(f"[Data source: MongoDB]{symbol} ({len(df)}(on file)")
                     return df.to_string()
 
-        # 2. 检查文件缓存（除非强制刷新）
+        #2. Check file caches (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
-                data_source="unified"  # 统一数据源（Tushare/AKShare/BaoStock）
+                data_source="unified"  #Harmonization of data sources (Tushare/AKshare/BaoStock)
             )
 
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ [数据来源: 文件缓存] 从缓存加载A股数据: {symbol}")
+                    logger.info(f"⚡ [Data Source: File Cache] Loads Unit A data from the cache:{symbol}")
                     return cached_data
 
-        # 缓存未命中，从统一数据源接口获取
-        logger.info(f"🌐 [数据来源: API调用] 从统一数据源接口获取数据: {symbol}")
+        #Cache pending, retrieve from UDI
+        logger.info(f"🌐 [Data source: API call]{symbol}")
 
         try:
-            # API限制处理
+            #API restricted processing
             self._wait_for_rate_limit()
 
-            # 调用统一数据源接口（默认Tushare，支持备用数据源）
+            #Call the unified data source interface (default Tushare to support backup data sources)
             from .data_source_manager import get_china_stock_data_unified
 
             formatted_data = get_china_stock_data_unified(
@@ -157,70 +155,69 @@ class OptimizedChinaDataProvider:
                 end_date=end_date
             )
 
-            # 检查是否获取成功
+            #Check for success
             if "❌" in formatted_data or "错误" in formatted_data:
-                logger.error(f"❌ [数据来源: API失败] 数据源API调用失败: {symbol}")
-                # 尝试从旧缓存获取数据
+                logger.error(f"Data source API call failed:{symbol}")
+                #Try fetching data from old caches
                 old_cache = self._try_get_old_cache(symbol, start_date, end_date)
                 if old_cache:
-                    logger.info(f"📁 [数据来源: 过期缓存] 使用过期缓存数据: {symbol}")
+                    logger.info(f"[Data source: expired cache]{symbol}")
                     return old_cache
 
-                # 生成备用数据
-                logger.warning(f"⚠️ [数据来源: 备用数据] 生成备用数据: {symbol}")
+                #Generate backup data
+                logger.warning(f"⚠️ [data source: backup data] Generate secondary data:{symbol}")
                 return self._generate_fallback_data(symbol, start_date, end_date, "数据源API调用失败")
 
-            # 保存到缓存
+            #Save to Cache
             self.cache.save_stock_data(
                 symbol=symbol,
                 data=formatted_data,
                 start_date=start_date,
                 end_date=end_date,
-                data_source="unified"  # 使用统一数据源标识
+                data_source="unified"  #Use of harmonized data source identifiers
             )
 
-            logger.info(f"✅ [数据来源: API调用成功] A股数据获取成功: {symbol}")
+            logger.info(f"✅ [Data source: API call successfully] Unit A data acquisition success:{symbol}")
             return formatted_data
 
         except Exception as e:
             error_msg = f"Tushare数据接口调用异常: {str(e)}"
             logger.error(f"❌ {error_msg}")
 
-            # 尝试从旧缓存获取数据
+            #Try fetching data from old caches
             old_cache = self._try_get_old_cache(symbol, start_date, end_date)
             if old_cache:
-                logger.info(f"📁 使用过期缓存数据: {symbol}")
+                logger.info(f"Use of expired cache data:{symbol}")
                 return old_cache
 
-            # 生成备用数据
+            #Generate backup data
             return self._generate_fallback_data(symbol, start_date, end_date, error_msg)
 
     def get_fundamentals_data(self, symbol: str, force_refresh: bool = False) -> str:
-        """
-        获取A股基本面数据 - 优先使用缓存
+        """Get A Basic Data - Prioritize Cache
 
-        Args:
-            symbol: 股票代码
-            force_refresh: 是否强制刷新缓存
+Args:
+symbol: stock code
+source refresh: whether to forcibly refresh the cache
 
-        Returns:
-            格式化的基本面数据字符串
-        """
-        logger.info(f"📊 获取A股基本面数据: {symbol}")
+Returns:
+Formatting Basic Data Strings
+"""
+        logger.info(f"For basic data on Unit A:{symbol}")
 
-        # 1. 优先尝试从MongoDB获取财务数据（如果启用了TA_USE_APP_CACHE）
+        #1. Prioritize attempts to obtain financial data from MongoDB (if TA USE APP CACHE is enabled)
         if not force_refresh:
             adapter = get_mongodb_cache_adapter()
             if adapter.use_app_cache:
                 financial_data = adapter.get_financial_data(symbol)
                 if financial_data:
-                    logger.info(f"💰 [数据来源: MongoDB财务数据] 使用MongoDB财务数据: {symbol}")
-                    # 将财务数据转换为基本面分析格式
+                    logger.info(f"Using MongoDB financial data:{symbol}")
+                    #Conversion of financial data into basic face analysis format
                     return self._format_financial_data_to_fundamentals(financial_data, symbol)
 
-        # 2. 检查文件缓存（除非强制刷新）
+        #2. Check file caches (unless mandatory updating)
         if not force_refresh:
-            # 查找基本面数据缓存
+            #Find Basic Data Cache
             for metadata_file in self.cache.metadata_dir.glob(f"*_meta.json"):
                 try:
                     import json
@@ -235,56 +232,55 @@ class OptimizedChinaDataProvider:
                         if self.cache.is_cache_valid(cache_key, symbol=symbol, data_type='fundamentals'):
                             cached_data = self.cache.load_stock_data(cache_key)
                             if cached_data:
-                                logger.info(f"⚡ [数据来源: 文件缓存] 从缓存加载A股基本面数据: {symbol}")
+                                logger.info(f"⚡ [Data Source: File Cache] Loads Basic A Stock Data from Cache:{symbol}")
                                 return cached_data
                 except Exception:
                     continue
 
-        # 缓存未命中，生成基本面分析
-        logger.debug(f"🔍 [数据来源: 生成分析] 生成A股基本面分析: {symbol}")
+        #Cache uncut, generate basic face analysis
+        logger.debug(f"🔍 [Data Source: Generating Analysis] Generating Basic Analysis of Unit A:{symbol}")
 
         try:
-            # 基本面分析只需要基础信息，不需要完整的历史交易数据
-            # 获取股票基础信息（公司名称、当前价格等）
+            #Basic analysis only requires basic information, not complete historical transaction data
+            #Access to basic stock information (name of company, current price, etc.)
             stock_basic_info = self._get_stock_basic_info_only(symbol)
 
-            # 生成基本面分析报告
+            #Generate basic analysis reports
             fundamentals_data = self._generate_fundamentals_report(symbol, stock_basic_info)
 
-            # 保存到缓存
+            #Save to Cache
             self.cache.save_fundamentals_data(
                 symbol=symbol,
                 fundamentals_data=fundamentals_data,
-                data_source="unified_analysis"  # 统一数据源分析
+                data_source="unified_analysis"  #Harmonization of data source analysis
             )
 
-            logger.info(f"✅ [数据来源: 生成分析成功] A股基本面数据生成成功: {symbol}")
+            logger.info(f"✅ [Data Source: Generating Analysis Success] Unit A fundamental data generation success:{symbol}")
             return fundamentals_data
 
         except Exception as e:
             error_msg = f"基本面数据生成失败: {str(e)}"
-            logger.error(f"❌ [数据来源: 生成失败] {error_msg}")
-            logger.warning(f"⚠️ [数据来源: 备用数据] 生成备用基本面数据: {symbol}")
+            logger.error(f"❌{error_msg}")
+            logger.warning(f"⚠️ [Data source: backup data] Generate secondary base data:{symbol}")
             return self._generate_fallback_fundamentals(symbol, error_msg)
 
     def _get_stock_basic_info_only(self, symbol: str) -> str:
-        """
-        获取股票基础信息（仅用于基本面分析）
-        不获取历史交易数据，只获取公司名称、当前价格等基础信息
-        """
-        logger.debug(f"📊 [基本面优化] 获取{symbol}基础信息（不含历史数据）")
+        """Access to basic stock information (for basic face analysis only)
+No historical transaction data obtained, only basic information such as company name, current price, etc.
+"""
+        logger.debug(f" [basic optimization]{symbol}Basic information (excluding historical data)")
 
         try:
-            # 从统一接口获取股票基本信息
+            #Obtain basic stock information from a unified interface
             from .interface import get_china_stock_info_unified
             stock_info = get_china_stock_info_unified(symbol)
 
-            # 如果获取成功，直接返回基础信息
+            #If successful, directly return basic information
             if stock_info and "股票名称:" in stock_info:
-                logger.debug(f"📊 [基本面优化] 成功获取{symbol}基础信息，无需历史数据")
+                logger.debug(f"📊 [BASIC PERFECT]{symbol}Basic information, without historical data")
                 return stock_info
 
-            # 如果基础信息获取失败，尝试从缓存获取最基本的信息
+            #If access to basic information fails, try to obtain the most basic information from the cache
             try:
                 from tradingagents.config.runtime_settings import use_app_cache_enabled
                 if use_app_cache_enabled(False):
@@ -296,63 +292,63 @@ class OptimizedChinaDataProvider:
                         change_pct = f"{float(row_q.get('pct_chg', 0)):+.2f}%" if row_q.get('pct_chg') is not None else 'N/A'
                         volume = str(row_q.get('volume', 'N/A'))
 
-                        # 构造基础信息格式
+                        #Construct Basic Information Format
                         basic_info = f"""股票代码: {symbol}
 股票名称: 未知公司
 当前价格: {current_price}
 涨跌幅: {change_pct}
 成交量: {volume}"""
-                        logger.debug(f"📊 [基本面优化] 从缓存构造{symbol}基础信息")
+                        logger.debug(f"📊 [Basic Surface Optimization] from Cache Construction{symbol}Basic information")
                         return basic_info
             except Exception as e:
-                logger.debug(f"📊 [基本面优化] 从缓存获取基础信息失败: {e}")
+                logger.debug(f"📊 [basic optimization] Failed to access basic information from cache:{e}")
 
-            # 如果都失败了，返回最基本的信息
+            #If you fail, return the most basic information.
             return f"股票代码: {symbol}\n股票名称: 未知公司\n当前价格: N/A\n涨跌幅: N/A\n成交量: N/A"
 
         except Exception as e:
-            logger.warning(f"⚠️ [基本面优化] 获取{symbol}基础信息失败: {e}")
+            logger.warning(f"⚠️ [basic optimization]{symbol}Could not close temporary folder: %s{e}")
             return f"股票代码: {symbol}\n股票名称: 未知公司\n当前价格: N/A\n涨跌幅: N/A\n成交量: N/A"
 
     def _generate_fundamentals_report(self, symbol: str, stock_data: str, analysis_modules: str = "standard") -> str:
-        """基于股票数据生成真实的基本面分析报告
-        
-        Args:
-            symbol: 股票代码
-            stock_data: 股票数据
-            analysis_modules: 分析模块级别 ("basic", "standard", "full", "detailed", "comprehensive")
-        """
+        """Generate real fundamental analysis based on equity data
 
-        # 添加详细的股票代码追踪日志
-        logger.debug(f"🔍 [股票代码追踪] _generate_fundamentals_report 接收到的股票代码: '{symbol}' (类型: {type(symbol)})")
-        logger.debug(f"🔍 [股票代码追踪] 股票代码长度: {len(str(symbol))}")
-        logger.debug(f"🔍 [股票代码追踪] 股票代码字符: {list(str(symbol))}")
-        logger.debug(f"🔍 [股票代码追踪] 接收到的股票数据前200字符: {stock_data[:200] if stock_data else 'None'}")
+Args:
+symbol: stock code
+Stock data: Stock data
+Analysis modules: Analysis module level
+"""
 
-        # 从股票数据中提取信息
+        #Add detailed stock code tracking log
+        logger.debug(f"🔍 [Securities Code Tracking]  generate fundamentals report received stock codes: '{symbol}' (type:{type(symbol)})")
+        logger.debug(f"[Equal code tracking]{len(str(symbol))}")
+        logger.debug(f"[Equal code tracking]{list(str(symbol))}")
+        logger.debug(f"[Equal code tracking]{stock_data[:200] if stock_data else 'None'}")
+
+        #Extracting information from stock data
         company_name = "未知公司"
         current_price = "N/A"
         volume = "N/A"
         change_pct = "N/A"
 
-        # 首先尝试从统一接口获取股票基本信息
+        #First try to get basic stock information from a unified interface
         try:
-            logger.debug(f"🔍 [股票代码追踪] 尝试获取{symbol}的基本信息...")
+            logger.debug(f"[Equal code tracking]{symbol}Basic information...")
             from .interface import get_china_stock_info_unified
             stock_info = get_china_stock_info_unified(symbol)
-            logger.debug(f"🔍 [股票代码追踪] 获取到的股票信息: {stock_info}")
+            logger.debug(f"[Equal code tracking]{stock_info}")
 
             if "股票名称:" in stock_info:
                 lines = stock_info.split('\n')
                 for line in lines:
                     if "股票名称:" in line:
                         company_name = line.split(':')[1].strip()
-                        logger.debug(f"🔍 [股票代码追踪] 从统一接口获取到股票名称: {company_name}")
+                        logger.debug(f"[Equal code tracking]{company_name}")
                         break
         except Exception as e:
-            logger.warning(f"⚠️ 获取股票基本信息失败: {e}")
+            logger.warning(f"⚠️ failed to access basic stock information:{e}")
 
-        # 若仍缺失当前价格/涨跌幅/成交量，且启用app缓存，则直接读取 market_quotes 兜底
+        #If the current price/fall/offset is still missing and the app cache is enabled, read the market quotes pocket
         try:
             if (current_price == "N/A" or change_pct == "N/A" or volume == "N/A"):
                 from tradingagents.config.runtime_settings import use_app_cache_enabled  # type: ignore
@@ -363,20 +359,20 @@ class OptimizedChinaDataProvider:
                         row_q = df_q.iloc[-1]
                         if current_price == "N/A" and row_q.get('close') is not None:
                             current_price = str(row_q.get('close'))
-                            logger.debug(f"🔍 [股票代码追踪] 从market_quotes补齐当前价格: {current_price}")
+                            logger.debug(f"[Equal code tracking]{current_price}")
                         if change_pct == "N/A" and row_q.get('pct_chg') is not None:
                             try:
                                 change_pct = f"{float(row_q.get('pct_chg')):+.2f}%"
                             except Exception:
                                 change_pct = str(row_q.get('pct_chg'))
-                            logger.debug(f"🔍 [股票代码追踪] 从market_quotes补齐涨跌幅: {change_pct}")
+                            logger.debug(f"[Equal code tracking]{change_pct}")
                         if volume == "N/A" and row_q.get('volume') is not None:
                             volume = str(row_q.get('volume'))
-                            logger.debug(f"🔍 [股票代码追踪] 从market_quotes补齐成交量: {volume}")
+                            logger.debug(f"[Share code tracking]{volume}")
         except Exception as _qe:
-            logger.debug(f"🔍 [股票代码追踪] 读取market_quotes失败（忽略）: {_qe}")
+            logger.debug(f"🔍 [Securities Code Tracks] Reading market quotes failed (negative):{_qe}")
 
-        # 然后从股票数据中提取价格信息
+        #And then extract price information from stock data.
         if "股票名称:" in stock_data:
             lines = stock_data.split('\n')
             for line in lines:
@@ -385,7 +381,7 @@ class OptimizedChinaDataProvider:
                 elif "当前价格:" in line:
                     current_price = line.split(':')[1].strip()
                 elif "最新价格:" in line or "💰 最新价格:" in line:
-                    # 兼容另一种模板输出
+                    #Compatible with another template output
                     try:
                         current_price = line.split(':', 1)[1].strip().lstrip('¥').strip()
                     except Exception:
@@ -395,45 +391,45 @@ class OptimizedChinaDataProvider:
                 elif "成交量:" in line:
                     volume = line.split(':')[1].strip()
 
-        # 尝试从股票数据表格中提取最新价格信息
+        #Try to extract up-to-date price information from stock data tables
         if current_price == "N/A" and stock_data:
             try:
                 lines = stock_data.split('\n')
                 for i, line in enumerate(lines):
                     if "最新数据:" in line and i + 1 < len(lines):
-                        # 查找数据行
+                        #Find Data Lines
                         for j in range(i + 1, min(i + 5, len(lines))):
                             data_line = lines[j].strip()
                             if data_line and not data_line.startswith('日期') and not data_line.startswith('-'):
-                                # 尝试解析数据行
+                                #Try parsing data lines
                                 parts = data_line.split()
                                 if len(parts) >= 4:
                                     try:
-                                        # 假设格式: 日期 股票代码 开盘 收盘 最高 最低 成交量 成交额...
-                                        current_price = parts[3]  # 收盘价
-                                        logger.debug(f"🔍 [股票代码追踪] 从数据表格提取到收盘价: {current_price}")
+                                        #Assumptions format: Date, stock code, opening, closing, highest, lowest exchange, turnover...
+                                        current_price = parts[3]  #Discount price
+                                        logger.debug(f"[Equal code tracking]{current_price}")
                                         break
                                     except (IndexError, ValueError):
                                         continue
                         break
             except Exception as e:
-                logger.debug(f"🔍 [股票代码追踪] 解析股票数据表格失败: {e}")
+                logger.debug(f"[Equal code tracking]{e}")
 
-        # 根据股票代码判断行业和基本信息
-        logger.debug(f"🔍 [股票代码追踪] 调用 _get_industry_info，传入参数: '{symbol}'")
+        #Profession and basic information based on stock code
+        logger.debug(f"[Securities code tracking]{symbol}'")
         industry_info = self._get_industry_info(symbol)
-        logger.debug(f"🔍 [股票代码追踪] _get_industry_info 返回结果: {industry_info}")
+        logger.debug(f"Get industry info returns:{industry_info}")
 
-        # 尝试获取财务指标，如果失败则返回简化的基本面报告
-        logger.debug(f"🔍 [股票代码追踪] 调用 _estimate_financial_metrics，传入参数: '{symbol}'")
+        #Try to obtain financial indicators and return the simplified basic report if it fails
+        logger.debug(f"[Securities Code Tracking]{symbol}'")
         try:
             financial_estimates = self._estimate_financial_metrics(symbol, current_price)
-            logger.debug(f"🔍 [股票代码追踪] _estimate_financial_metrics 返回结果: {financial_estimates}")
+            logger.debug(f"[Stock code tracking]{financial_estimates}")
         except Exception as e:
-            logger.warning(f"⚠️ [基本面分析] 无法获取财务指标: {e}")
-            logger.info(f"📊 [基本面分析] 返回简化的基本面报告（无财务指标）")
+            logger.warning(f"Financial indicators are not available:{e}")
+            logger.info(f"📊 [basic analysis] returns the simplified basic report (no financial indicators)")
 
-            # 返回简化的基本面报告（不包含财务指标）
+            #Returns simplified base reports (excluding financial indicators)
             simplified_report = f"""# 中国A股基本面分析报告 - {symbol} (简化版)
 
 ## 📊 基本信息
@@ -460,9 +456,9 @@ class OptimizedChinaDataProvider:
 """
             return simplified_report.strip()
 
-        logger.debug(f"🔍 [股票代码追踪] 开始生成报告，使用股票代码: '{symbol}'")
+        logger.debug(f"[Equal code tracking]{symbol}'")
 
-        # 检查数据来源并生成相应说明
+        #Check data sources and generate instructions
         data_source_note = ""
         data_source = financial_estimates.get('data_source', '')
 
@@ -475,11 +471,11 @@ class OptimizedChinaDataProvider:
         else:
             data_source_note = "\n✅ **数据说明**: 财务指标基于真实财务数据计算"
 
-        # 根据分析模块级别调整报告内容
-        logger.debug(f"🔍 [基本面分析] 使用分析模块级别: {analysis_modules}")
+        #Align the content of the report to the analytical module level
+        logger.debug(f"Use of analytical module levels:{analysis_modules}")
         
         if analysis_modules == "basic":
-            # 基础模式：只包含核心财务指标
+            #Foundation model: core financial indicators only
             report = f"""# 中国A股基本面分析报告 - {symbol} (基础版)
 
 ## 📊 股票基本信息
@@ -507,7 +503,7 @@ class OptimizedChinaDataProvider:
 **生成时间**: {datetime.now(ZoneInfo(get_timezone_name())).strftime('%Y-%m-%d %H:%M:%S')}
 """
         elif analysis_modules in ["standard", "full"]:
-            # 标准/完整模式：包含详细分析
+            #Standard/complete model: including detailed analysis
             report = f"""# 中国A股基本面分析报告 - {symbol}
 
 ## 📊 股票基本信息
@@ -566,7 +562,7 @@ class OptimizedChinaDataProvider:
 **生成时间**: {datetime.now(ZoneInfo(get_timezone_name())).strftime('%Y-%m-%d %H:%M:%S')}
 """
         else:  # detailed, comprehensive
-            # 详细/全面模式：包含最完整的分析
+            #Detailed/comprehensive model: including the most complete analysis
             report = f"""# 中国A股基本面分析报告 - {symbol} (全面版)
 
 ## 📊 股票基本信息
@@ -679,46 +675,46 @@ class OptimizedChinaDataProvider:
         return report
 
     def _get_industry_info(self, symbol: str) -> dict:
-        """根据股票代码获取行业信息（优先使用数据库真实数据）"""
+        """Access to industry information according to the stock code (prioritize the use of real database data)"""
 
-        # 添加详细的股票代码追踪日志
-        logger.debug(f"🔍 [股票代码追踪] _get_industry_info 接收到的股票代码: '{symbol}' (类型: {type(symbol)})")
-        logger.debug(f"🔍 [股票代码追踪] 股票代码长度: {len(str(symbol))}")
-        logger.debug(f"🔍 [股票代码追踪] 股票代码字符: {list(str(symbol))}")
+        #Add detailed stock code tracking log
+        logger.debug(f"🔍 [Securities Code Tracking]  get indistry info received stock codes: '{symbol}' (type:{type(symbol)})")
+        logger.debug(f"[Equal code tracking]{len(str(symbol))}")
+        logger.debug(f"[Equal code tracking]{list(str(symbol))}")
 
-        # 首先尝试从数据库获取真实的行业信息
+        #First try to get real industry information from the database.
         try:
             from .cache.app_adapter import get_basics_from_cache
             doc = get_basics_from_cache(symbol)
             if doc:
-                # 只记录关键字段，避免打印完整文档
-                logger.debug(f"🔍 [股票代码追踪] 从数据库获取到基础信息: code={doc.get('code')}, name={doc.get('name')}, industry={doc.get('industry')}")
+                #Record key fields only and avoid printing complete documents
+                logger.debug(f"[Equal code tracking]{doc.get('code')}, name={doc.get('name')}, industry={doc.get('industry')}")
 
-                # 规范化行业与板块（避免把"中小板/创业板"等板块值误作行业）
+                #Regulating the industry and the plate (avoiding miscalculation of the value of the board, such as the "Small/Starboard" sector)
                 board_labels = {'主板', '中小板', '创业板', '科创板'}
                 raw_industry = (doc.get('industry') or doc.get('industry_name') or '').strip()
                 sec_or_cat = (doc.get('sec') or doc.get('category') or '').strip()
                 market_val = (doc.get('market') or '').strip()
                 industry_val = raw_industry or sec_or_cat or '未知'
 
-                # 如果industry字段是板块名，则将其用于market；industry改用更细分类（sec/category）
+                #If the industry field is a plate name, it is used as a market; industry is changed to a more detailed classification (sec/category)
                 if raw_industry in board_labels:
                     if not market_val:
                         market_val = raw_industry
                     if sec_or_cat:
                         industry_val = sec_or_cat
-                    logger.debug(f"🔧 [字段归一化] industry原值='{raw_industry}' → 行业='{industry_val}', 市场/板块='{market_val}'")
+                    logger.debug(f"🔧{raw_industry}♪ Industry ♪{industry_val}', market/board ='{market_val}'")
 
-                # 构建行业信息
+                #Build industry information
                 info = {
                     "industry": industry_val or '未知',
                     "market": market_val or doc.get('market', '未知'),
                     "type": self._get_market_type_by_code(symbol)
                 }
 
-                logger.debug(f"🔍 [股票代码追踪] 从数据库获取的行业信息: {info}")
+                logger.debug(f"[Equal code tracking]{info}")
 
-                # 添加特殊股票的详细分析
+                #Add detailed analysis of special shares
                 if symbol in self._get_special_stocks():
                     info.update(self._get_special_stocks()[symbol])
                 else:
@@ -732,18 +728,18 @@ class OptimizedChinaDataProvider:
                 return info
 
         except Exception as e:
-            logger.warning(f"⚠️ 从数据库获取行业信息失败: {e}")
+            logger.warning(f"Access to industry information from databases failed:{e}")
 
-        # 备用方案：使用代码前缀判断（但修正了行业/市场的映射）
-        logger.debug(f"🔍 [股票代码追踪] 使用备用方案，基于代码前缀判断")
+        #Alternative scenario: use of code prefix (but modified industry/market map)
+        logger.debug(f"[Equal code tracking]")
         code_prefix = symbol[:3]
-        logger.debug(f"🔍 [股票代码追踪] 提取的代码前缀: '{code_prefix}'")
+        logger.debug(f"[Equal code tracking]{code_prefix}'")
 
-        # 修正后的映射表：区分行业和市场板块
+        #Revised Map: Distinguishing Industry from Market Blocks
         market_map = {
             "000": {"market": "主板", "exchange": "深圳证券交易所", "type": "综合"},
             "001": {"market": "主板", "exchange": "深圳证券交易所", "type": "综合"},
-            "002": {"market": "主板", "exchange": "深圳证券交易所", "type": "成长型"},  # 002开头现在也是主板
+            "002": {"market": "主板", "exchange": "深圳证券交易所", "type": "成长型"},  #002 is the main panel now.
             "003": {"market": "创业板", "exchange": "深圳证券交易所", "type": "创新型"},
             "300": {"market": "创业板", "exchange": "深圳证券交易所", "type": "高科技"},
             "600": {"market": "主板", "exchange": "上海证券交易所", "type": "大盘蓝筹"},
@@ -759,12 +755,12 @@ class OptimizedChinaDataProvider:
         })
 
         info = {
-            "industry": "未知",  # 无法从代码前缀准确判断具体行业
+            "industry": "未知",  #It's not possible to determine the exact industry from the prefix.
             "market": market_info["market"],
             "type": market_info["type"]
         }
 
-        # 特殊股票的详细信息
+        #Details on special stocks
         special_stocks = self._get_special_stocks()
         if symbol in special_stocks:
             info.update(special_stocks[symbol])
@@ -779,7 +775,7 @@ class OptimizedChinaDataProvider:
         return info
 
     def _get_market_type_by_code(self, symbol: str) -> str:
-        """根据股票代码判断市场类型"""
+        """Market type by stock code"""
         code_prefix = symbol[:3]
         type_map = {
             "000": "综合", "001": "综合", "002": "成长型", "003": "创新型",
@@ -789,7 +785,7 @@ class OptimizedChinaDataProvider:
         return type_map.get(code_prefix, "综合")
 
     def _get_special_stocks(self) -> dict:
-        """获取特殊股票的详细信息"""
+        """Get details on special stocks"""
         return {
             "000001": {
                 "industry": "银行业",
@@ -822,29 +818,29 @@ class OptimizedChinaDataProvider:
         }
 
     def _estimate_financial_metrics(self, symbol: str, current_price: str) -> dict:
-        """获取真实财务指标（从 MongoDB、AKShare、Tushare 获取，失败则抛出异常）"""
+        """Obtaining real financial indicators (from MongoDB, AKshare, Tushare and failure to release anomalies)"""
 
-        # 提取价格数值
+        #Extract price value
         try:
             price_value = float(current_price.replace('¥', '').replace(',', ''))
         except:
-            price_value = 10.0  # 默认值
+            price_value = 10.0  #Default value
 
-        # 尝试获取真实财务数据
+        #Trying to get real financial data
         real_metrics = self._get_real_financial_metrics(symbol, price_value)
         if real_metrics:
-            logger.info(f"✅ 使用真实财务数据: {symbol}")
+            logger.info(f"Using real financial data:{symbol}")
             return real_metrics
 
-        # 如果无法获取真实数据，抛出异常
+        #If you can't get real data, throw out the anomaly.
         error_msg = f"无法获取股票 {symbol} 的财务数据。已尝试所有数据源（MongoDB、AKShare、Tushare）均失败。"
         logger.error(f"❌ {error_msg}")
         raise ValueError(error_msg)
 
     def _get_real_financial_metrics(self, symbol: str, price_value: float) -> dict:
-        """获取真实财务指标 - 优先使用数据库缓存，再使用API"""
+        """Getting real financial indicators - Prioritize database caches to use API"""
         try:
-            # 🔥 优先从 market_quotes 获取实时股价，替换传入的 price_value
+            #🔥 Prioritize real-time stock prices from market quotes to replace imported price value
             from tradingagents.config.database_manager import get_database_manager
             db_manager = get_database_manager()
             db_client = None
@@ -854,442 +850,442 @@ class OptimizedChinaDataProvider:
                     db_client = db_manager.get_mongodb_client()
                     db = db_client['tradingagents']
 
-                    # 标准化股票代码为6位
+                    #Standardised stock code is six.
                     code6 = symbol.replace('.SH', '').replace('.SZ', '').zfill(6)
 
-                    # 从 market_quotes 获取实时股价
+                    #Get real-time share price from market quotes
                     quote = db.market_quotes.find_one({"code": code6})
                     if quote and quote.get("close"):
                         realtime_price = float(quote.get("close"))
-                        logger.info(f"✅ 从 market_quotes 获取实时股价: {code6} = {realtime_price}元 (原价格: {price_value}元)")
+                        logger.info(f"Get real-time stock prices from market quotes:{code6} = {realtime_price}(original price:{price_value}Dollars)")
                         price_value = realtime_price
                     else:
-                        logger.info(f"⚠️ market_quotes 中未找到{code6}的实时股价，使用传入价格: {price_value}元")
+                        logger.info(f"Unfinished in market quotes{code6}real-time share price, using input price:{price_value}Dollar")
                 except Exception as e:
-                    logger.warning(f"⚠️ 从 market_quotes 获取实时股价失败: {e}，使用传入价格: {price_value}元")
+                    logger.warning(f"@⚠️ > Failed to get real-time stock prices from market quotes:{e}, using imported prices:{price_value}Dollar")
             else:
-                logger.info(f"⚠️ MongoDB 不可用，使用传入价格: {price_value}元")
+                logger.info(f"MongoDB is not available, using input prices:{price_value}Dollar")
 
-            # 第一优先级：从 MongoDB stock_financial_data 集合获取标准化财务数据
+            #First priority: Obtain standardized financial data from the MongoDB stock financial data collection
             from tradingagents.config.runtime_settings import use_app_cache_enabled
             if use_app_cache_enabled(False):
-                logger.info(f"🔍 优先从 MongoDB stock_financial_data 集合获取{symbol}财务数据")
+                logger.info(f"Priority from MongoDB stock financial data{symbol}Financial data")
 
-                # 直接从 MongoDB 获取标准化的财务数据
+                #Obtain standardized financial data directly from MongoDB
                 from tradingagents.dataflows.cache.mongodb_cache_adapter import get_mongodb_cache_adapter
                 adapter = get_mongodb_cache_adapter()
                 financial_data = adapter.get_financial_data(symbol)
 
                 if financial_data:
-                    logger.info(f"✅ [财务数据] 从 stock_financial_data 集合获取{symbol}财务数据")
-                    # 解析 MongoDB 标准化的财务数据
+                    logger.info(f"[Financial data]{symbol}Financial data")
+                    #Parsing MongoDB standardized financial data
                     metrics = self._parse_mongodb_financial_data(financial_data, price_value)
                     if metrics:
-                        logger.info(f"✅ MongoDB 财务数据解析成功，返回指标")
+                        logger.info(f"✅MongoDB Financial Data Analysis Success, Return Indicator")
                         return metrics
                     else:
-                        logger.warning(f"⚠️ MongoDB 财务数据解析失败")
+                        logger.warning(f"MongoDB financial data analysis failed")
                 else:
-                    logger.info(f"🔄 MongoDB 未找到{symbol}财务数据，尝试从 AKShare API 获取")
+                    logger.info(f"MongoDB not found{symbol}Financial data, try to get from AKShare API")
             else:
-                logger.info(f"🔄 数据库缓存未启用，直接从AKShare API获取{symbol}财务数据")
+                logger.info(f"The database cache 🔄 is not enabled and is obtained directly from AKShare API{symbol}Financial data")
 
-            # 第二优先级：从AKShare API获取
+            #Second priority: from Akshare API
             from .providers.china.akshare import get_akshare_provider
             import asyncio
 
             akshare_provider = get_akshare_provider()
 
             if akshare_provider.connected:
-                # AKShare的get_financial_data是异步方法，需要使用asyncio运行
+                #AKShare's Get financial data is an anisyncio.
                 loop = asyncio.get_event_loop()
                 financial_data = loop.run_until_complete(akshare_provider.get_financial_data(symbol))
 
                 if financial_data and any(not v.empty if hasattr(v, 'empty') else bool(v) for v in financial_data.values()):
-                    logger.info(f"✅ AKShare财务数据获取成功: {symbol}")
-                    # 获取股票基本信息（也是异步方法）
+                    logger.info(f"AKShare's financial data were obtained successfully:{symbol}")
+                    #Access to basic information on stocks (also a stifling method)
                     stock_info = loop.run_until_complete(akshare_provider.get_stock_basic_info(symbol))
 
-                    # 解析AKShare财务数据
-                    logger.debug(f"🔧 调用AKShare解析函数，股价: {price_value}")
+                    #Parsing AKShare Financial Data
+                    logger.debug(f"Call AKShare parsing function, share price:{price_value}")
                     metrics = self._parse_akshare_financial_data(financial_data, stock_info, price_value)
-                    logger.debug(f"🔧 AKShare解析结果: {metrics}")
+                    logger.debug(f"AKShare's analysis:{metrics}")
                     if metrics:
-                        logger.info(f"✅ AKShare解析成功，返回指标")
-                        # 缓存原始财务数据到数据库（而不是解析后的指标）
+                        logger.info(f"AKShare's successfully deciphered and returned.")
+                        #Cache raw financial data to the database (rather than decomposition indicators)
                         self._cache_raw_financial_data(symbol, financial_data, stock_info)
                         return metrics
                     else:
-                        logger.warning(f"⚠️ AKShare解析失败，返回None")
+                        logger.warning(f"AKShare's resolution failed, returning to the net")
                 else:
-                    logger.warning(f"⚠️ AKShare未获取到{symbol}财务数据，尝试Tushare")
+                    logger.warning(f"AKShare is not available.{symbol}Financial data, try Tushare")
             else:
-                logger.warning(f"⚠️ AKShare未连接，尝试Tushare")
+                logger.warning(f"AKShare is not connected. Try Tushare")
 
-            # 第三优先级：使用Tushare数据源
-            logger.info(f"🔄 使用Tushare备用数据源获取{symbol}财务数据")
+            #Third priority: Use Tushare data source
+            logger.info(f"🔄 with Tushare backup data source{symbol}Financial data")
             from .providers.china.tushare import get_tushare_provider
             import asyncio
 
             provider = get_tushare_provider()
             if not provider.connected:
-                logger.debug(f"Tushare未连接，无法获取{symbol}真实财务数据")
+                logger.debug(f"Tushare is not connected, not available{symbol}Real financial data")
                 return None
 
-            # 获取财务数据（异步方法）
+            #Access to financial data (a different approach)
             loop = asyncio.get_event_loop()
             financial_data = loop.run_until_complete(provider.get_financial_data(symbol))
             if not financial_data:
-                logger.debug(f"未获取到{symbol}的财务数据")
+                logger.debug(f"Not accessed{symbol}Financial data")
                 return None
 
-            # 获取股票基本信息（异步方法）
+            #Access to basic information on equities (speech method)
             stock_info = loop.run_until_complete(provider.get_stock_basic_info(symbol))
 
-            # 解析Tushare财务数据
+            #Analysis of Tushare financial data
             metrics = self._parse_financial_data(financial_data, stock_info, price_value)
             if metrics:
-                # 缓存原始财务数据到数据库
+                #Cache raw financial data to database
                 self._cache_raw_financial_data(symbol, financial_data, stock_info)
                 return metrics
 
         except Exception as e:
-            logger.debug(f"获取{symbol}真实财务数据失败: {e}")
+            logger.debug(f"Access{symbol}Real financial data failed:{e}")
 
         return None
 
     def _parse_mongodb_financial_data(self, financial_data: dict, price_value: float) -> dict:
-        """解析 MongoDB 标准化的财务数据为指标"""
+        """Analysis of MongoDB standardized financial data as indicators"""
         try:
-            logger.debug(f"📊 [财务数据] 开始解析 MongoDB 财务数据，包含字段: {list(financial_data.keys())}")
+            logger.debug(f"📊 [financial data] Commence the analysis of MongoDB financial data, including fields:{list(financial_data.keys())}")
 
             metrics = {}
 
-            # MongoDB 的 financial_data 是扁平化的结构，直接包含所有财务指标
-            # 不再是嵌套的 {balance_sheet, income_statement, ...} 结构
+            #MongoDB's financial data is a flat structure that directly includes all financial indicators
+            #No longer embedded   FT 0 structure
 
-            # 直接从 financial_data 中提取指标
+            #Draw indicator directly from financial data
             latest_indicators = financial_data
 
-            # ROE - 净资产收益率 (添加范围验证)
+            #ROE - Rate of return on net assets (addition range validation)
             roe = latest_indicators.get('roe') or latest_indicators.get('roe_waa')
             if roe is not None and str(roe) != 'nan' and roe != '--':
                 try:
                     roe_val = float(roe)
-                    # ROE 通常在 -100% 到 100% 之间，极端情况可能超出
+                    #ROE is usually between -100% and -100%, and extremes may exceed
                     if -200 <= roe_val <= 200:
                         metrics["roe"] = f"{roe_val:.1f}%"
                     else:
-                        logger.warning(f"⚠️ ROE 数据异常: {roe_val}，超出合理范围 [-200%, 200%]，设为 N/A")
+                        logger.warning(f"ROE data anomaly:{roe_val}, beyond reasonable range [200%, 200%], set to N/A")
                         metrics["roe"] = "N/A"
                 except (ValueError, TypeError):
                     metrics["roe"] = "N/A"
             else:
                 metrics["roe"] = "N/A"
 
-            # ROA - 总资产收益率 (添加范围验证)
+            #ROA - Total Asset Rates of Return (addition range validation)
             roa = latest_indicators.get('roa') or latest_indicators.get('roa2')
             if roa is not None and str(roa) != 'nan' and roa != '--':
                 try:
                     roa_val = float(roa)
-                    # ROA 通常在 -50% 到 50% 之间
+                    #ROA is usually between -50 and 50%
                     if -100 <= roa_val <= 100:
                         metrics["roa"] = f"{roa_val:.1f}%"
                     else:
-                        logger.warning(f"⚠️ ROA 数据异常: {roa_val}，超出合理范围 [-100%, 100%]，设为 N/A")
+                        logger.warning(f"ROA data anomaly:{roa_val}, beyond reasonable range [-100%, 100%] set to N/A")
                         metrics["roa"] = "N/A"
                 except (ValueError, TypeError):
                     metrics["roa"] = "N/A"
             else:
                 metrics["roa"] = "N/A"
 
-            # 毛利率 - 添加范围验证
+            #Māori Rate - Add Range Validation
             gross_margin = latest_indicators.get('gross_margin')
             if gross_margin is not None and str(gross_margin) != 'nan' and gross_margin != '--':
                 try:
                     gross_margin_val = float(gross_margin)
-                    # 验证范围：毛利率应该在 -100% 到 100% 之间
-                    # 如果超出范围，可能是数据错误（如存储的是绝对金额而不是百分比）
+                    #Validation range: Māori rates should range from -100% to -100%
+                    #If out of scope, it could be a data error (e.g. stored in absolute amounts rather than percentages)
                     if -100 <= gross_margin_val <= 100:
                         metrics["gross_margin"] = f"{gross_margin_val:.1f}%"
                     else:
-                        logger.warning(f"⚠️ 毛利率数据异常: {gross_margin_val}，超出合理范围 [-100%, 100%]，设为 N/A")
+                        logger.warning(f"Māori ratio data anomaly:{gross_margin_val}, beyond reasonable range [-100%, 100%] set to N/A")
                         metrics["gross_margin"] = "N/A"
                 except (ValueError, TypeError):
                     metrics["gross_margin"] = "N/A"
             else:
                 metrics["gross_margin"] = "N/A"
 
-            # 净利率 - 添加范围验证
+            #Net interest rate - Add range authentication
             net_margin = latest_indicators.get('netprofit_margin')
             if net_margin is not None and str(net_margin) != 'nan' and net_margin != '--':
                 try:
                     net_margin_val = float(net_margin)
-                    # 验证范围：净利率应该在 -100% 到 100% 之间
+                    #Validation range: Net interest rate should be between -100% and -100%
                     if -100 <= net_margin_val <= 100:
                         metrics["net_margin"] = f"{net_margin_val:.1f}%"
                     else:
-                        logger.warning(f"⚠️ 净利率数据异常: {net_margin_val}，超出合理范围 [-100%, 100%]，设为 N/A")
+                        logger.warning(f"Net interest rate data anomalies:{net_margin_val}, beyond reasonable range [-100%, 100%] set to N/A")
                         metrics["net_margin"] = "N/A"
                 except (ValueError, TypeError):
                     metrics["net_margin"] = "N/A"
             else:
                 metrics["net_margin"] = "N/A"
 
-            # 计算 PE/PB - 优先使用实时计算，降级到静态数据
-            # 同时获取 PE 和 PE_TTM 两个指标
+            #Calculate PE/PB - Prefer real-time calculations, downgrade to static data
+            #Fetch both PE and PE TTM indicators
             pe_value = None
             pe_ttm_value = None
             pb_value = None
-            is_loss_stock = False  # 🔥 标记是否为亏损股
+            is_loss_stock = False  #Whether or not the tag is a loss unit
 
             try:
-                # 优先使用实时计算
+                #Prioritize real-time calculations
                 from tradingagents.dataflows.realtime_metrics import get_pe_pb_with_fallback
                 from tradingagents.config.database_manager import get_database_manager
 
                 db_manager = get_database_manager()
                 if db_manager.is_mongodb_available():
                     client = db_manager.get_mongodb_client()
-                    # 从symbol中提取股票代码
+                    #Extract stock code from symbol
                     stock_code = latest_indicators.get('code') or latest_indicators.get('symbol', '').replace('.SZ', '').replace('.SH', '')
 
-                    logger.info(f"📊 [PE计算] 开始计算股票 {stock_code} 的PE/PB")
+                    logger.info(f"[PE Calculating]{stock_code}PE/PB")
 
                     if stock_code:
-                        logger.info(f"📊 [PE计算-第1层] 尝试实时计算 PE/PB (股票代码: {stock_code})")
+                        logger.info(f"📊 [PE Calculator - 1st Floor]{stock_code})")
 
-                        # 获取实时PE/PB
+                        #Access real time PE/PB
                         realtime_metrics = get_pe_pb_with_fallback(stock_code, client)
 
                         if realtime_metrics:
-                            # 获取市值数据（优先保存）
+                            #Obtain market value data (prioritize saving)
                             market_cap = realtime_metrics.get('market_cap')
                             if market_cap is not None and market_cap > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["total_mv"] = f"{market_cap:.2f}亿元{realtime_tag}"
-                                logger.info(f"✅ [总市值获取成功] 总市值={market_cap:.2f}亿元 | 实时={is_realtime}")
+                                logger.info(f"✅ [total market value obtained successfully]{market_cap:.2f}Billion dollars.{is_realtime}")
 
-                            # 使用实时PE（动态市盈率）
+                            #Use real-time PE (dynamic gain-over)
                             pe_value = realtime_metrics.get('pe')
                             if pe_value is not None and pe_value > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["pe"] = f"{pe_value:.1f}倍{realtime_tag}"
 
-                                # 详细日志
+                                #Detailed Log
                                 price = realtime_metrics.get('price', 'N/A')
                                 market_cap_log = realtime_metrics.get('market_cap', 'N/A')
                                 source = realtime_metrics.get('source', 'unknown')
                                 updated_at = realtime_metrics.get('updated_at', 'N/A')
 
-                                logger.info(f"✅ [PE计算-第1层成功] PE={pe_value:.2f}倍 | 来源={source} | 实时={is_realtime}")
-                                logger.info(f"   └─ 计算数据: 股价={price}元, 市值={market_cap_log}亿元, 更新时间={updated_at}")
+                                logger.info(f"[PE Calculator - 1st Floor Success]{pe_value:.2f}Source:{source}= Real time={is_realtime}")
+                                logger.info(f"└ Calculated: Share ={price}dollar, market value ={market_cap_log}Billion dollars, update time ={updated_at}")
                             elif pe_value is None:
-                                # 🔥 PE 为 None，检查是否是亏损股
+                                #PE is None. Check if it's a loss.
                                 pe_ttm_check = latest_indicators.get('pe_ttm')
-                                # pe_ttm 为 None、<= 0、'nan'、'--' 都认为是亏损股
+                                #Pe ttm is None, < = 0, 'nan', '-' which is considered to be a loss.
                                 if pe_ttm_check is None or pe_ttm_check <= 0 or str(pe_ttm_check) == 'nan' or pe_ttm_check == '--':
                                     is_loss_stock = True
-                                    logger.info(f"⚠️ [PE计算-第1层] PE为None且pe_ttm={pe_ttm_check}，确认为亏损股")
+                                    logger.info(f"⚠️ [PE Calculates - 1st Floor]{pe_ttm_check}, recognized as a loss unit")
 
-                            # 使用实时PE_TTM（TTM市盈率）
+                            #Use real time PE TTM
                             pe_ttm_value = realtime_metrics.get('pe_ttm')
                             if pe_ttm_value is not None and pe_ttm_value > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["pe_ttm"] = f"{pe_ttm_value:.1f}倍{realtime_tag}"
-                                logger.info(f"✅ [PE_TTM计算-第1层成功] PE_TTM={pe_ttm_value:.2f}倍 | 来源={source} | 实时={is_realtime}")
+                                logger.info(f"[PE TTM Calculating - Level 1 Success]{pe_ttm_value:.2f}Source:{source}= Real time={is_realtime}")
                             elif pe_ttm_value is None and not is_loss_stock:
-                                # 🔥 PE_TTM 为 None，再次检查是否是亏损股
+                                #PE TTM is None.
                                 pe_ttm_check = latest_indicators.get('pe_ttm')
-                                # pe_ttm 为 None、<= 0、'nan'、'--' 都认为是亏损股
+                                #Pe ttm is None, < = 0, 'nan', '-' which is considered to be a loss.
                                 if pe_ttm_check is None or pe_ttm_check <= 0 or str(pe_ttm_check) == 'nan' or pe_ttm_check == '--':
                                     is_loss_stock = True
-                                    logger.info(f"⚠️ [PE_TTM计算-第1层] PE_TTM为None且pe_ttm={pe_ttm_check}，确认为亏损股")
+                                    logger.info(f"[PE TTM Calculating - 1st Floor]{pe_ttm_check}, recognized as a loss unit")
 
-                            # 使用实时PB
+                            #Use Real Time PB
                             pb_value = realtime_metrics.get('pb')
                             if pb_value is not None and pb_value > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["pb"] = f"{pb_value:.2f}倍{realtime_tag}"
-                                logger.info(f"✅ [PB计算-第1层成功] PB={pb_value:.2f}倍 | 来源={realtime_metrics.get('source')} | 实时={is_realtime}")
+                                logger.info(f"[PB Calculator - 1st Floor Success]{pb_value:.2f}Source:{realtime_metrics.get('source')}= Real time={is_realtime}")
                         else:
-                            # 🔥 检查是否因为亏损导致返回 None
-                            # 从 stock_basic_info 获取 pe_ttm 判断是否亏损
+                            #🔥Check if the loss has led to the return of None
+                            #Get p tm from stock basic info to determine loss
                             pe_ttm_static = latest_indicators.get('pe_ttm')
-                            # pe_ttm 为 None、<= 0、'nan'、'--' 都认为是亏损股
+                            #Pe ttm is None, < = 0, 'nan', '-' which is considered to be a loss.
                             if pe_ttm_static is None or pe_ttm_static <= 0 or str(pe_ttm_static) == 'nan' or pe_ttm_static == '--':
                                 is_loss_stock = True
-                                logger.info(f"⚠️ [PE计算-第1层失败] 检测到亏损股（pe_ttm={pe_ttm_static}），跳过降级计算")
+                                logger.info(f"[PE Calculator - Failed Level 1]{pe_ttm_static}) Skip downgrade calculations")
                             else:
-                                logger.warning(f"⚠️ [PE计算-第1层失败] 实时计算返回空结果，将尝试降级计算")
+                                logger.warning(f"⚠️ [PE Calculator-Failure 1st Layer]")
 
             except Exception as e:
-                logger.warning(f"⚠️ [PE计算-第1层异常] 实时计算失败: {e}，将尝试降级计算")
+                logger.warning(f"The real-time calculation failed:{e}will try to downgrade")
 
-            # 如果实时计算失败，尝试从 latest_indicators 获取总市值
+            #If real-time calculations fail, try to get total market value from late indicators
             if "total_mv" not in metrics:
-                logger.info(f"📊 [总市值-第2层] 尝试从 stock_basic_info 获取")
+                logger.info(f"📊 [total market value -- 2nd floor]")
                 total_mv_static = latest_indicators.get('total_mv')
                 if total_mv_static is not None and total_mv_static > 0:
                     metrics["total_mv"] = f"{total_mv_static:.2f}亿元"
-                    logger.info(f"✅ [总市值-第2层成功] 总市值={total_mv_static:.2f}亿元 (来源: stock_basic_info)")
+                    logger.info(f"✅ [total market value -- 2nd floor success]{total_mv_static:.2f}Billion dollars (source: stock basic info)")
                 else:
-                    # 尝试从 money_cap 计算（万元转亿元）
+                    #Try to calculate from money cap
                     money_cap = latest_indicators.get('money_cap')
                     if money_cap is not None and money_cap > 0:
                         total_mv_yi = money_cap / 10000
                         metrics["total_mv"] = f"{total_mv_yi:.2f}亿元"
-                        logger.info(f"✅ [总市值-第3层成功] 总市值={total_mv_yi:.2f}亿元 (从money_cap转换)")
+                        logger.info(f"✅ [total market value - 3rd floor success]{total_mv_yi:.2f}Billion dollars (converted from money cap)")
                     else:
                         metrics["total_mv"] = "N/A"
-                        logger.warning(f"⚠️ [总市值-全部失败] 无可用总市值数据")
+                        logger.warning(f"No data on total market value available")
 
-            # 如果实时计算失败，尝试传统计算方式
+            #If real-time calculations fail, try traditional calculations
             if pe_value is None:
-                # 🔥 如果已经确认是亏损股，直接设置 PE 为 N/A，不再尝试降级计算
+                #If a loss is confirmed, set PE as N/A and no attempt to downgrade
                 if is_loss_stock:
                     metrics["pe"] = "N/A"
-                    logger.info(f"⚠️ [PE计算-亏损股] 已确认为亏损股，PE设置为N/A，跳过第2层计算")
+                    logger.info(f"⚠️ [PE Calculating-Deficit Unit] recognized as a loss unit, set to N/A, skips the 2nd floor calculation")
                 else:
-                    logger.info(f"📊 [PE计算-第2层] 尝试使用市值/净利润计算")
+                    logger.info(f"📊 [PE Calculates - 2nd Floor]")
 
                     net_profit = latest_indicators.get('net_profit')
 
-                    # 🔥 关键修复：检查净利润是否为正数（亏损股不计算PE）
+                    #🔥 Critical repairs: check for positive net profits (losses do not account for PE)
                     if net_profit and net_profit > 0:
                         try:
-                            # 使用市值/净利润计算PE
+                            #Calculation of PE using market value/net profit
                             money_cap = latest_indicators.get('money_cap')
                             if money_cap and money_cap > 0:
                                 pe_calculated = money_cap / net_profit
                                 metrics["pe"] = f"{pe_calculated:.1f}倍"
-                                logger.info(f"✅ [PE计算-第2层成功] PE={pe_calculated:.2f}倍")
-                                logger.info(f"   └─ 计算公式: 市值({money_cap}万元) / 净利润({net_profit}万元)")
+                                logger.info(f"[PE Calculator - 2nd Floor Success]{pe_calculated:.2f}Double")
+                                logger.info(f"└ formula: market value{money_cap}Ten thousand dollars) / Net profit (%){net_profit}(In thousands of dollars)")
                             else:
-                                logger.warning(f"⚠️ [PE计算-第2层失败] 市值无效: {money_cap}，尝试第3层")
+                                logger.warning(f"Market value is invalid:{money_cap}Try the third floor.")
 
-                                # 第三层降级：直接使用 latest_indicators 中的 pe 字段（仅当为正数时）
+                                #Decline 3rd Layer: Directly use the pe field in the last indicators (in positive numbers only)
                                 pe_static = latest_indicators.get('pe')
                                 if pe_static is not None and str(pe_static) != 'nan' and pe_static != '--':
                                     try:
                                         pe_float = float(pe_static)
-                                        # 🔥 只接受正数的 PE
+                                        #Only positive PEs
                                         if pe_float > 0:
                                             metrics["pe"] = f"{pe_float:.1f}倍"
-                                            logger.info(f"✅ [PE计算-第3层成功] 使用静态PE: {metrics['pe']}")
-                                            logger.info(f"   └─ 数据来源: stock_basic_info.pe")
+                                            logger.info(f"✅ [PE Calculating - 3rd Floor Success]{metrics['pe']}")
+                                            logger.info(f"Data source: block basic info.pe")
                                         else:
                                             metrics["pe"] = "N/A"
-                                            logger.info(f"⚠️ [PE计算-第3层跳过] 静态PE为负数或零（亏损股）: {pe_float}")
+                                            logger.info(f"⚠️ [PE Calculates - 3rd Floor Skips] Static PE is negative or zero (losses):{pe_float}")
                                     except (ValueError, TypeError):
                                         metrics["pe"] = "N/A"
-                                        logger.error(f"❌ [PE计算-第3层失败] 静态PE格式错误: {pe_static}")
+                                        logger.error(f"❌ [PE Calculator-Failure Level 3] Static PE format error:{pe_static}")
                                 else:
                                     metrics["pe"] = "N/A"
-                                    logger.error(f"❌ [PE计算-全部失败] 无可用PE数据")
+                                    logger.error(f"No PE data available")
                         except (ValueError, TypeError, ZeroDivisionError) as e:
                             metrics["pe"] = "N/A"
-                            logger.error(f"❌ [PE计算-第2层异常] 计算失败: {e}")
+                            logger.error(f"The calculation failed:{e}")
                     elif net_profit and net_profit < 0:
-                        # 🔥 亏损股：PE 设置为 N/A
+                        #Loss Unit: PE set to N/A
                         metrics["pe"] = "N/A"
-                        logger.info(f"⚠️ [PE计算-亏损股] 净利润为负数（{net_profit}万元），PE设置为N/A")
+                        logger.info(f"The net profit is negative.{net_profit}Ten thousand dollars)")
                     else:
-                        logger.warning(f"⚠️ [PE计算-第2层跳过] 净利润无效: {net_profit}，尝试第3层")
+                        logger.warning(f"[PE Calculating - 2nd Floor Skipping]{net_profit}Try the third floor.")
 
-                        # 第三层降级：直接使用 latest_indicators 中的 pe 字段（仅当为正数时）
+                        #Decline 3rd Layer: Directly use the pe field in the last indicators (in positive numbers only)
                         pe_static = latest_indicators.get('pe')
                         if pe_static is not None and str(pe_static) != 'nan' and pe_static != '--':
                             try:
                                 pe_float = float(pe_static)
-                                # 🔥 只接受正数的 PE
+                                #Only positive PEs
                                 if pe_float > 0:
                                     metrics["pe"] = f"{pe_float:.1f}倍"
-                                    logger.info(f"✅ [PE计算-第3层成功] 使用静态PE: {metrics['pe']}")
-                                    logger.info(f"   └─ 数据来源: stock_basic_info.pe")
+                                    logger.info(f"✅ [PE Calculating - 3rd Floor Success]{metrics['pe']}")
+                                    logger.info(f"Data source: block basic info.pe")
                                 else:
                                     metrics["pe"] = "N/A"
-                                    logger.info(f"⚠️ [PE计算-第3层跳过] 静态PE为负数或零（亏损股）: {pe_float}")
+                                    logger.info(f"⚠️ [PE Calculates - 3rd Floor Skips] Static PE is negative or zero (losses):{pe_float}")
                             except (ValueError, TypeError):
                                 metrics["pe"] = "N/A"
-                                logger.error(f"❌ [PE计算-第3层失败] 静态PE格式错误: {pe_static}")
+                                logger.error(f"❌ [PE Calculator-Failure Level 3] Static PE format error:{pe_static}")
                         else:
                             metrics["pe"] = "N/A"
-                            logger.error(f"❌ [PE计算-全部失败] 无可用PE数据")
+                            logger.error(f"No PE data available")
 
-            # 如果 PE_TTM 未获取到，尝试从静态数据获取
+            #If PE TTM is not available, try to get from static data
             if pe_ttm_value is None:
-                # 🔥 如果已经确认是亏损股，直接设置 PE_TTM 为 N/A
+                #If a loss is confirmed, set PE TTM as N/A
                 if is_loss_stock:
                     metrics["pe_ttm"] = "N/A"
-                    logger.info(f"⚠️ [PE_TTM计算-亏损股] 已确认为亏损股，PE_TTM设置为N/A")
+                    logger.info(f"⚠️ [PE TTM Calculated-Deficit Unit] recognized as a loss unit and PE TTM set to N/A")
                 else:
-                    logger.info(f"📊 [PE_TTM计算-第2层] 尝试从静态数据获取")
+                    logger.info(f"[PE TTM Calculating - Level 2]")
                     pe_ttm_static = latest_indicators.get('pe_ttm')
                     if pe_ttm_static is not None and str(pe_ttm_static) != 'nan' and pe_ttm_static != '--':
                         try:
                             pe_ttm_float = float(pe_ttm_static)
-                            # 🔥 只接受正数的 PE_TTM（亏损股不显示PE_TTM）
+                            #Only positive PE TTM is accepted.
                             if pe_ttm_float > 0:
                                 metrics["pe_ttm"] = f"{pe_ttm_float:.1f}倍"
-                                logger.info(f"✅ [PE_TTM计算-第2层成功] 使用静态PE_TTM: {metrics['pe_ttm']}")
-                                logger.info(f"   └─ 数据来源: stock_basic_info.pe_ttm")
+                                logger.info(f"Use static PE TTM:{metrics['pe_ttm']}")
+                                logger.info(f"└ - Data source: stock basic info.pe ttm")
                             else:
                                 metrics["pe_ttm"] = "N/A"
-                                logger.info(f"⚠️ [PE_TTM计算-第2层跳过] 静态PE_TTM为负数或零（亏损股）: {pe_ttm_float}")
+                                logger.info(f"⚠️ [PE TTM Calculating - 2nd Floor Skipping] Static PE TTM is negative or zero (losses):{pe_ttm_float}")
                         except (ValueError, TypeError):
                             metrics["pe_ttm"] = "N/A"
-                            logger.error(f"❌ [PE_TTM计算-第2层失败] 静态PE_TTM格式错误: {pe_ttm_static}")
+                            logger.error(f"❌ [PE TTM Calculator - Failed Level 2] Static PE TTM format error:{pe_ttm_static}")
                     else:
                         metrics["pe_ttm"] = "N/A"
-                        logger.warning(f"⚠️ [PE_TTM计算-全部失败] 无可用PE_TTM数据")
+                        logger.warning(f"No PE TTM data available")
 
             if pb_value is None:
                 total_equity = latest_indicators.get('total_hldr_eqy_exc_min_int')
                 if total_equity and total_equity > 0:
                     try:
-                        # 使用市值/净资产计算PB
+                        #Calculation of PB using market value/net assets
                         money_cap = latest_indicators.get('money_cap')
                         if money_cap and money_cap > 0:
-                            # 注意单位转换：money_cap 是万元，total_equity 是元
-                            # PB = 市值(万元) * 10000 / 净资产(元)
+                            #Note unit conversion: money cap is ten thousand dollars, total equity is one dollar
+                            #PB = market value (millions of dollars) * 10000 / Net assets (dollars)
                             pb_calculated = (money_cap * 10000) / total_equity
                             metrics["pb"] = f"{pb_calculated:.2f}倍"
-                            logger.info(f"✅ [PB计算-第2层成功] PB={pb_calculated:.2f}倍")
-                            logger.info(f"   └─ 计算公式: 市值{money_cap}万元 * 10000 / 净资产{total_equity}元 = {metrics['pb']}")
+                            logger.info(f"[PB Calculator - 2nd Floor Success]{pb_calculated:.2f}Double")
+                            logger.info(f"└ formula: Market value{money_cap}* 100 000 / Net assets{total_equity}Dollar ={metrics['pb']}")
                         else:
-                            # 第三层降级：直接使用 latest_indicators 中的 pb 字段
+                            #Decline 3rd Layer: Directly use the pb field in last indicators
                             pb_static = latest_indicators.get('pb') or latest_indicators.get('pb_mrq')
                             if pb_static is not None and str(pb_static) != 'nan' and pb_static != '--':
                                 try:
                                     metrics["pb"] = f"{float(pb_static):.2f}倍"
-                                    logger.info(f"✅ [PB计算-第3层成功] 使用静态PB: {metrics['pb']}")
-                                    logger.info(f"   └─ 数据来源: stock_basic_info.pb")
+                                    logger.info(f"✅ [PB Calculator - 3rd Level Success]{metrics['pb']}")
+                                    logger.info(f"└ - Data source: stock basic info.pb")
                                 except (ValueError, TypeError):
                                     metrics["pb"] = "N/A"
                             else:
                                 metrics["pb"] = "N/A"
                     except (ValueError, TypeError, ZeroDivisionError) as e:
-                        logger.error(f"❌ [PB计算-第2层异常] 计算失败: {e}")
+                        logger.error(f"The calculation failed:{e}")
                         metrics["pb"] = "N/A"
                 else:
-                    # 第三层降级：直接使用 latest_indicators 中的 pb 字段
+                    #Decline 3rd Layer: Directly use the pb field in last indicators
                     pb_static = latest_indicators.get('pb') or latest_indicators.get('pb_mrq')
                     if pb_static is not None and str(pb_static) != 'nan' and pb_static != '--':
                         try:
                             metrics["pb"] = f"{float(pb_static):.2f}倍"
-                            logger.info(f"✅ [PB计算-第3层成功] 使用静态PB: {metrics['pb']}")
-                            logger.info(f"   └─ 数据来源: stock_basic_info.pb")
+                            logger.info(f"✅ [PB Calculator - 3rd Level Success]{metrics['pb']}")
+                            logger.info(f"└ - Data source: stock basic info.pb")
                         except (ValueError, TypeError):
                             metrics["pb"] = "N/A"
                     else:
                         metrics["pb"] = "N/A"
 
-            # 资产负债率
+            #Assets and liabilities ratio
             debt_ratio = latest_indicators.get('debt_to_assets')
             if debt_ratio is not None and str(debt_ratio) != 'nan' and debt_ratio != '--':
                 try:
@@ -1299,23 +1295,23 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["debt_ratio"] = "N/A"
 
-            # 计算 PS - 市销率（使用TTM营业收入）
-            # 优先使用 TTM 营业收入，如果没有则使用单期营业收入
+            #Calculation of PS - marketing rate (using TTM operating income)
+            #Prioritize TTM operating income or, if not, single-stage operating income
             revenue_ttm = latest_indicators.get('revenue_ttm')
             revenue = latest_indicators.get('revenue')
 
-            # 选择使用哪个营业收入数据
+            #Select which business income data to use
             revenue_for_ps = revenue_ttm if revenue_ttm and revenue_ttm > 0 else revenue
             revenue_type = "TTM" if revenue_ttm and revenue_ttm > 0 else "单期"
 
             if revenue_for_ps and revenue_for_ps > 0:
                 try:
-                    # 使用市值/营业收入计算PS
+                    #Calculate PS using market value/business income
                     money_cap = latest_indicators.get('money_cap')
                     if money_cap and money_cap > 0:
                         ps_calculated = money_cap / revenue_for_ps
                         metrics["ps"] = f"{ps_calculated:.2f}倍"
-                        logger.debug(f"✅ 计算PS({revenue_type}): 市值{money_cap}万元 / 营业收入{revenue_for_ps}万元 = {metrics['ps']}")
+                        logger.debug(f"Compute PS (✅){revenue_type}Market value{money_cap}Ten thousand dollars / operating income{revenue_for_ps}Ten thousand dollars ={metrics['ps']}")
                     else:
                         metrics["ps"] = "N/A"
                 except (ValueError, TypeError, ZeroDivisionError):
@@ -1323,83 +1319,83 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["ps"] = "N/A"
 
-            # 股息收益率 - 暂时设为N/A，需要股息数据
+            #Dividend rate of return - provisional N/A, required dividends data
             metrics["dividend_yield"] = "N/A"
             metrics["current_ratio"] = latest_indicators.get('current_ratio', 'N/A')
             metrics["quick_ratio"] = latest_indicators.get('quick_ratio', 'N/A')
             metrics["cash_ratio"] = latest_indicators.get('cash_ratio', 'N/A')
 
-            # 添加评分字段（使用默认值）
-            metrics["fundamental_score"] = 7.0  # 基于真实数据的默认评分
+            #Add scoring fields (using default values)
+            metrics["fundamental_score"] = 7.0  #Default rating based on real data
             metrics["valuation_score"] = 6.5
             metrics["growth_score"] = 7.0
             metrics["risk_level"] = "中等"
 
-            logger.info(f"✅ MongoDB 财务数据解析成功: ROE={metrics.get('roe')}, ROA={metrics.get('roa')}, 毛利率={metrics.get('gross_margin')}, 净利率={metrics.get('net_margin')}")
+            logger.info(f"MongoDB Financial Data Analysis Success: ROE={metrics.get('roe')}, ROA={metrics.get('roa')}, Māori rate ={metrics.get('gross_margin')}, net interest rate ={metrics.get('net_margin')}")
             return metrics
 
         except Exception as e:
-            logger.error(f"❌ MongoDB财务数据解析失败: {e}", exc_info=True)
+            logger.error(f"The analysis of MongoDB's financial data failed:{e}", exc_info=True)
             return None
 
     def _parse_akshare_financial_data(self, financial_data: dict, stock_info: dict, price_value: float) -> dict:
-        """解析AKShare财务数据为指标"""
+        """Analysis of AKShare financial data as indicator"""
         try:
-            # 获取最新的财务数据
+            #Access to up-to-date financial data
             balance_sheet = financial_data.get('balance_sheet', [])
             income_statement = financial_data.get('income_statement', [])
             cash_flow = financial_data.get('cash_flow', [])
             main_indicators = financial_data.get('main_indicators')
 
-            # main_indicators 可能是 DataFrame 或 list（to_dict('records') 的结果）
+            #Main indicators may be the result of DataFrame or list (to dicts)
             if main_indicators is None:
-                logger.warning("AKShare主要财务指标为空")
+                logger.warning("AKShare ' s main financial indicators are empty")
                 return None
 
-            # 检查是否为空
+            #Check if empty
             if isinstance(main_indicators, list):
                 if not main_indicators:
-                    logger.warning("AKShare主要财务指标列表为空")
+                    logger.warning("AKShare list of key financial indicators is empty")
                     return None
-                # 列表格式：[{指标: 值, ...}, ...]
-                # 转换为 DataFrame 以便统一处理
+                #List format: [  FMT 0 ,...]
+                #Convert to DataFrame for uniform processing
                 import pandas as pd
                 main_indicators = pd.DataFrame(main_indicators)
             elif hasattr(main_indicators, 'empty') and main_indicators.empty:
-                logger.warning("AKShare主要财务指标DataFrame为空")
+                logger.warning("DataFrame, the main financial indicator for AKShare, is empty.")
                 return None
 
-            # main_indicators是DataFrame，需要转换为字典格式便于查找
-            # 获取最新数据列（第3列，索引为2）
+            #Main indicators is DataFrame, which needs to be converted to dictionary format for easy search
+            #Get the latest data column (column 3, index 2)
             latest_col = main_indicators.columns[2] if len(main_indicators.columns) > 2 else None
             if not latest_col:
-                logger.warning("AKShare主要财务指标缺少数据列")
+                logger.warning("Lack of data columns for AKShare key financial indicators")
                 return None
 
-            logger.info(f"📅 使用AKShare最新数据期间: {latest_col}")
+            logger.info(f"While using the latest data from AKShare:{latest_col}")
 
-            # 创建指标名称到值的映射
+            #Create map of indicator name to value
             indicators_dict = {}
             for _, row in main_indicators.iterrows():
                 indicator_name = row['指标']
                 value = row[latest_col]
                 indicators_dict[indicator_name] = value
 
-            logger.debug(f"AKShare主要财务指标数量: {len(indicators_dict)}")
+            logger.debug(f"Number of key financial indicators for AKshare:{len(indicators_dict)}")
 
-            # 计算财务指标
+            #Calculation of financial indicators
             metrics = {}
 
-            # 🔥 优先尝试使用实时 PE/PB 计算（与 MongoDB 解析保持一致）
+            #🔥 Preferably try to use real-time PE/PB calculations (in line with MongoDB resolution)
             pe_value = None
             pe_ttm_value = None
             pb_value = None
 
             try:
-                # 获取股票代码
+                #Get stock code
                 stock_code = stock_info.get('code', '').replace('.SH', '').replace('.SZ', '').zfill(6)
                 if stock_code:
-                    logger.info(f"📊 [AKShare-PE计算-第1层] 尝试使用实时PE/PB计算: {stock_code}")
+                    logger.info(f"📊 [AKShare-PE Calculates - 1st Floor]{stock_code}")
 
                     from tradingagents.config.database_manager import get_database_manager
                     from tradingagents.dataflows.realtime_metrics import get_pe_pb_with_fallback
@@ -1408,88 +1404,88 @@ class OptimizedChinaDataProvider:
                     if db_manager.is_mongodb_available():
                         client = db_manager.get_mongodb_client()
 
-                        # 获取实时PE/PB
+                        #Access real time PE/PB
                         realtime_metrics = get_pe_pb_with_fallback(stock_code, client)
 
                         if realtime_metrics:
-                            # 获取总市值
+                            #Acquisition of total market value
                             market_cap = realtime_metrics.get('market_cap')
                             if market_cap is not None and market_cap > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["total_mv"] = f"{market_cap:.2f}亿元{realtime_tag}"
-                                logger.info(f"✅ [AKShare-总市值获取成功] 总市值={market_cap:.2f}亿元 | 实时={is_realtime}")
+                                logger.info(f"[AKShare - Total Market Value Successful]{market_cap:.2f}Billion dollars.{is_realtime}")
 
-                            # 使用实时PE
+                            #Use Real Time PE
                             pe_value = realtime_metrics.get('pe')
                             if pe_value is not None and pe_value > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["pe"] = f"{pe_value:.1f}倍{realtime_tag}"
-                                logger.info(f"✅ [AKShare-PE计算-第1层成功] PE={pe_value:.2f}倍 | 来源={realtime_metrics.get('source')} | 实时={is_realtime}")
+                                logger.info(f"[Akshare-PE Calculator - Success Level 1]{pe_value:.2f}Source:{realtime_metrics.get('source')}= Real time={is_realtime}")
 
-                            # 使用实时PE_TTM
+                            #Use real time PE TTM
                             pe_ttm_value = realtime_metrics.get('pe_ttm')
                             if pe_ttm_value is not None and pe_ttm_value > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["pe_ttm"] = f"{pe_ttm_value:.1f}倍{realtime_tag}"
-                                logger.info(f"✅ [AKShare-PE_TTM计算-第1层成功] PE_TTM={pe_ttm_value:.2f}倍")
+                                logger.info(f"PE TTM={pe_ttm_value:.2f}Double")
 
-                            # 使用实时PB
+                            #Use Real Time PB
                             pb_value = realtime_metrics.get('pb')
                             if pb_value is not None and pb_value > 0:
                                 is_realtime = realtime_metrics.get('is_realtime', False)
                                 realtime_tag = " (实时)" if is_realtime else ""
                                 metrics["pb"] = f"{pb_value:.2f}倍{realtime_tag}"
-                                logger.info(f"✅ [AKShare-PB计算-第1层成功] PB={pb_value:.2f}倍")
+                                logger.info(f"[AKshare-PB Calculator-Face 1 Success]{pb_value:.2f}Double")
                         else:
-                            logger.warning(f"⚠️ [AKShare-PE计算-第1层失败] 实时计算返回空结果，将尝试降级计算")
+                            logger.warning(f"⚠️ [AKShare-PE Calculator - Failed 1st Floor] Real-time calculations of returns to empty results will attempt to downgrade")
             except Exception as e:
-                logger.warning(f"⚠️ [AKShare-PE计算-第1层异常] 实时计算失败: {e}，将尝试降级计算")
+                logger.warning(f"The real-time calculation failed:{e}will try to downgrade")
 
-            # 获取ROE - 直接从指标中获取
+            #Get ROE - Get directly from the indicator
             roe_value = indicators_dict.get('净资产收益率(ROE)')
             if roe_value is not None and str(roe_value) != 'nan' and roe_value != '--':
                 try:
                     roe_val = float(roe_value)
-                    # ROE通常是百分比形式
+                    #ROE is usually in percentage form.
                     metrics["roe"] = f"{roe_val:.1f}%"
-                    logger.debug(f"✅ 获取ROE: {metrics['roe']}")
+                    logger.debug(f"Get ROE:{metrics['roe']}")
                 except (ValueError, TypeError):
                     metrics["roe"] = "N/A"
             else:
                 metrics["roe"] = "N/A"
 
-            # 如果实时计算失败，尝试从 stock_info 获取总市值
+            #Try to obtain total market value from stock info if real-time calculations fail
             if "total_mv" not in metrics:
-                logger.info(f"📊 [AKShare-总市值-第2层] 尝试从 stock_info 获取")
+                logger.info(f"Try to get it from stock info")
                 total_mv_static = stock_info.get('total_mv')
                 if total_mv_static is not None and total_mv_static > 0:
                     metrics["total_mv"] = f"{total_mv_static:.2f}亿元"
-                    logger.info(f"✅ [AKShare-总市值-第2层成功] 总市值={total_mv_static:.2f}亿元")
+                    logger.info(f"✅ [AKShare - Total Market Value - 2nd Floor Success]{total_mv_static:.2f}Billions.")
                 else:
                     metrics["total_mv"] = "N/A"
-                    logger.warning(f"⚠️ [AKShare-总市值-全部失败] 无可用总市值数据")
+                    logger.warning(f"⚠️ [AKShare - Total Market Value - All Failed] No data on total market value available")
 
-            # 🔥 如果实时计算失败，降级到传统计算方式
+            #If real-time calculations fail, downgrade to traditional calculations
             if pe_value is None:
-                logger.info(f"📊 [AKShare-PE计算-第2层] 尝试使用股价/EPS计算")
+                logger.info(f"📊 [AKShare-PE Calculates - 2nd Floor]")
 
-                # 计算 PE - 优先使用 TTM 数据
-                # 尝试从 main_indicators DataFrame 计算 TTM EPS
+                #Calculate PE - Prefer TTM data
+                #Try to calculate TTM EPS frommain indicators DataFrame
                 ttm_eps = None
                 try:
-                    # main_indicators 是 DataFrame，包含多期数据
-                    # 尝试计算 TTM EPS
+                    #Main indicators is DataFrame with multiple periods of data
+                    #Try to calculate TTM EPS
                     if '基本每股收益' in main_indicators['指标'].values:
-                        # 提取基本每股收益的所有期数数据
+                        #All period data extracted from basic per share of proceeds
                         eps_row = main_indicators[main_indicators['指标'] == '基本每股收益']
                         if not eps_row.empty:
-                            # 获取所有数值列（排除'指标'列）
+                            #Get all value columns (exclusion 'indicator' columns)
                             value_cols = [col for col in eps_row.columns if col != '指标']
 
-                            # 构建 DataFrame 用于 TTM 计算
+                            #Build DataFrame for TTM calculations
                             import pandas as pd
                             eps_data = []
                             for col in value_cols:
@@ -1499,20 +1495,20 @@ class OptimizedChinaDataProvider:
 
                             if len(eps_data) >= 2:
                                 eps_df = pd.DataFrame(eps_data)
-                                # 使用 TTM 计算函数
+                                #Calculate function using TTM
                                 from scripts.sync_financial_data import _calculate_ttm_metric
                                 ttm_eps = _calculate_ttm_metric(eps_df, '基本每股收益')
                                 if ttm_eps:
-                                    logger.info(f"✅ 计算 TTM EPS: {ttm_eps:.4f} 元")
+                                    logger.info(f"TM EPS:{ttm_eps:.4f}Dollar")
                 except Exception as e:
-                    logger.debug(f"计算 TTM EPS 失败: {e}")
+                    logger.debug(f"Could not close temporary folder: %s{e}")
 
-                # 使用 TTM EPS 或单期 EPS 计算 PE
+                #Calculate PE using TM EPS or single-stage EPS
                 eps_for_pe = ttm_eps if ttm_eps else None
                 pe_type = "TTM" if ttm_eps else "单期"
 
                 if not eps_for_pe:
-                    # 降级到单期 EPS
+                    #Downgrade to single stage EPS
                     eps_value = indicators_dict.get('基本每股收益')
                     if eps_value is not None and str(eps_value) != 'nan' and eps_value != '--':
                         try:
@@ -1523,40 +1519,40 @@ class OptimizedChinaDataProvider:
                 if eps_for_pe and eps_for_pe > 0:
                     pe_val = price_value / eps_for_pe
                     metrics["pe"] = f"{pe_val:.1f}倍"
-                    logger.info(f"✅ [AKShare-PE计算-第2层成功] PE({pe_type}): 股价{price_value} / EPS{eps_for_pe:.4f} = {metrics['pe']}")
+                    logger.info(f"✅ [AKshare-PE Calculates - 2nd Floor Success] PE{pe_type}Share price{price_value} / EPS{eps_for_pe:.4f} = {metrics['pe']}")
                 elif eps_for_pe and eps_for_pe <= 0:
                     metrics["pe"] = "N/A（亏损）"
-                    logger.warning(f"⚠️ [AKShare-PE计算-第2层失败] 亏损股票，EPS={eps_for_pe}")
+                    logger.warning(f"[AKshare-PE Calculator - Failed 2nd Floor]{eps_for_pe}")
                 else:
                     metrics["pe"] = "N/A"
-                    logger.error(f"❌ [AKShare-PE计算-全部失败] 无可用EPS数据")
+                    logger.error(f"No EPS data available")
 
-            # 🔥 如果实时PB计算失败，降级到传统计算方式
+            #If real-time PB calculations fail, downgrade to the traditional mode of calculation
             if pb_value is None:
-                logger.info(f"📊 [AKShare-PB计算-第2层] 尝试使用股价/BPS计算")
+                logger.info(f"📊 [AKshare-PB Calculates - 2nd Floor]")
 
-                # 获取每股净资产 - 用于计算PB
+                #Acquisition of net assets per share - used to calculate PB
                 bps_value = indicators_dict.get('每股净资产_最新股数')
                 if bps_value is not None and str(bps_value) != 'nan' and bps_value != '--':
                     try:
                         bps_val = float(bps_value)
                         if bps_val > 0:
-                            # 计算PB = 股价 / 每股净资产
+                            #Calculate PB = share price / net assets per share
                             pb_val = price_value / bps_val
                             metrics["pb"] = f"{pb_val:.2f}倍"
-                            logger.info(f"✅ [AKShare-PB计算-第2层成功] PB: 股价{price_value} / BPS{bps_val} = {metrics['pb']}")
+                            logger.info(f"PB: Stock price{price_value} / BPS{bps_val} = {metrics['pb']}")
                         else:
                             metrics["pb"] = "N/A"
-                            logger.warning(f"⚠️ [AKShare-PB计算-第2层失败] BPS无效: {bps_val}")
+                            logger.warning(f"BPS is invalid:{bps_val}")
                     except (ValueError, TypeError) as e:
                         metrics["pb"] = "N/A"
-                        logger.error(f"❌ [AKShare-PB计算-第2层异常] {e}")
+                        logger.error(f"[Akshare-PB Calculator - 2nd Level Aberrant]{e}")
                 else:
                     metrics["pb"] = "N/A"
-                    logger.error(f"❌ [AKShare-PB计算-全部失败] 无可用BPS数据")
+                    logger.error(f"No BPS data available")
 
-            # 尝试获取其他指标
-            # 总资产收益率(ROA)
+            #Try to get other indicators
+            #Total asset return (ROA)
             roa_value = indicators_dict.get('总资产报酬率')
             if roa_value is not None and str(roa_value) != 'nan' and roa_value != '--':
                 try:
@@ -1567,7 +1563,7 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["roa"] = "N/A"
 
-            # 毛利率
+            #Māori rate
             gross_margin_value = indicators_dict.get('毛利率')
             if gross_margin_value is not None and str(gross_margin_value) != 'nan' and gross_margin_value != '--':
                 try:
@@ -1578,7 +1574,7 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["gross_margin"] = "N/A"
 
-            # 销售净利率
+            #Net interest rate on sales
             net_margin_value = indicators_dict.get('销售净利率')
             if net_margin_value is not None and str(net_margin_value) != 'nan' and net_margin_value != '--':
                 try:
@@ -1589,7 +1585,7 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["net_margin"] = "N/A"
 
-            # 资产负债率
+            #Assets and liabilities ratio
             debt_ratio_value = indicators_dict.get('资产负债率')
             if debt_ratio_value is not None and str(debt_ratio_value) != 'nan' and debt_ratio_value != '--':
                 try:
@@ -1600,7 +1596,7 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["debt_ratio"] = "N/A"
 
-            # 流动比率
+            #Mobility ratio
             current_ratio_value = indicators_dict.get('流动比率')
             if current_ratio_value is not None and str(current_ratio_value) != 'nan' and current_ratio_value != '--':
                 try:
@@ -1611,7 +1607,7 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["current_ratio"] = "N/A"
 
-            # 速动比率
+            #Speed ratio
             quick_ratio_value = indicators_dict.get('速动比率')
             if quick_ratio_value is not None and str(quick_ratio_value) != 'nan' and quick_ratio_value != '--':
                 try:
@@ -1622,8 +1618,8 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["quick_ratio"] = "N/A"
 
-            # 计算 PS - 市销率（优先使用 TTM 营业收入）
-            # 尝试从 main_indicators DataFrame 计算 TTM 营业收入
+            #Calculate PS - Marketing Rate (Priority TTM Business Income)
+            #Try to calculate TTM operating income from plain indicators DataFrame
             ttm_revenue = None
             try:
                 if '营业收入' in main_indicators['指标'].values:
@@ -1643,16 +1639,16 @@ class OptimizedChinaDataProvider:
                             from scripts.sync_financial_data import _calculate_ttm_metric
                             ttm_revenue = _calculate_ttm_metric(revenue_df, '营业收入')
                             if ttm_revenue:
-                                logger.info(f"✅ 计算 TTM 营业收入: {ttm_revenue:.2f} 万元")
+                                logger.info(f"✅ Calculates TTM operating income:{ttm_revenue:.2f}Ten thousand dollars.")
             except Exception as e:
-                logger.debug(f"计算 TTM 营业收入失败: {e}")
+                logger.debug(f"Could not close temporary folder: %s{e}")
 
-            # 计算 PS
+            #Calculate PS
             revenue_for_ps = ttm_revenue if ttm_revenue else None
             ps_type = "TTM" if ttm_revenue else "单期"
 
             if not revenue_for_ps:
-                # 降级到单期营业收入
+                #Downgrade to single-stage operating income
                 revenue_value = indicators_dict.get('营业收入')
                 if revenue_value is not None and str(revenue_value) != 'nan' and revenue_value != '--':
                     try:
@@ -1661,27 +1657,27 @@ class OptimizedChinaDataProvider:
                         pass
 
             if revenue_for_ps and revenue_for_ps > 0:
-                # 获取总股本计算市值
+                #Market value of gross equity acquisition
                 total_share = stock_info.get('total_share') if stock_info else None
                 if total_share and total_share > 0:
-                    # 市值（万元）= 股价（元）× 总股本（万股）
+                    #Market value (thousands of United States dollars) = gross equity (millions of United States dollars)
                     market_cap = price_value * total_share
                     ps_val = market_cap / revenue_for_ps
                     metrics["ps"] = f"{ps_val:.2f}倍"
-                    logger.info(f"✅ 计算PS({ps_type}): 市值{market_cap:.2f}万元 / 营业收入{revenue_for_ps:.2f}万元 = {metrics['ps']}")
+                    logger.info(f"Compute PS (✅){ps_type}Market value{market_cap:.2f}Ten thousand dollars / operating income{revenue_for_ps:.2f}Ten thousand dollars ={metrics['ps']}")
                 else:
                     metrics["ps"] = "N/A（无总股本数据）"
-                    logger.warning(f"⚠️ 无法计算PS: 缺少总股本数据")
+                    logger.warning(f"Could not calculate PS: Lack of total equity data")
             else:
                 metrics["ps"] = "N/A"
 
-            # 补充其他指标的默认值
+            #Default value to complement other indicators
             metrics.update({
                 "dividend_yield": "待查询",
                 "cash_ratio": "待分析"
             })
 
-            # 评分（基于AKShare数据的简化评分）
+            #Rating (simplified rating based on AKShare data)
             fundamental_score = self._calculate_fundamental_score(metrics, stock_info)
             valuation_score = self._calculate_valuation_score(metrics)
             growth_score = self._calculate_growth_score(metrics, stock_info)
@@ -1695,17 +1691,17 @@ class OptimizedChinaDataProvider:
                 "data_source": "AKShare"
             })
 
-            logger.info(f"✅ AKShare财务数据解析成功: PE={metrics['pe']}, PB={metrics['pb']}, ROE={metrics['roe']}")
+            logger.info(f"AKshare's financial data analysis was successful:{metrics['pe']}, PB={metrics['pb']}, ROE={metrics['roe']}")
             return metrics
 
         except Exception as e:
-            logger.error(f"❌ AKShare财务数据解析失败: {e}")
+            logger.error(f"AKShare's financial data analysis failed:{e}")
             return None
 
     def _parse_financial_data(self, financial_data: dict, stock_info: dict, price_value: float) -> dict:
-        """解析财务数据为指标"""
+        """Parsing financial data as indicators"""
         try:
-            # 获取最新的财务数据
+            #Access to up-to-date financial data
             balance_sheet = financial_data.get('balance_sheet', [])
             income_statement = financial_data.get('income_statement', [])
             cash_flow = financial_data.get('cash_flow', [])
@@ -1717,26 +1713,26 @@ class OptimizedChinaDataProvider:
             latest_income = income_statement[0] if income_statement else {}
             latest_cash = cash_flow[0] if cash_flow else {}
 
-            # 计算财务指标
+            #Calculation of financial indicators
             metrics = {}
 
-            # 基础数据
+            #Basic data
             total_assets = latest_balance.get('total_assets', 0) or 0
             total_liab = latest_balance.get('total_liab', 0) or 0
             total_equity = latest_balance.get('total_hldr_eqy_exc_min_int', 0) or 0
 
-            # 计算 TTM 营业收入和净利润
-            # Tushare income_statement 的数据是累计值（从年初到报告期）
-            # 需要使用 TTM 公式计算
+            #Calculation of TTM operating income and net profits
+            #Tushare income statement data are cumulative values (from the beginning of the year to the reporting period)
+            #Calculate using TTM formulae
             ttm_revenue = None
             ttm_net_income = None
 
             try:
                 if len(income_statement) >= 2:
-                    # 准备数据用于 TTM 计算
+                    #Preparing data for TTM calculations
                     import pandas as pd
 
-                    # 构建营业收入 DataFrame
+                    #Build Business Income DataFrame
                     revenue_data = []
                     for stmt in income_statement:
                         end_date = stmt.get('end_date')
@@ -1749,9 +1745,9 @@ class OptimizedChinaDataProvider:
                         from scripts.sync_financial_data import _calculate_ttm_metric
                         ttm_revenue = _calculate_ttm_metric(revenue_df, '营业收入')
                         if ttm_revenue:
-                            logger.info(f"✅ Tushare 计算 TTM 营业收入: {ttm_revenue:.2f} 万元")
+                            logger.info(f"Tushare calculates TTM operating income:{ttm_revenue:.2f}Ten thousand dollars.")
 
-                    # 构建净利润 DataFrame
+                    #Build net profit DataFrame
                     profit_data = []
                     for stmt in income_statement:
                         end_date = stmt.get('end_date')
@@ -1763,11 +1759,11 @@ class OptimizedChinaDataProvider:
                         profit_df = pd.DataFrame(profit_data)
                         ttm_net_income = _calculate_ttm_metric(profit_df, '净利润')
                         if ttm_net_income:
-                            logger.info(f"✅ Tushare 计算 TTM 净利润: {ttm_net_income:.2f} 万元")
+                            logger.info(f"Tushare calculates TTM net profit:{ttm_net_income:.2f}Ten thousand dollars.")
             except Exception as e:
-                logger.warning(f"⚠️ Tushare TTM 计算失败: {e}")
+                logger.warning(f"Tushare TTM calculation failed:{e}")
 
-            # 降级到单期数据
+            #Downgrade to single-stage data
             total_revenue = ttm_revenue if ttm_revenue else (latest_income.get('total_revenue', 0) or 0)
             net_income = ttm_net_income if ttm_net_income else (latest_income.get('n_income', 0) or 0)
             operate_profit = latest_income.get('operate_profit', 0) or 0
@@ -1775,47 +1771,47 @@ class OptimizedChinaDataProvider:
             revenue_type = "TTM" if ttm_revenue else "单期"
             profit_type = "TTM" if ttm_net_income else "单期"
 
-            # 获取实际总股本计算市值
-            # 优先从 stock_info 获取，如果没有则无法计算准确的估值指标
+            #Market value for actual gross equity
+            #Prefer from stock info, if not accurate valuation indicators cannot be calculated
             total_share = stock_info.get('total_share') if stock_info else None
 
             if total_share and total_share > 0:
-                # 市值（元）= 股价（元）× 总股本（万股）× 10000
+                #Market value (dollars) = share price (dollars) x gross equity (millions) x 10000
                 market_cap = price_value * total_share * 10000
-                market_cap_yi = market_cap / 100000000  # 转换为亿元
+                market_cap_yi = market_cap / 100000000  #Convert to Billion Dollars
                 metrics["total_mv"] = f"{market_cap_yi:.2f}亿元"
-                logger.info(f"✅ [Tushare-总市值计算成功] 总市值={market_cap_yi:.2f}亿元 (股价{price_value}元 × 总股本{total_share}万股)")
+                logger.info(f"[Tushare - total market value calculated successfully]{market_cap_yi:.2f}Billions{price_value}Total equity{total_share}1 000 shares)")
             else:
-                logger.error(f"❌ {stock_info.get('code', 'Unknown')} 无法获取总股本，无法计算准确的估值指标")
+                logger.error(f"❌ {stock_info.get('code', 'Unknown')}Total equity is not available and accurate valuation indicators cannot be calculated")
                 market_cap = None
                 metrics["total_mv"] = "N/A"
 
-            # 计算各项指标（只有在有准确市值时才计算）
+            #Calculated indicators (only when an accurate market value exists)
             if market_cap:
-                # PE比率（优先使用 TTM 净利润）
+                #PE ratio (priority for TTM net profit)
                 if net_income > 0:
-                    pe_ratio = market_cap / (net_income * 10000)  # 转换单位
+                    pe_ratio = market_cap / (net_income * 10000)  #Convert Unit
                     metrics["pe"] = f"{pe_ratio:.1f}倍"
-                    logger.info(f"✅ Tushare 计算PE({profit_type}): 市值{market_cap/100000000:.2f}亿元 / 净利润{net_income:.2f}万元 = {pe_ratio:.1f}倍")
+                    logger.info(f"Tushare Calculating PE{profit_type}Market value{market_cap/100000000:.2f}Billions dollars / net profit{net_income:.2f}Ten thousand dollars ={pe_ratio:.1f}Double")
                 else:
                     metrics["pe"] = "N/A（亏损）"
 
-                # PB比率（净资产使用最新期数据，相对准确）
+                #PB ratio (net assets using latest available data, relative accuracy)
                 if total_equity > 0:
                     pb_ratio = market_cap / (total_equity * 10000)
                     metrics["pb"] = f"{pb_ratio:.2f}倍"
                 else:
                     metrics["pb"] = "N/A"
 
-                # PS比率（优先使用 TTM 营业收入）
+                #PS ratio (priority TTM operating income)
                 if total_revenue > 0:
                     ps_ratio = market_cap / (total_revenue * 10000)
                     metrics["ps"] = f"{ps_ratio:.1f}倍"
-                    logger.info(f"✅ Tushare 计算PS({revenue_type}): 市值{market_cap/100000000:.2f}亿元 / 营业收入{total_revenue:.2f}万元 = {ps_ratio:.1f}倍")
+                    logger.info(f"Tushare Calculating PS(){revenue_type}Market value{market_cap/100000000:.2f}Billion dollars / Business income{total_revenue:.2f}Ten thousand dollars ={ps_ratio:.1f}Double")
                 else:
                     metrics["ps"] = "N/A"
             else:
-                # 无法获取总股本，无法计算估值指标
+                #Total equity not available, valuation indicator not possible
                 metrics["pe"] = "N/A（无总股本数据）"
                 metrics["pb"] = "N/A（无总股本数据）"
                 metrics["ps"] = "N/A（无总股本数据）"
@@ -1834,21 +1830,21 @@ class OptimizedChinaDataProvider:
             else:
                 metrics["roa"] = "N/A"
 
-            # 净利率
+            #Net interest rate
             if total_revenue > 0 and net_income > 0:
                 net_margin = (net_income / total_revenue) * 100
                 metrics["net_margin"] = f"{net_margin:.1f}%"
             else:
                 metrics["net_margin"] = "N/A"
 
-            # 资产负债率
+            #Assets and liabilities ratio
             if total_assets > 0:
                 debt_ratio = (total_liab / total_assets) * 100
                 metrics["debt_ratio"] = f"{debt_ratio:.1f}%"
             else:
                 metrics["debt_ratio"] = "N/A"
 
-            # 其他指标设为默认值
+            #Set other indicators as default values
             metrics.update({
                 "dividend_yield": "待查询",
                 "gross_margin": "待计算",
@@ -1857,7 +1853,7 @@ class OptimizedChinaDataProvider:
                 "cash_ratio": "待分析"
             })
 
-            # 评分（基于真实数据的简化评分）
+            #Rating (simplified rating based on real data)
             fundamental_score = self._calculate_fundamental_score(metrics, stock_info)
             valuation_score = self._calculate_valuation_score(metrics)
             growth_score = self._calculate_growth_score(metrics, stock_info)
@@ -1873,14 +1869,14 @@ class OptimizedChinaDataProvider:
             return metrics
 
         except Exception as e:
-            logger.error(f"解析财务数据失败: {e}")
+            logger.error(f"Can not open message{e}")
             return None
 
     def _calculate_fundamental_score(self, metrics: dict, stock_info: dict) -> float:
-        """计算基本面评分"""
-        score = 5.0  # 基础分
+        """Calculate basic profile score"""
+        score = 5.0  #Base Score
 
-        # ROE评分
+        #ROE Rating
         roe_str = metrics.get("roe", "N/A")
         if roe_str != "N/A":
             try:
@@ -1894,7 +1890,7 @@ class OptimizedChinaDataProvider:
             except:
                 pass
 
-        # 净利率评分
+        #Net rate rating
         net_margin_str = metrics.get("net_margin", "N/A")
         if net_margin_str != "N/A":
             try:
@@ -1909,10 +1905,10 @@ class OptimizedChinaDataProvider:
         return min(score, 10.0)
 
     def _calculate_valuation_score(self, metrics: dict) -> float:
-        """计算估值评分"""
-        score = 5.0  # 基础分
+        """Calculation of valuation ratings"""
+        score = 5.0  #Base Score
 
-        # PE评分
+        #PE rating
         pe_str = metrics.get("pe", "N/A")
         if pe_str != "N/A" and "亏损" not in pe_str:
             try:
@@ -1926,7 +1922,7 @@ class OptimizedChinaDataProvider:
             except:
                 pass
 
-        # PB评分
+        #PB rating
         pb_str = metrics.get("pb", "N/A")
         if pb_str != "N/A":
             try:
@@ -1943,10 +1939,10 @@ class OptimizedChinaDataProvider:
         return min(max(score, 1.0), 10.0)
 
     def _calculate_growth_score(self, metrics: dict, stock_info: dict) -> float:
-        """计算成长性评分"""
-        score = 6.0  # 基础分
+        """Calculate growth scores"""
+        score = 6.0  #Base Score
 
-        # 根据行业调整
+        #Adjustment by industry
         industry = stock_info.get('industry', '')
         if '科技' in industry or '软件' in industry or '互联网' in industry:
             score += 1.0
@@ -1956,8 +1952,8 @@ class OptimizedChinaDataProvider:
         return min(max(score, 1.0), 10.0)
 
     def _calculate_risk_level(self, metrics: dict, stock_info: dict) -> str:
-        """计算风险等级"""
-        # 资产负债率
+        """Calculate risk level"""
+        #Assets and liabilities ratio
         debt_ratio_str = metrics.get("debt_ratio", "N/A")
         if debt_ratio_str != "N/A":
             try:
@@ -1971,7 +1967,7 @@ class OptimizedChinaDataProvider:
             except:
                 pass
 
-        # 根据行业判断
+        #By industry
         industry = stock_info.get('industry', '')
         if '银行' in industry:
             return "中等"
@@ -1983,7 +1979,7 @@ class OptimizedChinaDataProvider:
 
 
     def _analyze_valuation(self, financial_estimates: dict) -> str:
-        """分析估值水平"""
+        """Analysis of valuation levels"""
         valuation_score = financial_estimates['valuation_score']
 
         if valuation_score >= 8:
@@ -1994,7 +1990,7 @@ class OptimizedChinaDataProvider:
             return "当前估值偏高，投资需谨慎。建议等待更好的买入时机。"
 
     def _analyze_growth_potential(self, symbol: str, industry_info: dict) -> str:
-        """分析成长潜力"""
+        """Analysis of growth potential"""
         if symbol.startswith(('000001', '600036')):
             return "银行业整体增长稳定，受益于经济发展和金融深化。数字化转型和财富管理业务是主要增长点。"
         elif symbol.startswith('300'):
@@ -2003,7 +1999,7 @@ class OptimizedChinaDataProvider:
             return "成长潜力需要结合具体行业和公司基本面分析。建议关注行业发展趋势和公司竞争优势。"
 
     def _analyze_risks(self, symbol: str, financial_estimates: dict, industry_info: dict) -> str:
-        """分析投资风险"""
+        """Investment risk analysis"""
         risk_level = financial_estimates['risk_level']
 
         risk_analysis = f"**风险等级**: {risk_level}\n\n"
@@ -2030,7 +2026,7 @@ class OptimizedChinaDataProvider:
         return risk_analysis
 
     def _generate_investment_advice(self, financial_estimates: dict, industry_info: dict) -> str:
-        """生成投资建议"""
+        """Generate investment recommendations"""
         fundamental_score = financial_estimates['fundamental_score']
         valuation_score = financial_estimates['valuation_score']
         growth_score = financial_estimates['growth_score']
@@ -2054,9 +2050,9 @@ class OptimizedChinaDataProvider:
 - 风险承受能力较低的投资者应避免"""
 
     def _try_get_old_cache(self, symbol: str, start_date: str, end_date: str) -> Optional[str]:
-        """尝试获取过期的缓存数据作为备用"""
+        """Try to obtain expired cache data as backup"""
         try:
-            # 查找任何相关的缓存，不考虑TTL
+            #Find any associated caches without TTL
             for metadata_file in self.cache.metadata_dir.glob(f"*_meta.json"):
                 try:
                     import json
@@ -2080,7 +2076,7 @@ class OptimizedChinaDataProvider:
         return None
 
     def _generate_fallback_data(self, symbol: str, start_date: str, end_date: str, error_msg: str) -> str:
-        """生成备用数据"""
+        """Generate backup data"""
         return f"""# {symbol} A股数据获取失败
 
 ## ❌ 错误信息
@@ -2101,7 +2097,7 @@ class OptimizedChinaDataProvider:
 """
 
     def _generate_fallback_fundamentals(self, symbol: str, error_msg: str) -> str:
-        """生成备用基本面数据"""
+        """Generate backup base surface data"""
         return f"""# {symbol} A股基本面分析失败
 
 ## ❌ 错误信息
@@ -2116,11 +2112,11 @@ class OptimizedChinaDataProvider:
 """
 
 
-# 全局实例
+#Global Examples
 _china_data_provider = None
 
 def get_optimized_china_data_provider() -> OptimizedChinaDataProvider:
-    """获取全局A股数据提供器实例"""
+    """Example of access to global unit A data provider"""
     global _china_data_provider
     if _china_data_provider is None:
         _china_data_provider = OptimizedChinaDataProvider()
@@ -2129,56 +2125,54 @@ def get_optimized_china_data_provider() -> OptimizedChinaDataProvider:
 
 def get_china_stock_data_cached(symbol: str, start_date: str, end_date: str,
                                force_refresh: bool = False) -> str:
-    """
-    获取A股数据的便捷函数
+    """An easy function to access A share data
 
-    Args:
-        symbol: 股票代码（6位数字）
-        start_date: 开始日期 (YYYY-MM-DD)
-        end_date: 结束日期 (YYYY-MM-DD)
-        force_refresh: 是否强制刷新缓存
+Args:
+symbol: stock code (6-digit)
+Start date: Start date (YYYYY-MM-DD)
+End date: End Date (YYYYY-MM-DD)
+source refresh: whether to forcibly refresh the cache
 
-    Returns:
-        格式化的股票数据字符串
-    """
+Returns:
+Formatted stock data string
+"""
     provider = get_optimized_china_data_provider()
     return provider.get_stock_data(symbol, start_date, end_date, force_refresh)
 
 
 def get_china_fundamentals_cached(symbol: str, force_refresh: bool = False) -> str:
-    """
-    获取A股基本面数据的便捷函数
+    """An easy function to access fundamental A data
 
-    Args:
-        symbol: 股票代码（6位数字）
-        force_refresh: 是否强制刷新缓存
+Args:
+symbol: stock code (6-digit)
+source refresh: whether to forcibly refresh the cache
 
-    Returns:
-        格式化的基本面数据字符串
-    """
+Returns:
+Formatting Basic Data Strings
+"""
     provider = get_optimized_china_data_provider()
     return provider.get_fundamentals_data(symbol, force_refresh)
 
 
-# 在OptimizedChinaDataProvider类中添加缓存方法
+#Add Cache Method to Optimized ChinaDataProvider Category
 def _add_financial_cache_methods():
-    """为OptimizedChinaDataProvider类添加财务数据缓存方法"""
+    """Add Financial Data Cache Method to Optimize ChinaDataProvider"""
 
     def _get_cached_raw_financial_data(self, symbol: str) -> dict:
-        """从数据库缓存获取原始财务数据"""
+        """Obtain raw financial data from database cache"""
         try:
             from .cache.app_adapter import get_mongodb_client
             client = get_mongodb_client()
             if not client:
-                logger.debug(f"📊 [财务缓存] MongoDB客户端不可用")
+                logger.debug(f"[financial cache] MongoDB client not available")
                 return None
 
             db = client.get_database('tradingagents')
 
-            # 第一优先级：从 stock_financial_data 集合读取（定时任务同步的持久化数据）
+            #First priority: read from stock financial data collection (termination data for scheduled task sync)
             stock_financial_collection = db.stock_financial_data
 
-            # 尝试使用 symbol 或 code 字段查询（兼容不同的同步服务）
+            #Try symbol or code field query (compatible with different sync services)
             financial_doc = stock_financial_collection.find_one({
                 '$or': [
                     {'symbol': symbol},
@@ -2187,27 +2181,27 @@ def _add_financial_cache_methods():
             }, sort=[('updated_at', -1)])
 
             if financial_doc:
-                logger.info(f"✅ [财务数据] 从 stock_financial_data 集合获取{symbol}财务数据")
-                # 将数据库文档转换为财务数据格式
+                logger.info(f"[Financial data]{symbol}Financial data")
+                #Convert database documents into financial data formats
                 financial_data = {}
 
-                # 提取各类财务数据
-                # 第一优先级：检查 raw_data 字段（Tushare 同步服务使用的结构）
+                #Extracting various financial data
+                #First Priority: Check the Raw data field (structure used by the Tushare Sync Service)
                 if 'raw_data' in financial_doc and isinstance(financial_doc['raw_data'], dict):
                     raw_data = financial_doc['raw_data']
-                    # 映射字段名：raw_data 中使用 cashflow_statement，我们需要 cash_flow
+                    #Map field name: Raw data uses Cashflow statement, we need Cash Flow
                     if 'balance_sheet' in raw_data and raw_data['balance_sheet']:
                         financial_data['balance_sheet'] = raw_data['balance_sheet']
                     if 'income_statement' in raw_data and raw_data['income_statement']:
                         financial_data['income_statement'] = raw_data['income_statement']
                     if 'cashflow_statement' in raw_data and raw_data['cashflow_statement']:
-                        financial_data['cash_flow'] = raw_data['cashflow_statement']  # 注意字段名映射
+                        financial_data['cash_flow'] = raw_data['cashflow_statement']  #Note field name map
                     if 'financial_indicators' in raw_data and raw_data['financial_indicators']:
-                        financial_data['main_indicators'] = raw_data['financial_indicators']  # 注意字段名映射
+                        financial_data['main_indicators'] = raw_data['financial_indicators']  #Note field name map
                     if 'main_business' in raw_data and raw_data['main_business']:
                         financial_data['main_business'] = raw_data['main_business']
 
-                # 第二优先级：检查 financial_data 嵌套字段
+                #Priority 2: Check financial data embedded fields
                 elif 'financial_data' in financial_doc and isinstance(financial_doc['financial_data'], dict):
                     nested_data = financial_doc['financial_data']
                     if 'balance_sheet' in nested_data:
@@ -2219,7 +2213,7 @@ def _add_financial_cache_methods():
                     if 'main_indicators' in nested_data:
                         financial_data['main_indicators'] = nested_data['main_indicators']
 
-                # 第三优先级：直接从文档根级别读取
+                #Priority 3: Read directly from the root level of the document
                 else:
                     if 'balance_sheet' in financial_doc and financial_doc['balance_sheet']:
                         financial_data['balance_sheet'] = financial_doc['balance_sheet']
@@ -2231,43 +2225,43 @@ def _add_financial_cache_methods():
                         financial_data['main_indicators'] = financial_doc['main_indicators']
 
                 if financial_data:
-                    logger.info(f"📊 [财务数据] 成功提取{symbol}的财务数据，包含字段: {list(financial_data.keys())}")
+                    logger.info(f"📊 [Financial data] Successful extraction{symbol}, containing fields:{list(financial_data.keys())}")
                     return financial_data
                 else:
-                    logger.warning(f"⚠️ [财务数据] {symbol}的 stock_financial_data 记录存在但无有效财务数据字段")
+                    logger.warning(f"[Financial data]{symbol}Stock financial data records exist but no valid financial data fields")
             else:
-                logger.debug(f"📊 [财务数据] stock_financial_data 集合中未找到{symbol}的记录")
+                logger.debug(f"[Financial data] Stock financial data collection not found{symbol}Records")
 
-            # 第二优先级：从 financial_data_cache 集合读取（临时缓存）
+            #Second Priority: Read from Financial data cache (temporary cache)
             collection = db.financial_data_cache
 
-            # 查找缓存的原始财务数据
+            #Search for cached raw financial data
             cache_doc = collection.find_one({
                 'symbol': symbol,
                 'cache_type': 'raw_financial_data'
             }, sort=[('updated_at', -1)])
 
             if cache_doc:
-                # 检查缓存是否过期（24小时）
+                #Check if the cache is expired (24 hours)
                 from datetime import datetime, timedelta
                 cache_time = cache_doc.get('updated_at')
                 if cache_time and datetime.now() - cache_time < timedelta(hours=24):
                     financial_data = cache_doc.get('financial_data', {})
                     if financial_data:
-                        logger.info(f"✅ [财务缓存] 从 financial_data_cache 获取{symbol}原始财务数据")
+                        logger.info(f"[Financial cache]{symbol}Original financial data")
                         return financial_data
                 else:
-                    logger.debug(f"📊 [财务缓存] {symbol}原始财务数据缓存已过期")
+                    logger.debug(f"[financial cache]{symbol}Original financial data cache expired")
             else:
-                logger.debug(f"📊 [财务缓存] 未找到{symbol}原始财务数据缓存")
+                logger.debug(f"[financial cache] Not found{symbol}Original financial data cache")
 
         except Exception as e:
-            logger.debug(f"📊 [财务缓存] 获取{symbol}原始财务数据缓存失败: {e}")
+            logger.debug(f"[financial cache]{symbol}Original financial data cache failed:{e}")
 
         return None
 
     def _get_cached_stock_info(self, symbol: str) -> dict:
-        """从数据库缓存获取股票基本信息"""
+        """Get basic stock information from the database cache"""
         try:
             from .cache.app_adapter import get_mongodb_client
             client = get_mongodb_client()
@@ -2277,7 +2271,7 @@ def _add_financial_cache_methods():
             db = client.get_database('tradingagents')
             collection = db.stock_basic_info
 
-            # 查找股票基本信息
+            #Search for Basic Stock Information
             doc = collection.find_one({'code': symbol})
             if doc:
                 return {
@@ -2288,40 +2282,40 @@ def _add_financial_cache_methods():
                     'source': 'database_cache'
                 }
         except Exception as e:
-            logger.debug(f"📊 获取{symbol}股票基本信息缓存失败: {e}")
+            logger.debug(f"Access{symbol}Basic information cache failed:{e}")
 
         return {}
 
     def _restore_financial_data_format(self, cached_data: dict) -> dict:
-        """将缓存的财务数据恢复为DataFrame格式"""
+        """Restore cached financial data to DataFrame format"""
         try:
             import pandas as pd
             restored_data = {}
 
             for key, value in cached_data.items():
-                if isinstance(value, list) and value:  # 如果是list格式的数据
-                    # 转换回DataFrame
+                if isinstance(value, list) and value:  #If it's in list format,
+                    #Convert back to DataFrame
                     restored_data[key] = pd.DataFrame(value)
                 else:
                     restored_data[key] = value
 
             return restored_data
         except Exception as e:
-            logger.debug(f"📊 恢复财务数据格式失败: {e}")
+            logger.debug(f"The restoration of the financial data format failed:{e}")
             return cached_data
 
     def _cache_raw_financial_data(self, symbol: str, financial_data: dict, stock_info: dict):
-        """将原始财务数据缓存到数据库"""
+        """Cache raw financial data to database"""
         try:
             from tradingagents.config.runtime_settings import use_app_cache_enabled
             if not use_app_cache_enabled(False):
-                logger.debug(f"📊 [财务缓存] 应用缓存未启用，跳过缓存保存")
+                logger.debug(f"📊 [Financial Cache] Apply cache not enabled, skip cache save")
                 return
 
             from .cache.app_adapter import get_mongodb_client
             client = get_mongodb_client()
             if not client:
-                logger.debug(f"📊 [财务缓存] MongoDB客户端不可用")
+                logger.debug(f"[financial cache] MongoDB client not available")
                 return
 
             db = client.get_database('tradingagents')
@@ -2329,7 +2323,7 @@ def _add_financial_cache_methods():
 
             from datetime import datetime
 
-            # 将DataFrame转换为可序列化的格式
+            #Convert DataFrame into a sequenced format
             serializable_data = {}
             for key, value in financial_data.items():
                 if hasattr(value, 'to_dict'):  # pandas DataFrame
@@ -2345,23 +2339,23 @@ def _add_financial_cache_methods():
                 'updated_at': datetime.now()
             }
 
-            # 使用upsert更新或插入
+            #Update or insert withupsert
             collection.replace_one(
                 {'symbol': symbol, 'cache_type': 'raw_financial_data'},
                 cache_doc,
                 upsert=True
             )
 
-            logger.info(f"✅ [财务缓存] {symbol}原始财务数据已缓存到数据库")
+            logger.info(f"[financial cache]{symbol}Original financial data cached to data Library")
 
         except Exception as e:
-            logger.debug(f"📊 [财务缓存] 缓存{symbol}原始财务数据失败: {e}")
+            logger.debug(f"[financial cache]{symbol}Original financial data failed:{e}")
 
-    # 将方法添加到类中
+    #Add method to class
     OptimizedChinaDataProvider._get_cached_raw_financial_data = _get_cached_raw_financial_data
     OptimizedChinaDataProvider._get_cached_stock_info = _get_cached_stock_info
     OptimizedChinaDataProvider._restore_financial_data_format = _restore_financial_data_format
     OptimizedChinaDataProvider._cache_raw_financial_data = _cache_raw_financial_data
 
-# 执行方法添加
+#Other Organiser
 _add_financial_cache_methods()

@@ -76,7 +76,7 @@ function Test-NetworkConnection {
     $testUrls = @(
         "https://pypi.org",
         "https://api.deepseek.com",
-        "https://dashscope.aliyun.com"
+        "https://dashscope-int.aliyun.com"
     )
     
     $connected = $false
@@ -206,7 +206,7 @@ function Select-LLMProvider {
     
     switch ($choice) {
         "1" { return @{Provider="DeepSeek"; Key="DEEPSEEK_API_KEY"; Url="https://platform.deepseek.com/"} }
-        "2" { return @{Provider="通义千问"; Key="DASHSCOPE_API_KEY"; Url="https://dashscope.aliyun.com/"} }
+        "2" { return @{Provider="通义千问"; Key="DASHSCOPE_API_KEY"; Url="https://dashscope-int.aliyun.com/"} }
         "3" { return @{Provider="Google Gemini"; Key="GOOGLE_API_KEY"; Url="https://aistudio.google.com/"} }
         "4" { return @{Provider="OpenAI"; Key="OPENAI_API_KEY"; Url="https://platform.openai.com/"} }
         "5" { return $null }

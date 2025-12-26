@@ -40,7 +40,7 @@ def main():
         logger.info(f"  或创建 .env 文件")
         print()
         logger.info(f"🔗 获取API密钥:")
-        logger.info(f"  1. 访问 https://dashscope.aliyun.com/")
+        logger.info(f"  1. 访问 https://dashscope-int.aliyun.com/")
         logger.info(f"  2. 注册/登录阿里云账号")
         logger.info(f"  3. 开通百炼服务")
         logger.info(f"  4. 在控制台获取API密钥")

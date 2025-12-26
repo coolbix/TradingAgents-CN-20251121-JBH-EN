@@ -1,6 +1,5 @@
-"""
-Tushare数据初始化服务
-用于首次部署时的完整数据初始化，包括基础数据、历史数据、财务数据等
+"""Tushare Data Initialisation Service
+Initialization of complete data for initial deployment, including basic, historical, financial, etc.
 """
 import asyncio
 import logging
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class InitializationStats:
-    """初始化统计信息"""
+    """Initialize statistical information"""
     started_at: datetime
     finished_at: Optional[datetime] = None
     total_steps: int = 0
@@ -37,17 +36,16 @@ class InitializationStats:
 
 
 class TushareInitService:
-    """
-    Tushare数据初始化服务
-    
-    负责首次部署时的完整数据初始化：
-    1. 检查数据库状态
-    2. 初始化股票基础信息
-    3. 同步历史数据（可配置时间范围）
-    4. 同步财务数据
-    5. 同步最新行情数据
-    6. 验证数据完整性
-    """
+    """Tushare Data Initialisation Service
+
+Responsible for initialization of complete data at first deployment:
+1. Check database status
+2. Initialization of stock base information
+Synchronization of historical data (configurable time frames)
+4. Synchronization of financial data
+5. Synchronization of up-to-date behaviour data
+Validation of data integrity
+"""
     
     def __init__(self):
         self.db = None
@@ -55,10 +53,10 @@ class TushareInitService:
         self.stats = None
     
     async def initialize(self):
-        """初始化服务"""
+        """Initialization services"""
         self.db = get_mongo_db()
         self.sync_service = await get_tushare_sync_service()
-        logger.info("✅ Tushare初始化服务准备完成")
+        logger.info("Tushare is ready for initialization.")
     
     async def run_full_initialization(
         self,
@@ -68,37 +66,36 @@ class TushareInitService:
         enable_multi_period: bool = False,
         sync_items: List[str] = None
     ) -> Dict[str, Any]:
-        """
-        运行完整的数据初始化
+        """Run full data initialization
 
-        Args:
-            historical_days: 历史数据天数（默认1年）
-            skip_if_exists: 如果数据已存在是否跳过
-            batch_size: 批处理大小
-            enable_multi_period: 是否启用多周期数据同步（日线、周线、月线）
-            sync_items: 要同步的数据类型列表，可选值：
-                - 'basic_info': 股票基础信息
-                - 'historical': 历史行情数据（日线）
-                - 'weekly': 周线数据
-                - 'monthly': 月线数据
-                - 'financial': 财务数据
-                - 'quotes': 最新行情
-                - 'news': 新闻数据
-                - None: 同步所有数据（默认）
+Args:
+History days: days of historical data (default 1 year)
+sskip if exists: Skipped if data already exists
+Watch size: Batch size
+enabled multi-cycle data sync (daily, weekly, moon)
+sync items: list of data types to synchronize, optional values:
+- 'basic info': basic stock information
+- 'historic': historical patterns (daily)
+- 'Weekly': weekline data
+- 'Monthly': Moonline data.
+- 'financial': financial data
+- 'Quotes':
+- 'news': news data
+- None: Sync all data (default)
 
-        Returns:
-            初始化结果统计
-        """
-        # 如果未指定sync_items，则同步所有数据
+Returns:
+Initialization Results Statistics
+"""
+        #Sync all data if sync items are not specified
         if sync_items is None:
             sync_items = ['basic_info', 'historical', 'financial', 'quotes']
             if enable_multi_period:
                 sync_items.extend(['weekly', 'monthly'])
 
-        logger.info(f"🚀 开始Tushare数据初始化...")
-        logger.info(f"📋 同步项目: {', '.join(sync_items)}")
+        logger.info(f"Start initializing Tushare data...")
+        logger.info(f"Synchronising items:{', '.join(sync_items)}")
 
-        # 计算总步骤数（检查状态 + 同步项目数 + 验证）
+        #Calculate the total number of steps (check status + number of synchronized items + validation)
         total_steps = 1 + len(sync_items) + 1
 
         self.stats = InitializationStats(
@@ -107,63 +104,63 @@ class TushareInitService:
         )
 
         try:
-            # 步骤1: 检查数据库状态
+            #Step 1: Check database status
             await self._step_check_database_status(skip_if_exists)
 
-            # 步骤2: 初始化股票基础信息
+            #Step 2: Initialization of stock base information
             if 'basic_info' in sync_items:
                 await self._step_initialize_basic_info()
             else:
-                logger.info("⏭️ 跳过股票基础信息同步")
+                logger.info("Skipping stock base information sync")
 
-            # 步骤3: 同步历史数据（日线）
+            #Step 3: Synchronize historical data (daily)
             if 'historical' in sync_items:
                 await self._step_initialize_historical_data(historical_days)
             else:
-                logger.info("⏭️ 跳过历史数据（日线）同步")
+                logger.info("Skipped History Data Synchronization")
 
-            # 步骤4: 同步周线数据
+            #Step 4: Synchronize weekly data
             if 'weekly' in sync_items:
                 await self._step_initialize_weekly_data(historical_days)
             else:
-                logger.info("⏭️ 跳过周线数据同步")
+                logger.info("Skipping weekline data sync")
 
-            # 步骤5: 同步月线数据
+            #Step 5: Synchronize Moonline data
             if 'monthly' in sync_items:
                 await self._step_initialize_monthly_data(historical_days)
             else:
-                logger.info("⏭️ 跳过月线数据同步")
+                logger.info("Skip the Moonline Data Sync")
 
-            # 步骤6: 同步财务数据
+            #Step 6: Synchronization of financial data
             if 'financial' in sync_items:
                 await self._step_initialize_financial_data()
             else:
-                logger.info("⏭️ 跳过财务数据同步")
+                logger.info("SkipSync of Financial Data")
 
-            # 步骤7: 同步最新行情
+            #Step 7: Synchronize the latest developments
             if 'quotes' in sync_items:
                 await self._step_initialize_quotes()
             else:
-                logger.info("⏭️ 跳过最新行情同步")
+                logger.info("Skip the latest line sync")
 
-            # 步骤8: 同步新闻数据
+            #Step 8: Synchronize news data
             if 'news' in sync_items:
                 await self._step_initialize_news_data(historical_days)
             else:
-                logger.info("⏭️ 跳过新闻数据同步")
+                logger.info("Skip NewsSync")
 
-            # 最后: 验证数据完整性
+            #Final: Validation of data integrity
             await self._step_verify_data_integrity()
             
             self.stats.finished_at = datetime.utcnow()
             duration = (self.stats.finished_at - self.stats.started_at).total_seconds()
             
-            logger.info(f"🎉 Tushare数据初始化完成！耗时: {duration:.2f}秒")
+            logger.info(f"Initialization of Tushare data is complete!{duration:.2f}sec")
             
             return self._get_initialization_summary()
             
         except Exception as e:
-            logger.error(f"❌ Tushare数据初始化失败: {e}")
+            logger.error(f"The initialization of Tushare data failed:{e}")
             self.stats.errors.append({
                 "step": self.stats.current_step,
                 "error": str(e),
@@ -172,146 +169,146 @@ class TushareInitService:
             return self._get_initialization_summary()
     
     async def _step_check_database_status(self, skip_if_exists: bool):
-        """步骤1: 检查数据库状态"""
+        """Step 1: Check database status"""
         self.stats.current_step = "检查数据库状态"
         logger.info(f"📊 {self.stats.current_step}...")
         
-        # 检查各集合的数据量
+        #Check the amount of data collected
         basic_count = await self.db.stock_basic_info.count_documents({})
         quotes_count = await self.db.market_quotes.count_documents({})
         
-        logger.info(f"  当前数据状态:")
-        logger.info(f"    股票基础信息: {basic_count}条")
-        logger.info(f"    行情数据: {quotes_count}条")
+        logger.info(f"Current data status:")
+        logger.info(f"Basic equity information:{basic_count}Article")
+        logger.info(f"Line data:{quotes_count}Article")
         
         if skip_if_exists and basic_count > 0:
-            logger.info("⚠️ 检测到已有数据，跳过初始化（可通过skip_if_exists=False强制初始化）")
+            logger.info("⚠️ detected data available, skipping initialization (which can be mandatory by sskip if exists=False)")
             raise Exception("数据已存在，跳过初始化")
         
         self.stats.completed_steps += 1
-        logger.info(f"✅ {self.stats.current_step}完成")
+        logger.info(f"✅ {self.stats.current_step}Completed")
     
     async def _step_initialize_basic_info(self):
-        """步骤2: 初始化股票基础信息"""
+        """Step 2: Initialization of stock base information"""
         self.stats.current_step = "初始化股票基础信息"
         logger.info(f"📋 {self.stats.current_step}...")
         
-        # 强制更新所有基础信息
+        #Force update of all basic information
         result = await self.sync_service.sync_stock_basic_info(force_update=True)
         
         if result:
             self.stats.basic_info_count = result.get("success_count", 0)
-            logger.info(f"✅ 基础信息初始化完成: {self.stats.basic_info_count}只股票")
+            logger.info(f"Initialization of basic information completed:{self.stats.basic_info_count}Only stocks")
         else:
             raise Exception("基础信息初始化失败")
         
         self.stats.completed_steps += 1
     
     async def _step_initialize_historical_data(self, historical_days: int):
-        """步骤3: 同步历史数据"""
+        """Step 3: Synchronize historical data"""
         self.stats.current_step = f"同步历史数据({historical_days}天)"
         logger.info(f"📊 {self.stats.current_step}...")
 
-        # 计算日期范围
+        #Calculate Date Range
         end_date = datetime.now().strftime('%Y-%m-%d')
 
-        # 如果 historical_days 大于等于10年（3650天），则同步全历史
+        #Synchronize history if history days are greater than or equal to 10 years (3650 days)
         if historical_days >= 3650:
-            start_date = "1990-01-01"  # 全历史同步
-            logger.info(f"  历史数据范围: 全历史（从1990-01-01到{end_date}）")
+            start_date = "1990-01-01"  #All History Sync
+            logger.info(f"Historical data range: history (from 1990-01-01 to{end_date}）")
         else:
             start_date = (datetime.now() - timedelta(days=historical_days)).strftime('%Y-%m-%d')
-            logger.info(f"  历史数据范围: {start_date} 到 {end_date}")
+            logger.info(f"Historical data range:{start_date}Present.{end_date}")
 
-        # 同步历史数据
+        #Sync Historical Data
         result = await self.sync_service.sync_historical_data(
             start_date=start_date,
             end_date=end_date,
-            incremental=False  # 全量同步
+            incremental=False  #Full Sync
         )
         
         if result:
             self.stats.historical_records = result.get("total_records", 0)
-            logger.info(f"✅ 历史数据初始化完成: {self.stats.historical_records}条记录")
+            logger.info(f"Initialization of historical data is complete:{self.stats.historical_records}Notes")
         else:
-            logger.warning("⚠️ 历史数据初始化部分失败，继续后续步骤")
+            logger.warning("⚠️ Part of the initialization of historical data failed, continuing next steps")
         
         self.stats.completed_steps += 1
 
     async def _step_initialize_weekly_data(self, historical_days: int):
-        """步骤4a: 同步周线数据"""
+        """Step 4a: Synchronize weekline data"""
         self.stats.current_step = f"同步周线数据({historical_days}天)"
         logger.info(f"📊 {self.stats.current_step}...")
 
-        # 计算日期范围
+        #Calculate Date Range
         end_date = datetime.now().strftime('%Y-%m-%d')
 
-        # 如果 historical_days 大于等于10年（3650天），则同步全历史
+        #Synchronize history if history days are greater than or equal to 10 years (3650 days)
         if historical_days >= 3650:
-            start_date = "1990-01-01"  # 全历史同步
-            logger.info(f"  周线数据范围: 全历史（从1990-01-01到{end_date}）")
+            start_date = "1990-01-01"  #All History Sync
+            logger.info(f"Weekline data range: full history (from 1990-01-01 to{end_date}）")
         else:
             start_date = (datetime.now() - timedelta(days=historical_days)).strftime('%Y-%m-%d')
-            logger.info(f"  周线数据范围: {start_date} 到 {end_date}")
+            logger.info(f"Weekline data range:{start_date}Present.{end_date}")
 
         try:
-            # 同步周线数据
+            #Sync weekly data
             result = await self.sync_service.sync_historical_data(
                 start_date=start_date,
                 end_date=end_date,
                 incremental=False,
-                period="weekly"  # 指定周线
+                period="weekly"  #Specify a weekline
             )
 
             if result:
                 weekly_records = result.get("total_records", 0)
                 self.stats.weekly_records = weekly_records
-                logger.info(f"✅ 周线数据初始化完成: {weekly_records}条记录")
+                logger.info(f"Initialization of weekly data is complete:{weekly_records}Notes")
             else:
-                logger.warning("⚠️ 周线数据初始化部分失败，继续后续步骤")
+                logger.warning("⚠️ Weekline data initialization partially failed, continuing next steps")
         except Exception as e:
-            logger.warning(f"⚠️ 周线数据初始化失败: {e}（继续后续步骤）")
+            logger.warning(f"The weekline data initialization failed:{e}(Continuing next steps)")
 
         self.stats.completed_steps += 1
 
     async def _step_initialize_monthly_data(self, historical_days: int):
-        """步骤4b: 同步月线数据"""
+        """Step 4b: Sync Moonline data"""
         self.stats.current_step = f"同步月线数据({historical_days}天)"
         logger.info(f"📊 {self.stats.current_step}...")
 
-        # 计算日期范围
+        #Calculate Date Range
         end_date = datetime.now().strftime('%Y-%m-%d')
 
-        # 如果 historical_days 大于等于10年（3650天），则同步全历史
+        #Synchronize history if history days are greater than or equal to 10 years (3650 days)
         if historical_days >= 3650:
-            start_date = "1990-01-01"  # 全历史同步
-            logger.info(f"  月线数据范围: 全历史（从1990-01-01到{end_date}）")
+            start_date = "1990-01-01"  #All History Sync
+            logger.info(f"Monthly data range: full history (from 1990-01-01 to{end_date}）")
         else:
             start_date = (datetime.now() - timedelta(days=historical_days)).strftime('%Y-%m-%d')
-            logger.info(f"  月线数据范围: {start_date} 到 {end_date}")
+            logger.info(f"Month data range:{start_date}Present.{end_date}")
 
         try:
-            # 同步月线数据
+            #Sync Moonline Data
             result = await self.sync_service.sync_historical_data(
                 start_date=start_date,
                 end_date=end_date,
                 incremental=False,
-                period="monthly"  # 指定月线
+                period="monthly"  #Specify moonline
             )
 
             if result:
                 monthly_records = result.get("total_records", 0)
                 self.stats.monthly_records = monthly_records
-                logger.info(f"✅ 月线数据初始化完成: {monthly_records}条记录")
+                logger.info(f"Initialization of moonline data is complete:{monthly_records}Notes")
             else:
-                logger.warning("⚠️ 月线数据初始化部分失败，继续后续步骤")
+                logger.warning("⚠️ The initialization of the moon line data has failed and next steps continue")
         except Exception as e:
-            logger.warning(f"⚠️ 月线数据初始化失败: {e}（继续后续步骤）")
+            logger.warning(f"The initialization of the monthly data failed:{e}(Continuing next steps)")
 
         self.stats.completed_steps += 1
 
     async def _step_initialize_financial_data(self):
-        """步骤4: 同步财务数据"""
+        """Step 4: Synchronization of financial data"""
         self.stats.current_step = "同步财务数据"
         logger.info(f"💰 {self.stats.current_step}...")
         
@@ -320,16 +317,16 @@ class TushareInitService:
             
             if result:
                 self.stats.financial_records = result.get("success_count", 0)
-                logger.info(f"✅ 财务数据初始化完成: {self.stats.financial_records}条记录")
+                logger.info(f"Initialization of financial data completed:{self.stats.financial_records}Notes")
             else:
-                logger.warning("⚠️ 财务数据初始化失败（可能需要更高权限）")
+                logger.warning("⚠️ Failed to initialize financial data (may require higher privileges)")
         except Exception as e:
-            logger.warning(f"⚠️ 财务数据初始化失败: {e}（继续后续步骤）")
+            logger.warning(f"The initialization of financial data failed:{e}(Continuing next steps)")
         
         self.stats.completed_steps += 1
     
     async def _step_initialize_quotes(self):
-        """步骤5: 同步最新行情"""
+        """Step 5: Synchronize the latest developments"""
         self.stats.current_step = "同步最新行情"
         logger.info(f"📈 {self.stats.current_step}...")
 
@@ -338,22 +335,22 @@ class TushareInitService:
 
             if result:
                 self.stats.quotes_count = result.get("success_count", 0)
-                logger.info(f"✅ 最新行情初始化完成: {self.stats.quotes_count}只股票")
+                logger.info(f"✅ Initialization completed:{self.stats.quotes_count}Only stocks")
             else:
-                logger.warning("⚠️ 最新行情初始化失败")
+                logger.warning("Initialization of the latest movement failed")
         except Exception as e:
-            logger.warning(f"⚠️ 最新行情初始化失败: {e}（继续后续步骤）")
+            logger.warning(f"The initialization of the latest event failed:{e}(Continuing next steps)")
 
         self.stats.completed_steps += 1
 
     async def _step_initialize_news_data(self, historical_days: int):
-        """步骤6: 同步新闻数据"""
+        """Step 6: Synchronize news data"""
         self.stats.current_step = "同步新闻数据"
         logger.info(f"📰 {self.stats.current_step}...")
 
         try:
-            # 计算回溯小时数
-            hours_back = min(historical_days * 24, 24 * 7)  # 最多回溯7天新闻
+            #Calculate backtrace hours
+            hours_back = min(historical_days * 24, 24 * 7)  #Seven days at most.
 
             result = await self.sync_service.sync_news_data(
                 hours_back=hours_back,
@@ -362,45 +359,45 @@ class TushareInitService:
 
             if result:
                 self.stats.news_count = result.get("news_count", 0)
-                logger.info(f"✅ 新闻数据初始化完成: {self.stats.news_count}条新闻")
+                logger.info(f"Initialization of news data completed:{self.stats.news_count}News")
             else:
-                logger.warning("⚠️ 新闻数据初始化失败（可能需要Tushare新闻权限）")
+                logger.warning("The initialization of news data failed.")
         except Exception as e:
-            logger.warning(f"⚠️ 新闻数据初始化失败: {e}（继续后续步骤）")
+            logger.warning(f"The initialization of news data failed:{e}(Continuing next steps)")
 
         self.stats.completed_steps += 1
 
     async def _step_verify_data_integrity(self):
-        """步骤6: 验证数据完整性"""
+        """Step 6: Validate data integrity"""
         self.stats.current_step = "验证数据完整性"
         logger.info(f"🔍 {self.stats.current_step}...")
         
-        # 检查最终数据状态
+        #Check final data status
         basic_count = await self.db.stock_basic_info.count_documents({})
         quotes_count = await self.db.market_quotes.count_documents({})
         
-        # 检查数据质量
+        #Check data quality
         extended_count = await self.db.stock_basic_info.count_documents({
             "full_symbol": {"$exists": True},
             "market_info": {"$exists": True}
         })
         
-        logger.info(f"  数据完整性验证:")
-        logger.info(f"    股票基础信息: {basic_count}条")
-        logger.info(f"    扩展字段覆盖: {extended_count}条 ({extended_count/basic_count*100:.1f}%)")
-        logger.info(f"    行情数据: {quotes_count}条")
+        logger.info(f"Data integrity validation:")
+        logger.info(f"Basic equity information:{basic_count}Article")
+        logger.info(f"Expand field overwrite:{extended_count}Article (){extended_count/basic_count*100:.1f}%)")
+        logger.info(f"Line data:{quotes_count}Article")
         
         if basic_count == 0:
             raise Exception("数据初始化失败：无基础数据")
         
-        if extended_count / basic_count < 0.9:  # 90%以上应该有扩展字段
-            logger.warning("⚠️ 扩展字段覆盖率较低，可能存在数据质量问题")
+        if extended_count / basic_count < 0.9:  #More than 90% should have extended fields
+            logger.warning("Low coverage of extension fields and possible data quality problems")
         
         self.stats.completed_steps += 1
-        logger.info(f"✅ {self.stats.current_step}完成")
+        logger.info(f"✅ {self.stats.current_step}Completed")
     
     def _get_initialization_summary(self) -> Dict[str, Any]:
-        """获取初始化总结"""
+        """Get Initialization Summary"""
         duration = 0
         if self.stats.finished_at:
             duration = (self.stats.finished_at - self.stats.started_at).total_seconds()
@@ -416,9 +413,9 @@ class TushareInitService:
             "data_summary": {
                 "basic_info_count": self.stats.basic_info_count,
                 "historical_records": self.stats.historical_records,
-                "daily_records": self.stats.historical_records,  # 日线数据
-                "weekly_records": self.stats.weekly_records,     # 周线数据
-                "monthly_records": self.stats.monthly_records,   # 月线数据
+                "daily_records": self.stats.historical_records,  #Dayline Data
+                "weekly_records": self.stats.weekly_records,     #Weekline Data
+                "monthly_records": self.stats.monthly_records,   #Moonline Data
                 "financial_records": self.stats.financial_records,
                 "quotes_count": self.stats.quotes_count,
                 "news_count": self.stats.news_count
@@ -428,11 +425,11 @@ class TushareInitService:
         }
 
 
-# 全局初始化服务实例
+#Examples of global initialization services
 _tushare_init_service = None
 
 async def get_tushare_init_service() -> TushareInitService:
-    """获取Tushare初始化服务实例"""
+    """Example of accessing a Tushare initialization service"""
     global _tushare_init_service
     if _tushare_init_service is None:
         _tushare_init_service = TushareInitService()
@@ -440,20 +437,20 @@ async def get_tushare_init_service() -> TushareInitService:
     return _tushare_init_service
 
 
-# APScheduler兼容的初始化任务函数
+#Initialise task function for APSscheduler compatibility
 async def run_tushare_full_initialization(
     historical_days: int = 365,
     skip_if_exists: bool = True
 ):
-    """APScheduler任务：运行完整的Tushare数据初始化"""
+    """APScheduler mission: Initialization of fully run Tushare data"""
     try:
         service = await get_tushare_init_service()
         result = await service.run_full_initialization(
             historical_days=historical_days,
             skip_if_exists=skip_if_exists
         )
-        logger.info(f"✅ Tushare完整初始化完成: {result}")
+        logger.info(f"Tushare complete initialization:{result}")
         return result
     except Exception as e:
-        logger.error(f"❌ Tushare完整初始化失败: {e}")
+        logger.error(f"Tushare's complete initialization failed:{e}")
         raise

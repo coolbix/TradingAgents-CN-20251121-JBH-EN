@@ -6,7 +6,7 @@ import os
 from tradingagents.config.config_manager import config_manager
 
 def get_config():
-    """兼容性包装函数"""
+    """Compatible Packaging Functions"""
     return config_manager.load_settings()
 
 

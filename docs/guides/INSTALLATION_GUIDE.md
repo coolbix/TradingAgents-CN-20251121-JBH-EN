@@ -429,7 +429,7 @@ MAX_RETRIES=3  # 最大重试次数
 **费用**: 约 ¥1/万tokens，新用户送免费额度
 
 #### 2. 通义千问 (国产，稳定)
-1. 访问 [阿里云DashScope](https://dashscope.aliyun.com/)
+1. 访问 [阿里云DashScope](https://dashscope-int.aliyun.com/)
 2. 登录阿里云账号
 3. 开通DashScope服务
 4. 获取API-KEY

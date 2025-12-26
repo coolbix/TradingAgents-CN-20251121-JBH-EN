@@ -7,63 +7,63 @@ import pandas as pd
 
 
 class DataSourceAdapter(ABC):
-    """数据源适配器基类"""
+    """Data Source Adapter Base Category"""
 
     def __init__(self):
-        self._priority: Optional[int] = None  # 动态优先级，从数据库加载
+        self._priority: Optional[int] = None  #Dynamic priority, load from database
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """数据源名称"""
+        """Data Source Name"""
         raise NotImplementedError
 
     @property
     def priority(self) -> int:
-        """数据源优先级（数字越小优先级越高）"""
-        # 如果有动态设置的优先级，使用动态优先级；否则使用默认优先级
+        """Data source priorities (higher the smaller the number)"""
+        #Use dynamic priority if there is a dynamic priority; otherwise use default priority
         if self._priority is not None:
             return self._priority
         return self._get_default_priority()
 
     @abstractmethod
     def _get_default_priority(self) -> int:
-        """获取默认优先级（子类实现）"""
+        """Get default priority (subcategory achieved)"""
         raise NotImplementedError
 
     @abstractmethod
     def is_available(self) -> bool:
-        """检查数据源是否可用"""
+        """Check for data source availability"""
         raise NotImplementedError
 
     @abstractmethod
     def get_stock_list(self) -> Optional[pd.DataFrame]:
-        """获取股票列表"""
+        """Get Stock List"""
         raise NotImplementedError
 
     @abstractmethod
     def get_daily_basic(self, trade_date: str) -> Optional[pd.DataFrame]:
-        """获取每日基础财务数据"""
+        """Access to daily basic financial data"""
         raise NotImplementedError
 
     @abstractmethod
     def find_latest_trade_date(self) -> Optional[str]:
-        """查找最新交易日期"""
+        """Find Recent Transaction Date"""
         raise NotImplementedError
 
-    # 新增：全市场实时快照（近实时价格/涨跌幅/成交额），键为6位代码
+    #New: Market-wide real-time snapshot (near real-time price/fall/offset) with 6-digit key
     @abstractmethod
     def get_realtime_quotes(self) -> Optional[Dict[str, Dict[str, Optional[float]]]]:
-        """返回 { '000001': {'close': 10.0, 'pct_chg': 1.2, 'amount': 1.2e8}, ... }"""
+        """returns   FT 0,...}"""
         raise NotImplementedError
 
-    # 新增：K线与新闻抽象接口
+    #Add: K-line and News Abstract Interface
     @abstractmethod
     def get_kline(self, code: str, period: str = "day", limit: int = 120, adj: Optional[str] = None):
-        """获取K线，返回按时间正序的列表: [{time, open, high, low, close, volume, amount}]"""
+        """Get K-line and return the list in chronological order: [   FMT 0 ]"""
         raise NotImplementedError
 
     @abstractmethod
     def get_news(self, code: str, days: int = 2, limit: int = 50, include_announcements: bool = True):
-        """获取新闻/公告，返回 [{title, source, time, url, type}]，type in ['news','announcement']"""
+        """Get news/advertisement, type in ['news', 'announcement']"""
         raise NotImplementedError

@@ -11,16 +11,16 @@ import os
 
 from tradingagents.utils.dataflow_utils import save_output, SavePathType, decorate_all_methods
 
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
-# 导入缓存管理器（延迟导入，避免循环依赖）
+#Import Cache Manager (delayed import, avoiding cycle dependence)
 _cache_module = None
 CACHE_AVAILABLE = True
 
 def get_cache():
-    """延迟导入缓存管理器"""
+    """Delay import cache manager"""
     global _cache_module, CACHE_AVAILABLE
     if _cache_module is None:
         try:
@@ -29,7 +29,7 @@ def get_cache():
             CACHE_AVAILABLE = True
         except ImportError as e:
             CACHE_AVAILABLE = False
-            logger.debug(f"缓存管理器不可用（使用直接API调用）: {e}")
+            logger.debug(f"Cache Manager not available (using direct API call):{e}")
             return None
     return _cache_module() if _cache_module else None
 
@@ -142,47 +142,46 @@ class YFinanceUtils:
         return majority_voting_result[0], max_votes
 
 
-# ==================== 技术指标相关函数 ====================
+#== sync, corrected by elderman == @elder man
 
 def get_stock_data_with_indicators(
     symbol: Annotated[str, "ticker symbol of the company"],
     start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
     end_date: Annotated[str, "End date in yyyy-mm-dd format"],
 ) -> str:
-    """
-    获取股票数据（OHLCV）并返回 CSV 格式字符串
+    """Fetch stock data (OHLCV) and return the CSV format string
 
-    参考原版 TradingAgents 的 get_YFin_data_online 实现
-    """
+Quoted original TradingAgendas get YFin data online
+"""
     try:
-        # 验证日期格式
+        #Authentication date format
         datetime.strptime(start_date, "%Y-%m-%d")
         datetime.strptime(end_date, "%Y-%m-%d")
 
-        # 创建 ticker 对象
+        #Create a ticker object
         ticker = yf.Ticker(symbol.upper())
 
-        # 获取历史数据
+        #Access to historical data
         data = ticker.history(start=start_date, end=end_date)
 
-        # 检查数据是否为空
+        #Check if data is empty
         if data.empty:
             return f"No data found for symbol '{symbol}' between {start_date} and {end_date}"
 
-        # 移除时区信息
+        #Remove Timezone Information
         if data.index.tz is not None:
             data.index = data.index.tz_localize(None)
 
-        # 数值列保留2位小数
+        #Keep 2 decimal places for numerical columns
         numeric_columns = ["Open", "High", "Low", "Close", "Adj Close"]
         for col in numeric_columns:
             if col in data.columns:
                 data[col] = data[col].round(2)
 
-        # 转换为 CSV 字符串
+        #Convert to CSV String
         csv_string = data.to_csv()
 
-        # 添加头部信息
+        #Add Head Information
         header = f"# Stock data for {symbol.upper()} from {start_date} to {end_date}\n"
         header += f"# Total records: {len(data)}\n"
         header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
@@ -190,7 +189,7 @@ def get_stock_data_with_indicators(
         return header + csv_string
 
     except Exception as e:
-        logger.error(f"❌ [yfinance] 获取股票数据失败 {symbol}: {e}")
+        logger.error(f"[yfinance]{symbol}: {e}")
         return f"Error retrieving stock data for {symbol}: {str(e)}"
 
 
@@ -200,30 +199,29 @@ def get_technical_indicator(
     curr_date: Annotated[str, "The current trading date, YYYY-mm-dd"],
     look_back_days: Annotated[int, "how many days to look back"] = 60,
 ) -> str:
-    """
-    获取技术指标数据（使用 stockstats 库计算）
+    """Obtain technical indicator data (calculated using stockstats library)
 
-    参考原版 TradingAgents 的 get_stock_stats_indicators_window 实现
+Reference original version of TradingAgendas get stock stats indicators window
 
-    支持的指标：
-    - close_50_sma: 50日简单移动平均
-    - close_200_sma: 200日简单移动平均
-    - close_10_ema: 10日指数移动平均
-    - macd: MACD指标
-    - macds: MACD信号线
-    - macdh: MACD柱状图
-    - rsi: 相对强弱指标
-    - boll: 布林带中轨
-    - boll_ub: 布林带上轨
-    - boll_lb: 布林带下轨
-    - atr: 平均真实波幅
-    - vwma: 成交量加权移动平均
-    - mfi: 资金流量指标
-    """
+Supported indicators:
+- close 50 sma: 50 days of simple moving average
+- close 200 sma: 200 days simple moving average
+- close 10 ema: 10 day index movement average
+- Macd: MACD indicators
+- Macds: MCD signal lines
+- Macdh: MACD column
+-rsi: Relative strength and weakness indicators
+- Boll: Bryn's on track.
+- Boll ub:
+- Boll lb:
+Astr: average real band
+-vwma: trade-weighted moving average
+-mfi: Financial flow indicators
+"""
     try:
         from stockstats import wrap
 
-        # 指标说明
+        #Description of indicators
         indicator_descriptions = {
             "close_50_sma": (
                 "50 SMA: 中期趋势指标。"
@@ -296,28 +294,28 @@ def get_technical_indicator(
             supported = ", ".join(indicator_descriptions.keys())
             return f"❌ 不支持的指标 '{indicator}'。支持的指标: {supported}"
 
-        # 计算日期范围
+        #Calculate Date Range
         curr_date_dt = datetime.strptime(curr_date, "%Y-%m-%d")
-        start_date_dt = curr_date_dt - relativedelta(days=look_back_days + 365)  # 多获取一年数据用于计算
+        start_date_dt = curr_date_dt - relativedelta(days=look_back_days + 365)  #One more year to calculate
         start_date = start_date_dt.strftime("%Y-%m-%d")
 
-        # 获取股票数据
-        logger.info(f"📊 [yfinance] 获取 {symbol} 技术指标 {indicator}，日期范围: {start_date} 至 {curr_date}")
+        #Acquisition of stock data
+        logger.info(f"[yfinance]{symbol}Technical indicators{indicator}, date range:{start_date}to{curr_date}")
         ticker = yf.Ticker(symbol.upper())
         data = ticker.history(start=start_date, end=curr_date)
 
         if data.empty:
             return f"❌ 未找到 {symbol} 的数据"
 
-        # 重置索引，将日期作为列
+        #Reset index, use date as column
         data = data.reset_index()
         data['Date'] = pd.to_datetime(data['Date']).dt.strftime('%Y-%m-%d')
 
-        # 使用 stockstats 计算指标
+        #Calculate indicators using stockstats
         df = wrap(data)
-        df[indicator]  # 触发计算
+        df[indicator]  #Trigger calculation
 
-        # 生成指定日期范围的结果
+        #Generates the result of the specified date range
         result_lines = []
         check_date = curr_date_dt
         end_date = curr_date_dt - relativedelta(days=look_back_days)
@@ -325,7 +323,7 @@ def get_technical_indicator(
         while check_date >= end_date:
             date_str = check_date.strftime('%Y-%m-%d')
 
-            # 查找该日期的指标值
+            #Indicator value to find the date
             matching_rows = df[df['Date'] == date_str]
 
             if not matching_rows.empty:
@@ -339,7 +337,7 @@ def get_technical_indicator(
 
             check_date = check_date - relativedelta(days=1)
 
-        # 构建结果字符串
+        #Build Result String
         result = f"## {indicator} values from {end_date.strftime('%Y-%m-%d')} to {curr_date}:\n\n"
         result += "\n".join(result_lines)
         result += "\n\n" + indicator_descriptions[indicator]
@@ -349,5 +347,5 @@ def get_technical_indicator(
     except ImportError:
         return "❌ 需要安装 stockstats 库: pip install stockstats"
     except Exception as e:
-        logger.error(f"❌ [yfinance] 计算技术指标失败 {symbol}/{indicator}: {e}")
+        logger.error(f"[yfinance]{symbol}/{indicator}: {e}")
         return f"Error calculating indicator {indicator} for {symbol}: {str(e)}"

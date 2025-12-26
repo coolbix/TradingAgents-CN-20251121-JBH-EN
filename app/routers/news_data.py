@@ -1,6 +1,5 @@
-"""
-新闻数据API路由
-提供新闻数据查询、同步和管理接口
+"""News Data API Route
+Provision of news data queries, synchronization and management interfaces
 """
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query, status
 from typing import Optional, List, Dict, Any
@@ -18,7 +17,7 @@ logger = logging.getLogger("webapi")
 
 
 class NewsQueryRequest(BaseModel):
-    """新闻查询请求"""
+    """Press queries"""
     symbol: Optional[str] = Field(None, description="股票代码")
     symbols: Optional[List[str]] = Field(None, description="多个股票代码")
     start_time: Optional[datetime] = Field(None, description="开始时间")
@@ -33,7 +32,7 @@ class NewsQueryRequest(BaseModel):
 
 
 class NewsSyncRequest(BaseModel):
-    """新闻同步请求"""
+    """News Sync Request"""
     symbol: Optional[str] = Field(None, description="股票代码，为空则同步市场新闻")
     data_sources: Optional[List[str]] = Field(None, description="数据源列表")
     hours_back: int = Field(24, description="回溯小时数")
@@ -49,23 +48,22 @@ async def query_stock_news(
     sentiment: Optional[str] = Query(None, description="情绪分析"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    查询股票新闻（智能获取：优先数据库，无数据时实时获取）
+    """Query for stock news (intelligence access: priority databases, real-time access when data are not available)
 
-    Args:
-        symbol: 股票代码
-        hours_back: 回溯小时数
-        limit: 返回数量限制
-        category: 新闻类别过滤
-        sentiment: 情绪分析过滤
+Args:
+symbol: stock code
+Hours back: backtrace hours
+Limited number of returns
+Category: News Category Filter
+Sentiment: Emotional Analysis Filter
 
-    Returns:
-        dict: 新闻数据列表
-    """
+Returns:
+dict: News data list
+"""
     try:
         service = await get_news_data_service()
 
-        # 构建查询参数
+        #Build query parameters
         start_time = datetime.utcnow() - timedelta(hours=hours_back)
 
         params = NewsQueryParams(
@@ -78,40 +76,40 @@ async def query_stock_news(
             sort_order=-1
         )
 
-        # 1. 先从数据库查询
+        #1. Query first from the database
         news_list = await service.query_news(params)
         data_source = "database"
 
-        # 2. 如果数据库没有数据，实时获取
+        #2. Real-time access if data are not available in the database
         if not news_list:
-            logger.info(f"📰 数据库无新闻数据，实时获取: {symbol}")
+            logger.info(f"📰 database is free of news data and accessible in real time:{symbol}")
             try:
                 from app.worker.akshare_sync_service import get_akshare_sync_service
                 sync_service = await get_akshare_sync_service()
 
-                # 实时获取新闻
+                #Access to news in real time
                 news_data = await sync_service.provider.get_stock_news(
                     symbol=symbol,
                     limit=limit
                 )
 
                 if news_data:
-                    # 保存到数据库
+                    #Save to Database
                     saved_count = await service.save_news_data(
                         news_data=news_data,
                         data_source="akshare",
                         market="CN"
                     )
-                    logger.info(f"✅ 实时获取并保存 {saved_count} 条新闻")
+                    logger.info(f"Access and Save in Real Time{saved_count}News")
 
-                    # 重新查询
+                    #Re-Query
                     news_list = await service.query_news(params)
                     data_source = "realtime"
                 else:
-                    logger.warning(f"⚠️ 实时获取新闻失败: {symbol}")
+                    logger.warning(f"Real-time access to news failed:{symbol}")
 
             except Exception as e:
-                logger.error(f"❌ 实时获取新闻异常: {e}")
+                logger.error(f"Live access to news anomalies:{e}")
 
         return ok(data={
                 "symbol": symbol,
@@ -135,19 +133,18 @@ async def query_news_advanced(
     request: NewsQueryRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    高级新闻查询
-    
-    Args:
-        request: 查询请求参数
-        
-    Returns:
-        dict: 新闻数据列表
-    """
+    """Advanced news queries
+
+Args:
+request parameters
+
+Returns:
+dict: News data list
+"""
     try:
         service = await get_news_data_service()
         
-        # 构建查询参数
+        #Build query parameters
         params = NewsQueryParams(
             symbol=request.symbol,
             symbols=request.symbols,
@@ -162,7 +159,7 @@ async def query_news_advanced(
             skip=request.skip
         )
         
-        # 查询新闻
+        #Query news
         news_list = await service.query_news(params)
         
         return ok(data={
@@ -187,21 +184,20 @@ async def get_latest_news(
     hours_back: int = Query(24, description="回溯小时数"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取最新新闻
-    
-    Args:
-        symbol: 股票代码，为空则获取所有新闻
-        limit: 返回数量限制
-        hours_back: 回溯小时数
-        
-    Returns:
-        dict: 最新新闻列表
-    """
+    """Get the latest news.
+
+Args:
+symbol: stock code, empty for all news
+Limited number of returns
+Hours back: backtrace hours
+
+Returns:
+dict: Newslist
+"""
     try:
         service = await get_news_data_service()
         
-        # 获取最新新闻
+        #Get the latest news.
         news_list = await service.get_latest_news(
             symbol=symbol,
             limit=limit,
@@ -232,21 +228,20 @@ async def search_news(
     limit: int = Query(20, description="返回数量限制"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    全文搜索新闻
-    
-    Args:
-        query: 搜索关键词
-        symbol: 股票代码过滤
-        limit: 返回数量限制
-        
-    Returns:
-        dict: 搜索结果列表
-    """
+    """Full text search news
+
+Args:
+query: Search key Word
+symbol: stock code filter
+Limited number of returns
+
+Returns:
+dict: Search result list
+"""
     try:
         service = await get_news_data_service()
         
-        # 全文搜索
+        #Other Organiser
         news_list = await service.search_news(
             query_text=query,
             symbol=symbol,
@@ -275,23 +270,22 @@ async def get_news_statistics(
     days_back: int = Query(7, description="回溯天数"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取新闻统计信息
-    
-    Args:
-        symbol: 股票代码
-        days_back: 回溯天数
-        
-    Returns:
-        dict: 新闻统计信息
-    """
+    """Access to news statistics
+
+Args:
+symbol: stock code
+Days back: Backtrace days
+
+Returns:
+Dict: News statistics
+"""
     try:
         service = await get_news_data_service()
         
-        # 计算时间范围
+        #Calculate the time frame
         start_time = datetime.utcnow() - timedelta(days=days_back)
         
-        # 获取统计信息
+        #Access to statistical information
         stats = await service.get_news_statistics(
             symbol=symbol,
             start_time=start_time
@@ -332,20 +326,19 @@ async def start_news_sync(
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    启动新闻同步任务
-    
-    Args:
-        request: 同步请求参数
-        background_tasks: 后台任务
-        
-    Returns:
-        dict: 任务启动结果
-    """
+    """Synchronising folder
+
+Args:
+request parameters
+Background tasks: Backstage Tasks
+
+Returns:
+dict: Job startup result
+"""
     try:
         sync_service = await get_news_data_sync_service()
         
-        # 添加后台同步任务
+        #Other Organiser
         if request.symbol:
             background_tasks.add_task(
                 _execute_stock_news_sync,
@@ -386,22 +379,21 @@ async def sync_single_stock_news(
     max_news_per_source: int = 50,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    同步单只股票新闻（同步执行）
-    
-    Args:
-        symbol: 股票代码
-        data_sources: 数据源列表
-        hours_back: 回溯小时数
-        max_news_per_source: 每个数据源最大新闻数量
-        
-    Returns:
-        dict: 同步结果
-    """
+    """Synchronization of Single Stock News (Sync execution)
+
+Args:
+symbol: stock code
+data sources: list of data sources
+Hours back: backtrace hours
+Max news per source: Maximum number of news per data source
+
+Returns:
+dict: Sync Results
+"""
     try:
         sync_service = await get_news_data_sync_service()
         
-        # 执行同步
+        #Execute Sync
         stats = await sync_service.sync_stock_news(
             symbol=symbol,
             data_sources=data_sources,
@@ -436,19 +428,18 @@ async def cleanup_old_news(
     days_to_keep: int = Query(90, description="保留天数"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    清理过期新闻
-    
-    Args:
-        days_to_keep: 保留天数
-        
-    Returns:
-        dict: 清理结果
-    """
+    """Clean up outdated news
+
+Args:
+days to keep: Keep days
+
+Returns:
+dict: Cleanup result
+"""
     try:
         service = await get_news_data_service()
         
-        # 删除过期新闻
+        #Delete Expired News
         deleted_count = await service.delete_old_news(days_to_keep)
         
         return ok(data={
@@ -467,7 +458,7 @@ async def cleanup_old_news(
 
 @router.get("/health", response_model=dict)
 async def health_check():
-    """健康检查"""
+    """Health screening"""
     try:
         service = await get_news_data_service()
         sync_service = await get_news_data_sync_service()
@@ -486,9 +477,9 @@ async def health_check():
         )
 
 
-# 后台任务执行函数
+#Backstage Job Execution Function
 async def _execute_stock_news_sync(sync_service, request: NewsSyncRequest):
-    """执行股票新闻同步"""
+    """Execute stock news sync"""
     try:
         await sync_service.sync_stock_news(
             symbol=request.symbol,
@@ -497,11 +488,11 @@ async def _execute_stock_news_sync(sync_service, request: NewsSyncRequest):
             max_news_per_source=request.max_news_per_source
         )
     except Exception as e:
-        logger.error(f"❌ 后台股票新闻同步失败: {e}")
+        logger.error(f"Backstage stock news failed:{e}")
 
 
 async def _execute_market_news_sync(sync_service, request: NewsSyncRequest):
-    """执行市场新闻同步"""
+    """Implementation of market news synchronization"""
     try:
         await sync_service.sync_market_news(
             data_sources=request.data_sources,
@@ -509,4 +500,4 @@ async def _execute_market_news_sync(sync_service, request: NewsSyncRequest):
             max_news_per_source=request.max_news_per_source
         )
     except Exception as e:
-        logger.error(f"❌ 后台市场新闻同步失败: {e}")
+        logger.error(f"Backstage news failed:{e}")

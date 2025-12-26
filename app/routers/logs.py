@@ -1,6 +1,5 @@
-"""
-日志管理API路由
-提供日志查询、过滤和导出功能
+"""Logs manage API route
+Provide log query, filter and export functions
 """
 
 import logging
@@ -16,9 +15,9 @@ router = APIRouter(prefix="/system-logs", tags=["系统日志"])
 logger = logging.getLogger("webapi")
 
 
-# 请求模型
+#Request Model
 class LogReadRequest(BaseModel):
-    """日志读取请求"""
+    """Log Read Request"""
     filename: str = Field(..., description="日志文件名")
     lines: int = Field(default=1000, ge=1, le=10000, description="读取行数")
     level: Optional[str] = Field(default=None, description="日志级别过滤")
@@ -28,7 +27,7 @@ class LogReadRequest(BaseModel):
 
 
 class LogExportRequest(BaseModel):
-    """日志导出请求"""
+    """Log Export Request"""
     filenames: Optional[List[str]] = Field(default=None, description="要导出的文件名列表（空表示全部）")
     level: Optional[str] = Field(default=None, description="日志级别过滤")
     start_time: Optional[str] = Field(default=None, description="开始时间（ISO格式）")
@@ -36,9 +35,9 @@ class LogExportRequest(BaseModel):
     format: str = Field(default="zip", description="导出格式：zip, txt")
 
 
-# 响应模型
+#Response model
 class LogFileInfo(BaseModel):
-    """日志文件信息"""
+    """Log File Information"""
     name: str
     path: str
     size: int
@@ -48,14 +47,14 @@ class LogFileInfo(BaseModel):
 
 
 class LogContentResponse(BaseModel):
-    """日志内容响应"""
+    """Log Response"""
     filename: str
     lines: List[str]
     stats: dict
 
 
 class LogStatisticsResponse(BaseModel):
-    """日志统计响应"""
+    """Log Statistical Response"""
     total_files: int
     total_size_mb: float
     error_files: int
@@ -67,13 +66,12 @@ class LogStatisticsResponse(BaseModel):
 async def list_log_files(
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取所有日志文件列表
-    
-    返回日志文件的基本信息，包括文件名、大小、修改时间等
-    """
+    """Fetch list of all log files
+
+Returns basic information for log files, including file name, size, change time, etc.
+"""
     try:
-        logger.info(f"📋 用户 {current_user['username']} 查询日志文件列表")
+        logger.info(f"User {current_user['username']}Query log file list")
         
         service = get_log_export_service()
         files = service.list_log_files()
@@ -81,7 +79,7 @@ async def list_log_files(
         return files
         
     except Exception as e:
-        logger.error(f"❌ 获取日志文件列表失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取日志文件列表失败: {str(e)}")
 
 
@@ -90,17 +88,16 @@ async def read_log_file(
     request: LogReadRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    读取日志文件内容
-    
-    支持过滤条件：
-    - lines: 读取的行数（从末尾开始）
-    - level: 日志级别（ERROR, WARNING, INFO, DEBUG）
-    - keyword: 关键词搜索
-    - start_time/end_time: 时间范围
-    """
+    """Read log file contents
+
+Support filter conditions:
+- Lines: Number of lines read (starting at the end)
+-level: Log Level (ERRO, WARNING, INFO, DEBUG)
+-keyword: Keyword Search
+-start time/end time:
+"""
     try:
-        logger.info(f"📖 用户 {current_user['username']} 读取日志文件: {request.filename}")
+        logger.info(f"User {current_user['username']}Read log files:{request.filename}")
         
         service = get_log_export_service()
         content = service.read_log_file(
@@ -117,7 +114,7 @@ async def read_log_file(
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"❌ 读取日志文件失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"读取日志文件失败: {str(e)}")
 
 
@@ -126,20 +123,19 @@ async def export_logs(
     request: LogExportRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    导出日志文件
-    
-    支持导出格式：
-    - zip: 压缩包（推荐）
-    - txt: 合并的文本文件
-    
-    支持过滤条件：
-    - filenames: 指定要导出的文件
-    - level: 日志级别过滤
-    - start_time/end_time: 时间范围过滤
-    """
+    """Export Log File
+
+Support export format:
+-zip: Compressed package (recommended)
+-txt: Merged text files
+
+Support filter conditions:
+-filenames: Specify the file to export
+-level: log level filter
+-start time/end time: timescale filter
+"""
     try:
-        logger.info(f"📤 用户 {current_user['username']} 导出日志文件")
+        logger.info(f"User {current_user['username']}Export Log File")
         
         service = get_log_export_service()
         export_path = service.export_logs(
@@ -150,7 +146,7 @@ async def export_logs(
             format=request.format
         )
         
-        # 返回文件下载
+        #Return File Download
         import os
         filename = os.path.basename(export_path)
         media_type = "application/zip" if request.format == "zip" else "text/plain"
@@ -165,7 +161,7 @@ async def export_logs(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"❌ 导出日志文件失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"导出日志文件失败: {str(e)}")
 
 
@@ -174,17 +170,16 @@ async def get_log_statistics(
     days: int = Query(default=7, ge=1, le=30, description="统计最近几天的日志"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取日志统计信息
-    
-    返回最近N天的日志统计，包括：
-    - 文件数量和总大小
-    - 错误日志数量
-    - 最近的错误信息
-    - 日志类型分布
-    """
+    """Get Log Statistics
+
+Returns the latest N-day log statistics, including:
+- Number and total size of files
+- Number of error logs
+- Recent error.
+- Distribution of log type
+"""
     try:
-        logger.info(f"📊 用户 {current_user['username']} 查询日志统计信息")
+        logger.info(f"User {current_user['username']}Query log statistics")
         
         service = get_log_export_service()
         stats = service.get_log_statistics(days=days)
@@ -192,7 +187,7 @@ async def get_log_statistics(
         return stats
         
     except Exception as e:
-        logger.error(f"❌ 获取日志统计失败: {e}")
+        logger.error(f"Can not get folder: %s: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取日志统计失败: {str(e)}")
 
 
@@ -201,13 +196,12 @@ async def delete_log_file(
     filename: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    删除日志文件
-    
-    注意：此操作不可恢复，请谨慎使用
-    """
+    """Delete Log File
+
+Note: This operation cannot be restored. Please be careful.
+"""
     try:
-        logger.warning(f"🗑️ 用户 {current_user['username']} 删除日志文件: {filename}")
+        logger.warning(f"User {current_user['username']}Delete log file:{filename}")
         
         service = get_log_export_service()
         file_path = service.log_dir / filename
@@ -215,7 +209,7 @@ async def delete_log_file(
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="日志文件不存在")
         
-        # 安全检查：只允许删除 .log 文件
+        #Security check: only delete .log files is allowed
         if not filename.endswith('.log') and not '.log.' in filename:
             raise HTTPException(status_code=400, detail="只能删除日志文件")
         
@@ -229,6 +223,6 @@ async def delete_log_file(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 删除日志文件失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"删除日志文件失败: {str(e)}")
 

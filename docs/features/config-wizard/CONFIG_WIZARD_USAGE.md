@@ -125,7 +125,7 @@ npm run dev
 | 配置项 | 说明 | 获取方式 |
 |--------|------|----------|
 | DEEPSEEK_API_KEY | DeepSeek API 密钥 | https://platform.deepseek.com/ |
-| DASHSCOPE_API_KEY | 通义千问 API 密钥 | https://dashscope.aliyun.com/ |
+| DASHSCOPE_API_KEY | 通义千问 API 密钥 | https://dashscope-int.aliyun.com/ |
 | TUSHARE_TOKEN | Tushare Token | https://tushare.pro/ |
 
 #### 状态图标

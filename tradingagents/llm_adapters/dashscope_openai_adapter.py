@@ -1,7 +1,6 @@
-"""
-阿里百炼 OpenAI兼容适配器
-为 TradingAgents 提供阿里百炼大模型的 OpenAI 兼容接口
-利用百炼模型的原生 OpenAI 兼容性，无需额外的工具转换
+"""Aripercin OpenAI Compatibility
+OpenAI compatibility interface for TradingAgents
+OppenAI compatibility using a practicable model without the need for additional tools
 """
 
 import os
@@ -11,36 +10,35 @@ from langchain_core.tools import BaseTool
 from pydantic import Field, SecretStr
 from ..config.config_manager import token_tracker
 
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
 
 class ChatDashScopeOpenAI(ChatOpenAI):
-    """
-    阿里百炼 OpenAI 兼容适配器
-    继承 ChatOpenAI，通过 OpenAI 兼容接口调用百炼模型
-    利用百炼模型的原生 OpenAI 兼容性，支持原生 Function Calling
-    """
+    """Aliberian OpenAI Compatibility Compatible
+Inherit ChatOpenAI, call the calorie model through OpenAI compatible interface
+Use original OpenAI compatibility of refined models to support original
+"""
     
     def __init__(self, **kwargs):
-        """初始化 DashScope OpenAI 兼容客户端"""
+        """Initialize DashScope OpenAI compatible client"""
 
-        # 🔍 [DEBUG] 读取环境变量前的日志
-        logger.info(f"🔍 [DashScope初始化] 开始初始化 ChatDashScopeOpenAI")
-        logger.info(f"🔍 [DashScope初始化] kwargs 中是否包含 api_key: {'api_key' in kwargs}")
+        #[DBUG] Read the log before the environment variable
+        logger.info(f"[DashScope Initialization]")
+        logger.info(f"Does kwargs contain api key:{'api_key' in kwargs}")
 
-        # 🔥 优先使用 kwargs 中传入的 API Key（来自数据库配置）
+        #🔥 Prefer to the imported API Key in kwargs (from database configuration)
         api_key_from_kwargs = kwargs.get("api_key")
 
-        # 如果 kwargs 中没有 API Key 或者是 None，尝试从环境变量读取
+        #If kwargs does not have API Key or None, try reading from environment variables
         if not api_key_from_kwargs:
-            # 导入 API Key 验证工具
+            #Import API Key Authentication Tool
             try:
-                # 尝试从 app.utils 导入（后端环境）
+                #Try importing from app.utils (backend environment)
                 from app.utils.api_key_utils import is_valid_api_key
             except ImportError:
-                # 如果导入失败，使用本地简化版本
+                #If import fails, use local simplified version
                 def is_valid_api_key(key):
                     if not key or len(key) <= 10:
                         return False
@@ -52,62 +50,62 @@ class ChatDashScopeOpenAI(ChatOpenAI):
                         return False
                     return True
 
-            # 尝试从环境变量读取 API Key
+            #Try reading API Key from an environment variable
             env_api_key = os.getenv("DASHSCOPE_API_KEY")
-            logger.info(f"🔍 [DashScope初始化] 从环境变量读取 DASHSCOPE_API_KEY: {'有值' if env_api_key else '空'}")
+            logger.info(f"[DashScope Initialization]{'Value' if env_api_key else 'Empty'}")
 
-            # 验证环境变量中的 API Key 是否有效（排除占位符）
+            #Verify the validity of API Key in the environment variable (exclude placeholder)
             if env_api_key and is_valid_api_key(env_api_key):
-                logger.info(f"✅ [DashScope初始化] 环境变量中的 API Key 有效，长度: {len(env_api_key)}, 前10位: {env_api_key[:10]}...")
+                logger.info(f"✅ [DashScope Initialization] API Key is valid, length:{len(env_api_key)}, top 10:{env_api_key[:10]}...")
                 api_key_from_kwargs = env_api_key
             elif env_api_key:
-                logger.warning(f"⚠️ [DashScope初始化] 环境变量中的 API Key 无效（可能是占位符），将被忽略")
+                logger.warning(f"API Key (possibly placeholder) in environmental variables is invalid and will be ignored")
                 api_key_from_kwargs = None
             else:
-                logger.warning(f"⚠️ [DashScope初始化] DASHSCOPE_API_KEY 环境变量为空")
+                logger.warning(f"[DashScope Initialization]")
                 api_key_from_kwargs = None
         else:
-            logger.info(f"✅ [DashScope初始化] 使用 kwargs 中传入的 API Key（来自数据库配置）")
+            logger.info(f"✅ [DashScope Initialization] with the imported API Key (from database configuration) in kwargs")
 
-        # 设置 DashScope OpenAI 兼容接口的默认配置
+        #Set default configuration for DashScope OpenAI compatible interface
         kwargs.setdefault("base_url", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-        kwargs["api_key"] = api_key_from_kwargs  # 🔥 使用验证后的 API Key
+        kwargs["api_key"] = api_key_from_kwargs  #API Key
         kwargs.setdefault("model", "qwen-turbo")
         kwargs.setdefault("temperature", 0.1)
         kwargs.setdefault("max_tokens", 2000)
 
-        # 检查 API 密钥和 base_url
+        #Check API keys and base url
         final_api_key = kwargs.get("api_key")
         final_base_url = kwargs.get("base_url")
-        logger.info(f"🔍 [DashScope初始化] 最终使用的 API Key: {'有值' if final_api_key else '空'}")
-        logger.info(f"🔍 [DashScope初始化] 最终使用的 base_url: {final_base_url}")
+        logger.info(f"[DashScope Initializing]{'Value' if final_api_key else 'Empty'}")
+        logger.info(f"[DashScope Initializing]{final_base_url}")
 
         if not final_api_key:
-            logger.error(f"❌ [DashScope初始化] API Key 检查失败，即将抛出异常")
+            logger.error(f"[DashScope Initialization] API Key check failed, about to be released")
             raise ValueError(
                 "DashScope API key not found. Please configure API key in web interface "
                 "(Settings -> LLM Providers) or set DASHSCOPE_API_KEY environment variable."
             )
 
-        # 调用父类初始化
+        #Call Parent Initialization
         super().__init__(**kwargs)
 
-        logger.info(f"✅ 阿里百炼 OpenAI 兼容适配器初始化成功")
-        logger.info(f"   模型: {kwargs.get('model', 'qwen-turbo')}")
+        logger.info(f"✅Aribecian OpenAI compatibility adapter initialised successfully")
+        logger.info(f"Models:{kwargs.get('model', 'qwen-turbo')}")
 
-        # 兼容不同版本的属性名
+        #Compatible with different versions of attribute names
         api_base = getattr(self, 'base_url', None) or getattr(self, 'openai_api_base', None) or kwargs.get('base_url', 'unknown')
         logger.info(f"   API Base: {api_base}")
     
     def _generate(self, *args, **kwargs):
-        """重写生成方法，添加 token 使用量追踪"""
+        """Rewrite generation method, add token usage tracking"""
         
-        # 调用父类的生成方法
+        #Call parent generation method
         result = super()._generate(*args, **kwargs)
         
-        # 追踪 token 使用量
+        #Track token usage
         try:
-            # 从结果中提取 token 使用信息
+            #Extract token information from the result
             if hasattr(result, 'llm_output') and result.llm_output:
                 token_usage = result.llm_output.get('token_usage', {})
                 
@@ -115,11 +113,11 @@ class ChatDashScopeOpenAI(ChatOpenAI):
                 output_tokens = token_usage.get('completion_tokens', 0)
                 
                 if input_tokens > 0 or output_tokens > 0:
-                    # 生成会话ID
+                    #Generate Session ID
                     session_id = kwargs.get('session_id', f"dashscope_openai_{hash(str(args))%10000}")
                     analysis_type = kwargs.get('analysis_type', 'stock_analysis')
                     
-                    # 使用 TokenTracker 记录使用量
+                    #Record usage using TokenTracker
                     token_tracker.track_usage(
                         provider="dashscope",
                         model_name=self.model_name,
@@ -130,15 +128,15 @@ class ChatDashScopeOpenAI(ChatOpenAI):
                     )
                     
         except Exception as track_error:
-            # token 追踪失败不应该影响主要功能
-            logger.error(f"⚠️ Token 追踪失败: {track_error}")
+            #Token, tracking failure should not affect the primary function.
+            logger.error(f"Token has failed:{track_error}")
         
         return result
 
 
-# 支持的模型列表
+#List of supported models
 DASHSCOPE_OPENAI_MODELS = {
-    # 通义千问系列
+    #General questions series
     "qwen-turbo": {
         "description": "通义千问 Turbo - 快速响应，适合日常对话",
         "context_length": 8192,
@@ -179,7 +177,7 @@ DASHSCOPE_OPENAI_MODELS = {
 
 
 def get_available_openai_models() -> Dict[str, Dict[str, Any]]:
-    """获取可用的 DashScope OpenAI 兼容模型列表"""
+    """Get a list of available DashScope OpenAI compatible models"""
     return DASHSCOPE_OPENAI_MODELS
 
 
@@ -190,7 +188,7 @@ def create_dashscope_openai_llm(
     max_tokens: int = 2000,
     **kwargs
 ) -> ChatDashScopeOpenAI:
-    """创建 DashScope OpenAI 兼容 LLM 实例的便捷函数"""
+    """A simple function to create DashScope OpenAI compatible LLM examples"""
     
     return ChatDashScopeOpenAI(
         model=model,
@@ -205,32 +203,32 @@ def test_dashscope_openai_connection(
     model: str = "qwen-turbo",
     api_key: Optional[str] = None
 ) -> bool:
-    """测试 DashScope OpenAI 兼容接口连接"""
+    """Test DashScope OpenAI compatible interface connection"""
     
     try:
-        logger.info(f"🧪 测试 DashScope OpenAI 兼容接口连接")
-        logger.info(f"   模型: {model}")
+        logger.info(f"🧪 Test DashScope OpenAI compatibility interface")
+        logger.info(f"Models:{model}")
         
-        # 创建客户端
+        #Create Client
         llm = create_dashscope_openai_llm(
             model=model,
             api_key=api_key,
             max_tokens=50
         )
         
-        # 发送测试消息
+        #Send Test Message
         response = llm.invoke("你好，请简单介绍一下你自己。")
         
         if response and hasattr(response, 'content') and response.content:
-            logger.info(f"✅ DashScope OpenAI 兼容接口连接成功")
-            logger.info(f"   响应: {response.content[:100]}...")
+            logger.info(f"DashScope OpenAI interface successfully connected")
+            logger.info(f"Response:{response.content[:100]}...")
             return True
         else:
-            logger.error(f"❌ DashScope OpenAI 兼容接口响应为空")
+            logger.error(f"DashScop OpenAI interface response is empty")
             return False
             
     except Exception as e:
-        logger.error(f"❌ DashScope OpenAI 兼容接口连接失败: {e}")
+        logger.error(f"DashScop OpenAI interface failed:{e}")
         return False
 
 
@@ -238,69 +236,69 @@ def test_dashscope_openai_function_calling(
     model: str = "qwen-plus-latest",
     api_key: Optional[str] = None
 ) -> bool:
-    """测试 DashScope OpenAI 兼容接口的 Function Calling"""
+    """Function Calling for testing DashScope OpenAI compatible interface"""
     
     try:
-        logger.info(f"🧪 测试 DashScope OpenAI Function Calling")
-        logger.info(f"   模型: {model}")
+        logger.info(f"DashScopOpenAIFunctionCalling")
+        logger.info(f"Models:{model}")
         
-        # 创建客户端
+        #Create Client
         llm = create_dashscope_openai_llm(
             model=model,
             api_key=api_key,
             max_tokens=200
         )
         
-        # 定义测试工具
+        #Define Test Tool
         def get_current_time() -> str:
-            """获取当前时间"""
+            """Get Current Time"""
             import datetime
             return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # 创建 LangChain 工具
+        #Create LangChain Tool
         from langchain_core.tools import tool
         
         @tool
         def test_tool(query: str) -> str:
-            """测试工具，返回查询信息"""
+            """Test tool, return query information"""
             return f"收到查询: {query}"
         
-        # 绑定工具
+        #Tie Tool
         llm_with_tools = llm.bind_tools([test_tool])
         
-        # 测试工具调用
+        #Test Tool Call
         response = llm_with_tools.invoke("请使用test_tool查询'hello world'")
         
-        logger.info(f"✅ DashScope OpenAI Function Calling 测试完成")
-        logger.info(f"   响应类型: {type(response)}")
+        logger.info(f"DashScope OpenAI Faction Calling")
+        logger.info(f"Type of response:{type(response)}")
         
         if hasattr(response, 'tool_calls') and response.tool_calls:
-            logger.info(f"   工具调用数量: {len(response.tool_calls)}")
+            logger.info(f"Number of tools called:{len(response.tool_calls)}")
             return True
         else:
-            logger.info(f"   响应内容: {getattr(response, 'content', 'No content')}")
-            return True  # 即使没有工具调用也算成功，因为模型可能选择不调用工具
+            logger.info(f"Response content:{getattr(response, 'content', 'No content')}")
+            return True  #Even without a tool call was successful because the model may choose not to call a tool
             
     except Exception as e:
-        logger.error(f"❌ DashScope OpenAI Function Calling 测试失败: {e}")
+        logger.error(f"DashScope OpenAFunction Calling failed:{e}")
         return False
 
 
 if __name__ == "__main__":
     """测试脚本"""
-    logger.info(f"🧪 DashScope OpenAI 兼容适配器测试")
+    logger.info(f"DashScope OpenAI Compatibility Compatibility Test")
     logger.info(f"=" * 50)
     
-    # 测试连接
+    #Test Connection
     connection_ok = test_dashscope_openai_connection()
     
     if connection_ok:
-        # 测试 Function Calling
+        #Testing
         function_calling_ok = test_dashscope_openai_function_calling()
         
         if function_calling_ok:
-            logger.info(f"\n🎉 所有测试通过！DashScope OpenAI 兼容适配器工作正常")
+            logger.info(f"All tests passed! DashScope OpenAI is working.")
         else:
-            logger.error(f"\n⚠️ Function Calling 测试失败")
+            logger.error(f"Function Calling Test Failed")
     else:
-        logger.error(f"\n❌ 连接测试失败")
+        logger.error(f"Connection test failed")

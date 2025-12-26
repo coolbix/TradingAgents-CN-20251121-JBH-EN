@@ -2,7 +2,7 @@ from langchain_core.messages import AIMessage
 import time
 import json
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
@@ -19,34 +19,34 @@ def create_bear_researcher(llm, memory):
         news_report = state["news_report"]
         fundamentals_report = state["fundamentals_report"]
 
-        # 使用统一的股票类型检测
+        #Use common stock type testing
         ticker = state.get('company_of_interest', 'Unknown')
         from tradingagents.utils.stock_utils import StockUtils
         market_info = StockUtils.get_market_info(ticker)
         is_china = market_info['is_china']
 
-        # 获取公司名称
+        #Get company names
         def _get_company_name(ticker_code: str, market_info_dict: dict) -> str:
-            """根据股票代码获取公司名称"""
+            """Get company names by stock code"""
             try:
                 if market_info_dict['is_china']:
                     from tradingagents.dataflows.interface import get_china_stock_info_unified
                     stock_info = get_china_stock_info_unified(ticker_code)
                     if stock_info and "股票名称:" in stock_info:
                         name = stock_info.split("股票名称:")[1].split("\n")[0].strip()
-                        logger.info(f"✅ [空头研究员] 成功获取中国股票名称: {ticker_code} -> {name}")
+                        logger.info(f"✅ [Blank Fellow] Successfully obtained Chinese stock names:{ticker_code} -> {name}")
                         return name
                     else:
-                        # 降级方案
+                        #Downscaling programme
                         try:
                             from tradingagents.dataflows.data_source_manager import get_china_stock_info_unified as get_info_dict
                             info_dict = get_info_dict(ticker_code)
                             if info_dict and info_dict.get('name'):
                                 name = info_dict['name']
-                                logger.info(f"✅ [空头研究员] 降级方案成功获取股票名称: {ticker_code} -> {name}")
+                                logger.info(f"✅ [Blank Fellows] The downgrading program succeeded in obtaining stock names:{ticker_code} -> {name}")
                                 return name
                         except Exception as e:
-                            logger.error(f"❌ [空头研究员] 降级方案也失败: {e}")
+                            logger.error(f"The demotion programme also failed:{e}")
                 elif market_info_dict['is_hk']:
                     try:
                         from tradingagents.dataflows.providers.hk.improved_hk import get_hk_company_name_improved
@@ -63,7 +63,7 @@ def create_bear_researcher(llm, memory):
                     }
                     return us_stock_names.get(ticker_code.upper(), f"美股{ticker_code}")
             except Exception as e:
-                logger.error(f"❌ [空头研究员] 获取公司名称失败: {e}")
+                logger.error(f"[Blank Fellow]{e}")
             return f"股票代码{ticker_code}"
 
         company_name = _get_company_name(ticker, market_info)
@@ -75,11 +75,11 @@ def create_bear_researcher(llm, memory):
 
         curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
 
-        # 安全检查：确保memory不为None
+        #Security check: ensure memory is not None
         if memory is not None:
             past_memories = memory.get_memories(curr_situation, n_matches=2)
         else:
-            logger.warning(f"⚠️ [DEBUG] memory为None，跳过历史记忆检索")
+            logger.warning(f"[DEBUG] memory is None, skip historical memory search")
             past_memories = []
 
         past_memory_str = ""
@@ -121,7 +121,7 @@ def create_bear_researcher(llm, memory):
         argument = f"Bear Analyst: {response.content}"
 
         new_count = investment_debate_state["count"] + 1
-        logger.info(f"🐻 [空头研究员] 发言完成，计数: {investment_debate_state['count']} -> {new_count}")
+        logger.info(f"🐻 [Blank Fellows]{investment_debate_state['count']} -> {new_count}")
 
         new_investment_debate_state = {
             "history": history + "\n" + argument,

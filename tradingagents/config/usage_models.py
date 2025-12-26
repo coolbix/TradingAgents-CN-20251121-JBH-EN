@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-使用记录数据模型
-用于 Token 使用统计和成本跟踪
+"""Use log data model
+Use statistics and cost tracking for Token
 """
 
 from dataclasses import dataclass
@@ -10,36 +9,36 @@ from typing import Optional
 
 @dataclass
 class UsageRecord:
-    """使用记录"""
-    timestamp: str  # 时间戳
-    provider: str  # 供应商
-    model_name: str  # 模型名称
-    input_tokens: int  # 输入token数
-    output_tokens: int  # 输出token数
-    cost: float  # 成本
-    currency: str = "CNY"  # 货币单位
-    session_id: str = ""  # 会话ID
-    analysis_type: str = "stock_analysis"  # 分析类型
+    """Use records"""
+    timestamp: str  #Timetamp
+    provider: str  #Vendors
+    model_name: str  #Model Name
+    input_tokens: int  #Enter number of tokens
+    output_tokens: int  #Output number tokens
+    cost: float  #Cost
+    currency: str = "CNY"  #Currency units
+    session_id: str = ""  #Session ID
+    analysis_type: str = "stock_analysis"  #Analysis Type
 
 
 @dataclass
 class ModelConfig:
-    """模型配置"""
-    provider: str  # 供应商：dashscope, openai, google, etc.
-    model_name: str  # 模型名称
-    api_key: str  # API密钥
-    base_url: Optional[str] = None  # 自定义API地址
-    max_tokens: int = 4000  # 最大token数
-    temperature: float = 0.7  # 温度参数
-    enabled: bool = True  # 是否启用
+    """Model Configuration"""
+    provider: str  #Vendor: Dashscope, openai, google, etc.
+    model_name: str  #Model Name
+    api_key: str  #API Key
+    base_url: Optional[str] = None  #Custom API Address
+    max_tokens: int = 4000  #Maximum number of tokens
+    temperature: float = 0.7  #Temperature parameters
+    enabled: bool = True  #Enable
 
 
 @dataclass
 class PricingConfig:
-    """定价配置"""
-    provider: str  # 供应商
-    model_name: str  # 模型名称
-    input_price_per_1k: float  # 输入token价格（每1000个token）
-    output_price_per_1k: float  # 输出token价格（每1000个token）
-    currency: str = "CNY"  # 货币单位
+    """Pricing Configuration"""
+    provider: str  #Vendors
+    model_name: str  #Model Name
+    input_price_per_1k: float  #Enter token price (per 1,000 tokens)
+    output_price_per_1k: float  #Output token price (per 1,000 tokens)
+    currency: str = "CNY"  #Currency units
 

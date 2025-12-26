@@ -67,7 +67,7 @@ python scripts/setup/quick_install.py
 - 🔧 **配置**: 在`.env`文件中设置 `DEEPSEEK_API_KEY`
 
 #### 2. 通义千问（国产，稳定）
-- 🌐 **注册地址**: https://dashscope.aliyun.com/
+- 🌐 **注册地址**: https://dashscope-int.aliyun.com/
 - 💰 **费用**: 按量计费，有免费额度
 - 🔧 **配置**: 在`.env`文件中设置 `DASHSCOPE_API_KEY`
 

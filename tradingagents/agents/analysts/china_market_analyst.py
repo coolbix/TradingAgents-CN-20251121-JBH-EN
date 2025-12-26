@@ -2,69 +2,68 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
-# 导入Google工具调用处理器
+#Import Google Tool Call Processing Device
 from tradingagents.agents.utils.google_tool_handler import GoogleToolCallHandler
 
 
 def _get_company_name_for_china_market(ticker: str, market_info: dict) -> str:
-    """
-    为中国市场分析师获取公司名称
+    """Obtaining company names for Chinese market analysts
 
-    Args:
-        ticker: 股票代码
-        market_info: 市场信息字典
+Args:
+ticker: Stock code
+market info: market information dictionary
 
-    Returns:
-        str: 公司名称
-    """
+Returns:
+str: Company name
+"""
     try:
         if market_info['is_china']:
-            # 中国A股：使用统一接口获取股票信息
+            #China Unit A: Access to stock information using a unified interface
             from tradingagents.dataflows.interface import get_china_stock_info_unified
             stock_info = get_china_stock_info_unified(ticker)
 
-            logger.debug(f"📊 [中国市场分析师] 获取股票信息返回: {stock_info[:200] if stock_info else 'None'}...")
+            logger.debug(f"[China Market Analyst ]{stock_info[:200] if stock_info else 'None'}...")
 
-            # 解析股票名称
+            #Parsing stock name
             if stock_info and "股票名称:" in stock_info:
                 company_name = stock_info.split("股票名称:")[1].split("\n")[0].strip()
-                logger.info(f"✅ [中国市场分析师] 成功获取中国股票名称: {ticker} -> {company_name}")
+                logger.info(f"[China Market Analyst]{ticker} -> {company_name}")
                 return company_name
             else:
-                # 降级方案：尝试直接从数据源管理器获取
-                logger.warning(f"⚠️ [中国市场分析师] 无法从统一接口解析股票名称: {ticker}，尝试降级方案")
+                #Downscaling: attempt to obtain directly from the data source manager
+                logger.warning(f"The name of the stock could not be deciphered from the unified interface:{ticker}, try to downgrade")
                 try:
                     from tradingagents.dataflows.data_source_manager import get_china_stock_info_unified as get_info_dict
                     info_dict = get_info_dict(ticker)
                     if info_dict and info_dict.get('name'):
                         company_name = info_dict['name']
-                        logger.info(f"✅ [中国市场分析师] 降级方案成功获取股票名称: {ticker} -> {company_name}")
+                        logger.info(f"✅ [China Market Analyst] The downgrading program successfully acquired the name of the stock:{ticker} -> {company_name}")
                         return company_name
                 except Exception as e:
-                    logger.error(f"❌ [中国市场分析师] 降级方案也失败: {e}")
+                    logger.error(f"The downgrading programme also failed:{e}")
 
-                logger.error(f"❌ [中国市场分析师] 所有方案都无法获取股票名称: {ticker}")
+                logger.error(f"[China Market Analyst] None of the programs can get stock names:{ticker}")
                 return f"股票代码{ticker}"
 
         elif market_info['is_hk']:
-            # 港股：使用改进的港股工具
+            #Port Unit: use of improved Port Unit tools
             try:
                 from tradingagents.dataflows.providers.hk.improved_hk import get_hk_company_name_improved
                 company_name = get_hk_company_name_improved(ticker)
-                logger.debug(f"📊 [中国市场分析师] 使用改进港股工具获取名称: {ticker} -> {company_name}")
+                logger.debug(f"[China Market Analyst]{ticker} -> {company_name}")
                 return company_name
             except Exception as e:
-                logger.debug(f"📊 [中国市场分析师] 改进港股工具获取名称失败: {e}")
-                # 降级方案：生成友好的默认名称
+                logger.debug(f"📊 [China Market Analyst] failed to improve the Hong Kong stock tool to get a name:{e}")
+                #Downscaling scheme: Generate friendly default names
                 clean_ticker = ticker.replace('.HK', '').replace('.hk', '')
                 return f"港股{clean_ticker}"
 
         elif market_info['is_us']:
-            # 美股：使用简单映射或返回代码
+            #US share: use simple mapping or return code
             us_stock_names = {
                 'AAPL': '苹果公司',
                 'TSLA': '特斯拉',
@@ -77,37 +76,37 @@ def _get_company_name_for_china_market(ticker: str, market_info: dict) -> str:
             }
 
             company_name = us_stock_names.get(ticker.upper(), f"美股{ticker}")
-            logger.debug(f"📊 [中国市场分析师] 美股名称映射: {ticker} -> {company_name}")
+            logger.debug(f"[China Market Analyst ]{ticker} -> {company_name}")
             return company_name
 
         else:
             return f"股票{ticker}"
 
     except Exception as e:
-        logger.error(f"❌ [中国市场分析师] 获取公司名称失败: {e}")
+        logger.error(f"[China Market Analyst ]{e}")
         return f"股票{ticker}"
 
 
 def create_china_market_analyst(llm, toolkit):
-    """创建中国市场分析师"""
+    """Create China Market Analyst"""
     
     def china_market_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
         
-        # 获取股票市场信息
+        #Access to stock market information
         from tradingagents.utils.stock_utils import StockUtils
         market_info = StockUtils.get_market_info(ticker)
         
-        # 获取公司名称
+        #Get company names
         company_name = _get_company_name_for_china_market(ticker, market_info)
-        logger.info(f"[中国市场分析师] 公司名称: {company_name}")
+        logger.info(f"[China Market Analyst] Company name:{company_name}")
         
-        # 中国股票分析工具
+        #China Stock Analysis Tool
         tools = [
             toolkit.get_china_stock_data,
             toolkit.get_china_market_overview,
-            toolkit.get_YFin_data,  # 备用数据源
+            toolkit.get_YFin_data,  #Alternative data sources
         ]
         
         system_message = (
@@ -154,7 +153,7 @@ def create_china_market_analyst(llm, toolkit):
         )
         
         prompt = prompt.partial(system_message=system_message)
-        # 安全地获取工具名称，处理函数和工具对象
+        #Securely capture tool names, process functions and tool objects
         tool_names = []
         for tool in tools:
             if hasattr(tool, 'name'):
@@ -171,11 +170,11 @@ def create_china_market_analyst(llm, toolkit):
         chain = prompt | llm.bind_tools(tools)
         result = chain.invoke(state["messages"])
         
-        # 使用统一的Google工具调用处理器
+        #Use a single Google tool to call for processing Device
         if GoogleToolCallHandler.is_google_model(llm):
-            logger.info(f"📊 [中国市场分析师] 检测到Google模型，使用统一工具调用处理器")
+            logger.info(f"The Google model was detected using a unified tool for processing. Device")
             
-            # 创建分析提示词
+            #Create Analytic Tips
             analysis_prompt_template = GoogleToolCallHandler.create_analysis_prompt(
                 ticker=ticker,
                 company_name=company_name,
@@ -183,7 +182,7 @@ def create_china_market_analyst(llm, toolkit):
                 specific_requirements="重点关注中国A股市场特点、政策影响、行业发展趋势等。"
             )
             
-            # 处理Google模型工具调用
+            #Process Google Model Tool Call
             report, messages = GoogleToolCallHandler.handle_google_tool_calls(
                 result=result,
                 llm=llm,
@@ -193,8 +192,8 @@ def create_china_market_analyst(llm, toolkit):
                 analyst_name="中国市场分析师"
             )
         else:
-            # 非Google模型的处理逻辑
-            logger.debug(f"📊 [DEBUG] 非Google模型 ({llm.__class__.__name__})，使用标准处理逻辑")
+            #Non-Google processing logic
+            logger.debug(f"[DEBUG] Non-Google model{llm.__class__.__name__}) using standard processing logic")
             
             report = ""
             if len(result.tool_calls) == 0:
@@ -210,7 +209,7 @@ def create_china_market_analyst(llm, toolkit):
 
 
 def create_china_stock_screener(llm, toolkit):
-    """创建中国股票筛选器"""
+    """Create a Chinese stock filter"""
     
     def china_stock_screener_node(state):
         current_date = state["trade_date"]
@@ -266,7 +265,7 @@ def create_china_stock_screener(llm, toolkit):
         )
         
         prompt = prompt.partial(system_message=system_message)
-        # 安全地获取工具名称，处理函数和工具对象
+        #Securely capture tool names, process functions and tool objects
         tool_names = []
         for tool in tools:
             if hasattr(tool, 'name'):

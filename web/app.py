@@ -1039,7 +1039,7 @@ def main():
             ### 🔑 必需的API密钥
             
             1. **阿里百炼API密钥** (DASHSCOPE_API_KEY)
-               - 获取地址: https://dashscope.aliyun.com/
+               - 获取地址: https://dashscope-int.aliyun.com/
                - 用途: AI模型推理
             
             2. **金融数据API密钥** (FINNHUB_API_KEY)  

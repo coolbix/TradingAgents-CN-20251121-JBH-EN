@@ -1,6 +1,5 @@
-"""
-新闻数据服务
-提供统一的新闻数据存储、查询和管理功能
+"""News data services
+Provide unified information data storage, query and management functions
 """
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime, timedelta
@@ -16,15 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 def convert_objectid_to_str(data: Union[Dict, List[Dict]]) -> Union[Dict, List[Dict]]:
-    """
-    转换 MongoDB ObjectId 为字符串，避免 JSON 序列化错误
+    """Convert MongoDB ObjectId to a string to avoid a serialization error by JSON
 
-    Args:
-        data: 单个文档或文档列表
+Args:
+Data: Single document or list of documents
 
-    Returns:
-        转换后的数据
-    """
+Returns:
+Converted Data
+"""
     if isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and '_id' in item:
@@ -39,7 +37,7 @@ def convert_objectid_to_str(data: Union[Dict, List[Dict]]) -> Union[Dict, List[D
 
 @dataclass
 class NewsQueryParams:
-    """新闻查询参数"""
+    """News query parameters"""
     symbol: Optional[str] = None
     symbols: Optional[List[str]] = None
     start_time: Optional[datetime] = None
@@ -57,7 +55,7 @@ class NewsQueryParams:
 
 @dataclass
 class NewsStats:
-    """新闻统计信息"""
+    """News statistics"""
     total_count: int = 0
     positive_count: int = 0
     negative_count: int = 0
@@ -76,7 +74,7 @@ class NewsStats:
 
 
 class NewsDataService:
-    """新闻数据服务"""
+    """News data services"""
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -85,59 +83,59 @@ class NewsDataService:
         self._indexes_ensured = False
 
     async def _ensure_indexes(self):
-        """确保必要的索引存在"""
+        """Ensure the necessary index exists"""
         if self._indexes_ensured:
             return
 
         try:
             collection = self._get_collection()
-            self.logger.info("📊 检查并创建新闻数据索引...")
+            self.logger.info("Check and create an index of news data...")
 
-            # 1. 唯一索引：防止重复新闻（URL+标题+发布时间）
+            #1. Unique index: Prevention of duplicate news (URL+title + release time)
             await collection.create_index([
                 ("url", 1),
                 ("title", 1),
                 ("publish_time", 1)
             ], unique=True, name="url_title_time_unique", background=True)
 
-            # 2. 股票代码索引（查询单只股票的新闻）
+            #2. Stock code index (search for information on single stocks)
             await collection.create_index([("symbol", 1)], name="symbol_index", background=True)
 
-            # 3. 多股票代码索引（查询涉及多只股票的新闻）
+            #Multi-stock code index (search for information on multiple stocks)
             await collection.create_index([("symbols", 1)], name="symbols_index", background=True)
 
-            # 4. 发布时间索引（按时间范围查询）
+            #4. Publication of time index (check by time frame)
             await collection.create_index([("publish_time", -1)], name="publish_time_desc", background=True)
 
-            # 5. 复合索引：股票代码+发布时间（常用查询）
+            #5. Composite index: stock code + release time (common query)
             await collection.create_index([
                 ("symbol", 1),
                 ("publish_time", -1)
             ], name="symbol_time_index", background=True)
 
-            # 6. 数据源索引（按数据源筛选）
+            #6. Data source index (screened by data source)
             await collection.create_index([("data_source", 1)], name="data_source_index", background=True)
 
-            # 7. 分类索引（按新闻类别筛选）
+            #Classification index (screening by news category)
             await collection.create_index([("category", 1)], name="category_index", background=True)
 
-            # 8. 情感索引（按情感筛选）
+            #8. Emotional index (in emotional screening)
             await collection.create_index([("sentiment", 1)], name="sentiment_index", background=True)
 
-            # 9. 重要性索引（按重要性筛选）
+            #9. Index of importance (screened by importance)
             await collection.create_index([("importance", 1)], name="importance_index", background=True)
 
-            # 10. 更新时间索引（数据维护）
+            #10. Update time index (data maintenance)
             await collection.create_index([("updated_at", -1)], name="updated_at_index", background=True)
 
             self._indexes_ensured = True
-            self.logger.info("✅ 新闻数据索引检查完成")
+            self.logger.info("News data index check completed")
         except Exception as e:
-            # 索引创建失败不应该阻止服务启动
-            self.logger.warning(f"⚠️ 创建索引时出现警告（可能已存在）: {e}")
+            #Index creation failure should not prevent service startup
+            self.logger.warning(f"Warning (possibly exists) when creating index:{e}")
 
     def _get_collection(self):
-        """获取新闻数据集合"""
+        """Access to news data sets"""
         if self._collection is None:
             self._db = get_database()
             self._collection = self._db.stock_news
@@ -149,25 +147,24 @@ class NewsDataService:
         data_source: str,
         market: str = "CN"
     ) -> int:
-        """
-        保存新闻数据
+        """Preservation of news data
 
-        Args:
-            news_data: 新闻数据（单条或多条）
-            data_source: 数据源标识
-            market: 市场标识
+Args:
+News data: News data (single or multiple)
+Data source: Data source identifier
+Market sign
 
-        Returns:
-            保存的记录数量
-        """
+Returns:
+Number of records kept
+"""
         try:
-            # 🔥 确保索引存在（第一次调用时创建）
+            #🔥 Ensure Index exists (created on first call)
             await self._ensure_indexes()
 
             collection = self._get_collection()
             now = datetime.utcnow()
             
-            # 标准化数据
+            #Standardized data
             if isinstance(news_data, dict):
                 news_list = [news_data]
             else:
@@ -176,24 +173,24 @@ class NewsDataService:
             if not news_list:
                 return 0
             
-            # 准备批量操作
+            #Prepare batch operations
             operations = []
 
             for i, news in enumerate(news_list):
-                # 标准化新闻数据
+                #Standardized public information data
                 standardized_news = self._standardize_news_data(
                     news, data_source, market, now
                 )
 
-                # 🔍 记录前3条数据的详细信息
+                #🔍 Detailed information for recording the first three data
                 if i < 3:
-                    self.logger.info(f"   📝 标准化后的新闻 {i+1}:")
+                    self.logger.info(f"It's a standardized story.{i+1}:")
                     self.logger.info(f"      symbol: {standardized_news.get('symbol')}")
                     self.logger.info(f"      title: {standardized_news.get('title', '')[:50]}...")
                     self.logger.info(f"      publish_time: {standardized_news.get('publish_time')} (type: {type(standardized_news.get('publish_time'))})")
                     self.logger.info(f"      url: {standardized_news.get('url', '')[:80]}...")
 
-                # 使用URL、标题和发布时间作为唯一标识
+                #Use URL, title and release time as unique identifier
                 filter_query = {
                     "url": standardized_news["url"],
                     "title": standardized_news["title"],
@@ -208,37 +205,37 @@ class NewsDataService:
                     )
                 )
             
-            # 执行批量操作
+            #Execute Batch Operations
             if operations:
                 result = await collection.bulk_write(operations)
                 saved_count = result.upserted_count + result.modified_count
                 
-                self.logger.info(f"💾 新闻数据保存完成: {saved_count}条记录 (数据源: {data_source})")
+                self.logger.info(f"News data saved:{saved_count}Article record (data source:{data_source})")
                 return saved_count
             
             return 0
             
         except BulkWriteError as e:
-            # 处理批量写入错误，但不完全失败
+            #Process batch writing error but not completely failed
             write_errors = e.details.get('writeErrors', [])
             error_count = len(write_errors)
-            self.logger.warning(f"⚠️ 部分新闻数据保存失败: {error_count}条错误")
+            self.logger.warning(f"Some news data storage failed:{error_count}Error")
 
-            # 记录详细错误信息
-            for i, error in enumerate(write_errors[:3], 1):  # 只记录前3个错误
+            #Record detailed error information
+            for i, error in enumerate(write_errors[:3], 1):  #Only the first three errors were recorded.
                 error_msg = error.get('errmsg', 'Unknown error')
                 error_code = error.get('code', 'N/A')
-                self.logger.warning(f"   错误 {i}: [Code {error_code}] {error_msg}")
+                self.logger.warning(f"Error{i}: [Code {error_code}] {error_msg}")
 
-            # 计算成功保存的数量
+            #Calculate the number of successfully saved
             success_count = len(operations) - error_count
             if success_count > 0:
-                self.logger.info(f"💾 成功保存 {success_count} 条新闻数据")
+                self.logger.info(f"Save successfully{success_count}Press data")
 
             return success_count
             
         except Exception as e:
-            self.logger.error(f"❌ 保存新闻数据失败: {e}")
+            self.logger.error(f"Can not get folder: %s: %s{e}")
             return 0
 
     def save_news_data_sync(
@@ -247,27 +244,26 @@ class NewsDataService:
         data_source: str,
         market: str = "CN"
     ) -> int:
-        """
-        保存新闻数据（同步版本）
-        用于非异步上下文，使用同步的 PyMongo 客户端
+        """Save news data (sync version)
+Use a synchronized PyMongo client for non-show context
 
-        Args:
-            news_data: 新闻数据（单条或多条）
-            data_source: 数据源标识
-            market: 市场标识
+Args:
+News data: News data (single or multiple)
+Data source: Data source identifier
+Market sign
 
-        Returns:
-            保存的记录数量
-        """
+Returns:
+Number of records kept
+"""
         try:
             from app.core.database import get_mongo_db_sync
 
-            # 获取同步数据库连接
+            #Get Sync database connections
             db = get_mongo_db_sync()
             collection = db.stock_news
             now = datetime.utcnow()
 
-            # 标准化数据
+            #Standardized data
             if isinstance(news_data, dict):
                 news_list = [news_data]
             else:
@@ -276,25 +272,25 @@ class NewsDataService:
             if not news_list:
                 return 0
 
-            # 准备批量操作
+            #Prepare batch operations
             operations = []
 
-            self.logger.info(f"📝 开始标准化 {len(news_list)} 条新闻数据...")
+            self.logger.info(f"Standardize.{len(news_list)}News data...")
 
             for i, news in enumerate(news_list, 1):
-                # 标准化新闻数据
+                #Standardized public information data
                 standardized_news = self._standardize_news_data(news, data_source, market, now)
 
-                # 记录前3条新闻的详细信息
+                #Recording details of the first three stories
                 if i <= 3:
-                    self.logger.info(f"   📝 标准化后的新闻 {i}:")
+                    self.logger.info(f"It's a standardized story.{i}:")
                     self.logger.info(f"      symbol: {standardized_news.get('symbol')}")
                     self.logger.info(f"      title: {standardized_news.get('title', '')[:50]}...")
                     publish_time = standardized_news.get('publish_time')
                     self.logger.info(f"      publish_time: {publish_time} (type: {type(publish_time)})")
                     self.logger.info(f"      url: {standardized_news.get('url', '')[:60]}...")
 
-                # 使用URL+标题+发布时间作为唯一标识
+                #Use URL+title+ time for publication only
                 filter_query = {
                     "url": standardized_news.get("url"),
                     "title": standardized_news.get("title"),
@@ -309,37 +305,37 @@ class NewsDataService:
                     )
                 )
 
-            # 执行批量操作（同步方式）
+            #Perform batch operations (sync)
             if operations:
                 result = collection.bulk_write(operations)
                 saved_count = result.upserted_count + result.modified_count
 
-                self.logger.info(f"💾 新闻数据保存完成: {saved_count}条记录 (数据源: {data_source})")
+                self.logger.info(f"News data saved:{saved_count}Article record (data source:{data_source})")
                 return saved_count
 
             return 0
 
         except BulkWriteError as e:
-            # 处理批量写入错误，但不完全失败
+            #Process batch writing error but not completely failed
             write_errors = e.details.get('writeErrors', [])
             error_count = len(write_errors)
-            self.logger.warning(f"⚠️ 部分新闻数据保存失败: {error_count}条错误")
+            self.logger.warning(f"Some news data storage failed:{error_count}Error")
 
-            # 记录详细错误信息
-            for i, error in enumerate(write_errors[:3], 1):  # 只记录前3个错误
+            #Record detailed error information
+            for i, error in enumerate(write_errors[:3], 1):  #Only the first three errors were recorded.
                 error_msg = error.get('errmsg', 'Unknown error')
                 error_code = error.get('code', 'N/A')
-                self.logger.warning(f"   错误 {i}: [Code {error_code}] {error_msg}")
+                self.logger.warning(f"Error{i}: [Code {error_code}] {error_msg}")
 
-            # 计算成功保存的数量
+            #Calculate the number of successfully saved
             success_count = len(operations) - error_count
             if success_count > 0:
-                self.logger.info(f"💾 成功保存 {success_count} 条新闻数据")
+                self.logger.info(f"Save successfully{success_count}Press data")
 
             return success_count
 
         except Exception as e:
-            self.logger.error(f"❌ 保存新闻数据失败: {e}")
+            self.logger.error(f"Can not get folder: %s: %s{e}")
             import traceback
             self.logger.error(traceback.format_exc())
             return 0
@@ -351,25 +347,25 @@ class NewsDataService:
         market: str,
         now: datetime
     ) -> Dict[str, Any]:
-        """标准化新闻数据"""
+        """Standardized public information data"""
         
-        # 提取基础信息
+        #Extract Basic Information
         symbol = news_data.get("symbol")
         symbols = news_data.get("symbols", [])
         
-        # 如果有主要股票代码但symbols为空，添加到symbols中
+        #Add to symbols if key stock codes are available but symbols are empty
         if symbol and symbol not in symbols:
             symbols = [symbol] + symbols
         
-        # 标准化数据结构
+        #Standardized data structure
         standardized = {
-            # 基础信息
+            #Basic information
             "symbol": symbol,
             "full_symbol": self._get_full_symbol(symbol, market) if symbol else None,
             "market": market,
             "symbols": symbols,
             
-            # 新闻内容
+            #Public information content
             "title": news_data.get("title", ""),
             "content": news_data.get("content", ""),
             "summary": news_data.get("summary", ""),
@@ -377,18 +373,18 @@ class NewsDataService:
             "source": news_data.get("source", ""),
             "author": news_data.get("author", ""),
             
-            # 时间信息
+            #Time Information
             "publish_time": self._parse_datetime(news_data.get("publish_time")),
             
-            # 分类和标签
+            #Classification and labelling
             "category": news_data.get("category", "general"),
             "sentiment": news_data.get("sentiment", "neutral"),
             "sentiment_score": self._safe_float(news_data.get("sentiment_score")),
             "keywords": news_data.get("keywords", []),
             "importance": news_data.get("importance", "medium"),
-            # 注意：不包含 language 字段，避免与 MongoDB 文本索引冲突
+            #Note: does not contain alanguage field, avoiding conflict with the MongoDB text index
 
-            # 元数据
+            #Metadata
             "data_source": data_source,
             "created_at": now,
             "updated_at": now,
@@ -398,7 +394,7 @@ class NewsDataService:
         return standardized
     
     def _get_full_symbol(self, symbol: str, market: str) -> str:
-        """获取完整股票代码"""
+        """Get the full stock code"""
         if not symbol:
             return None
         
@@ -412,7 +408,7 @@ class NewsDataService:
         return symbol
     
     def _parse_datetime(self, dt_value) -> Optional[datetime]:
-        """解析日期时间"""
+        """Other Organiser"""
         if dt_value is None:
             return None
         
@@ -421,7 +417,7 @@ class NewsDataService:
         
         if isinstance(dt_value, str):
             try:
-                # 尝试多种日期格式
+                #Try multiple date formats
                 formats = [
                     "%Y-%m-%d %H:%M:%S",
                     "%Y-%m-%dT%H:%M:%S",
@@ -435,8 +431,8 @@ class NewsDataService:
                     except ValueError:
                         continue
                 
-                # 如果都失败了，返回当前时间
-                self.logger.warning(f"⚠️ 无法解析日期时间: {dt_value}")
+                #If they fail, return to the current time.
+                self.logger.warning(f"Could not close temporary folder: %s{dt_value}")
                 return datetime.utcnow()
                 
             except Exception:
@@ -445,7 +441,7 @@ class NewsDataService:
         return datetime.utcnow()
     
     def _safe_float(self, value) -> Optional[float]:
-        """安全转换为浮点数"""
+        """Convert safe to floating point"""
         if value is None:
             return None
         
@@ -455,31 +451,30 @@ class NewsDataService:
             return None
     
     async def query_news(self, params: NewsQueryParams) -> List[Dict[str, Any]]:
-        """
-        查询新闻数据
-        
-        Args:
-            params: 查询参数
-            
-        Returns:
-            新闻数据列表
-        """
+        """Query news data
+
+Args:
+Params: query parameters
+
+Returns:
+News Data List
+"""
         try:
             collection = self._get_collection()
 
-            self.logger.info(f"🔍 [query_news] 开始查询新闻数据")
-            self.logger.info(f"   参数: symbol={params.symbol}, start_time={params.start_time}, end_time={params.end_time}, limit={params.limit}")
+            self.logger.info(f"[Query news]")
+            self.logger.info(f"Parameter: symbol={params.symbol}, start_time={params.start_time}, end_time={params.end_time}, limit={params.limit}")
 
-            # 构建查询条件
+            #Build query conditions
             query = {}
 
             if params.symbol:
                 query["symbol"] = params.symbol
-                self.logger.info(f"   添加查询条件: symbol={params.symbol}")
+                self.logger.info(f"Add query condition: symbol={params.symbol}")
 
             if params.symbols:
                 query["symbols"] = {"$in": params.symbols}
-                self.logger.info(f"   添加查询条件: symbols in {params.symbols}")
+                self.logger.info(f"Add query condition: symbols in{params.symbols}")
 
             if params.start_time or params.end_time:
                 time_query = {}
@@ -488,65 +483,65 @@ class NewsDataService:
                 if params.end_time:
                     time_query["$lte"] = params.end_time
                 query["publish_time"] = time_query
-                self.logger.info(f"   添加查询条件: publish_time between {params.start_time} and {params.end_time}")
+                self.logger.info(f"Add query condition: public time between{params.start_time} and {params.end_time}")
 
             if params.category:
                 query["category"] = params.category
-                self.logger.info(f"   添加查询条件: category={params.category}")
+                self.logger.info(f"Add Query Conditions:{params.category}")
 
             if params.sentiment:
                 query["sentiment"] = params.sentiment
-                self.logger.info(f"   添加查询条件: sentiment={params.sentiment}")
+                self.logger.info(f"Adding Query Conditions:{params.sentiment}")
 
             if params.importance:
                 query["importance"] = params.importance
-                self.logger.info(f"   添加查询条件: importance={params.importance}")
+                self.logger.info(f"Add query condition:{params.importance}")
 
             if params.data_source:
                 query["data_source"] = params.data_source
-                self.logger.info(f"   添加查询条件: data_source={params.data_source}")
+                self.logger.info(f"Add Query Conditions: Data source={params.data_source}")
 
             if params.keywords:
-                # 文本搜索
+                #Text Search
                 query["$text"] = {"$search": " ".join(params.keywords)}
-                self.logger.info(f"   添加查询条件: text search={params.keywords}")
+                self.logger.info(f"Add query condition: text search={params.keywords}")
 
-            self.logger.info(f"   最终查询条件: {query}")
+            self.logger.info(f"Final search condition:{query}")
 
-            # 先统计总数
+            #Total first count
             total_count = await collection.count_documents(query)
-            self.logger.info(f"   数据库中符合条件的总记录数: {total_count}")
+            self.logger.info(f"Total records eligible in database:{total_count}")
 
-            # 执行查询
+            #Execute queries
             cursor = collection.find(query)
 
-            # 排序
+            #Sort
             cursor = cursor.sort(params.sort_by, params.sort_order)
-            self.logger.info(f"   排序: {params.sort_by} ({params.sort_order})")
+            self.logger.info(f"Sort:{params.sort_by} ({params.sort_order})")
 
-            # 分页
+            #Page Break
             cursor = cursor.skip(params.skip).limit(params.limit)
-            self.logger.info(f"   分页: skip={params.skip}, limit={params.limit}")
+            self.logger.info(f"Page Break: Skip={params.skip}, limit={params.limit}")
 
-            # 获取结果
+            #Get results
             results = await cursor.to_list(length=None)
-            self.logger.info(f"   查询返回: {len(results)} 条记录")
+            self.logger.info(f"Query returns:{len(results)}Notes")
 
-            # 🔧 转换 ObjectId 为字符串，避免 JSON 序列化错误
+            #Convert ObjectId to a string to avoid serialization errors in JSON
             results = convert_objectid_to_str(results)
 
             if results:
-                self.logger.info(f"   前3条预览:")
+                self.logger.info(f"The first 3 previews:")
                 for i, r in enumerate(results[:3], 1):
                     self.logger.info(f"      {i}. symbol={r.get('symbol')}, title={r.get('title', 'N/A')[:50]}..., publish_time={r.get('publish_time')}")
             else:
-                self.logger.warning(f"   ⚠️ 查询结果为空")
+                self.logger.warning(f"Other Organiser")
 
-            self.logger.info(f"✅ [query_news] 查询完成，返回 {len(results)} 条记录")
+            self.logger.info(f"[Query news] Query completed, return{len(results)}Notes")
             return results
 
         except Exception as e:
-            self.logger.error(f"❌ 查询新闻数据失败: {e}", exc_info=True)
+            self.logger.error(f"The search for news data failed:{e}", exc_info=True)
             return []
     
     async def get_latest_news(
@@ -555,17 +550,16 @@ class NewsDataService:
         limit: int = 10,
         hours_back: int = 24
     ) -> List[Dict[str, Any]]:
-        """
-        获取最新新闻
-        
-        Args:
-            symbol: 股票代码，为空则获取所有新闻
-            limit: 返回数量限制
-            hours_back: 回溯小时数
-            
-        Returns:
-            最新新闻列表
-        """
+        """Get the latest news.
+
+Args:
+symbol: stock code, empty for all news
+Limited number of returns
+Hours back: backtrace hours
+
+Returns:
+Newslist Update
+"""
         start_time = datetime.utcnow() - timedelta(hours=hours_back)
         
         params = NewsQueryParams(
@@ -584,21 +578,20 @@ class NewsDataService:
         start_time: datetime = None,
         end_time: datetime = None
     ) -> NewsStats:
-        """
-        获取新闻统计信息
-        
-        Args:
-            symbol: 股票代码
-            start_time: 开始时间
-            end_time: 结束时间
-            
-        Returns:
-            新闻统计信息
-        """
+        """Access to news statistics
+
+Args:
+symbol: stock code
+Start time: start time
+End time: End time
+
+Returns:
+News statistics
+"""
         try:
             collection = self._get_collection()
             
-            # 构建匹配条件
+            #Build Match Conditions
             match_stage = {}
             
             if symbol:
@@ -612,7 +605,7 @@ class NewsDataService:
                     time_query["$lte"] = end_time
                 match_stage["publish_time"] = time_query
             
-            # 聚合管道
+            #Aggregation Conduit
             pipeline = []
             
             if match_stage:
@@ -647,13 +640,13 @@ class NewsDataService:
                 }
             ])
             
-            # 执行聚合
+            #Execute Convergence
             result = await collection.aggregate(pipeline).to_list(length=1)
             
             if result:
                 data = result[0]
                 
-                # 统计分类和来源
+                #Statistical classifications and sources
                 categories = {}
                 for cat in data.get("categories", []):
                     categories[cat] = categories.get(cat, 0) + 1
@@ -677,19 +670,18 @@ class NewsDataService:
             return NewsStats()
             
         except Exception as e:
-            self.logger.error(f"❌ 获取新闻统计失败: {e}")
+            self.logger.error(f"Access to news statistics failed:{e}")
             return NewsStats()
     
     async def delete_old_news(self, days_to_keep: int = 90) -> int:
-        """
-        删除过期新闻
-        
-        Args:
-            days_to_keep: 保留天数
-            
-        Returns:
-            删除的记录数量
-        """
+        """Delete Expired News
+
+Args:
+days to keep: Keep days
+
+Returns:
+Number of records removed
+"""
         try:
             collection = self._get_collection()
             
@@ -700,12 +692,12 @@ class NewsDataService:
             })
             
             deleted_count = result.deleted_count
-            self.logger.info(f"🗑️ 删除过期新闻: {deleted_count}条记录")
+            self.logger.info(f"Delete the expired news:{deleted_count}Notes")
             
             return deleted_count
             
         except Exception as e:
-            self.logger.error(f"❌ 删除过期新闻失败: {e}")
+            self.logger.error(f"@❌ > Delete expired news failed:{e}")
             return 0
 
     async def search_news(
@@ -714,27 +706,26 @@ class NewsDataService:
         symbol: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
-        全文搜索新闻
+        """Full text search news
 
-        Args:
-            query_text: 搜索文本
-            symbol: 股票代码过滤
-            limit: 返回数量限制
+Args:
+Query text: Search text
+symbol: stock code filter
+Limited number of returns
 
-        Returns:
-            搜索结果列表
-        """
+Returns:
+Search result list
+"""
         try:
             collection = self._get_collection()
 
-            # 构建查询条件
+            #Build query conditions
             query = {"$text": {"$search": query_text}}
 
             if symbol:
                 query["symbol"] = symbol
 
-            # 执行搜索，按相关性排序
+            #Execute search, sort by relevance
             cursor = collection.find(
                 query,
                 {"score": {"$meta": "textScore"}}
@@ -743,24 +734,24 @@ class NewsDataService:
             cursor = cursor.limit(limit)
             results = await cursor.to_list(length=None)
 
-            # 🔧 转换 ObjectId 为字符串，避免 JSON 序列化错误
+            #Convert ObjectId to a string to avoid serialization errors in JSON
             results = convert_objectid_to_str(results)
 
-            self.logger.info(f"🔍 全文搜索返回 {len(results)} 条结果")
+            self.logger.info(f"Full text search returned{len(results)}Outcome")
             return results
 
         except Exception as e:
-            self.logger.error(f"❌ 全文搜索失败: {e}")
+            self.logger.error(f"Full text search failed:{e}")
             return []
 
 
-# 全局服务实例
+#Examples of global services
 _service_instance = None
 
 async def get_news_data_service() -> NewsDataService:
-    """获取新闻数据服务实例"""
+    """Examples of access to news data services"""
     global _service_instance
     if _service_instance is None:
         _service_instance = NewsDataService()
-        logger.info("✅ 新闻数据服务初始化成功")
+        logger.info("✅News data service initiated successfully")
     return _service_instance

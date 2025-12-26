@@ -34,25 +34,25 @@ async def task_progress_generator(task_id: str, user_id: str):
             heartbeat_every = int(getattr(settings, "SSE_HEARTBEAT_INTERVAL_SECONDS", 10))
             max_idle_seconds = int(getattr(settings, "SSE_TASK_MAX_IDLE_SECONDS", 300))
 
-        # 🔥 修复：创建 PubSub 连接
+        #Fix: Create PubSub Connection
         pubsub = r.pubsub()
-        logger.info(f"📡 [SSE-Task] 创建 PubSub 连接: task={task_id}, user={user_id}")
+        logger.info(f"[SSE-Task] Create PubSub Connection:{task_id}, user={user_id}")
 
-        # 🔥 修复：订阅频道（可能失败，需要确保 pubsub 被清理）
+        #Fixing: Subscription Channels (possible failure, need to ensure that pubsub is cleaned)
         try:
             await pubsub.subscribe(channel)
-            logger.info(f"✅ [SSE-Task] 订阅频道成功: {channel}")
+            logger.info(f"[SSE-Task] Subscription channel successfully:{channel}")
             # Send initial connection confirmation
             yield f"event: connected\ndata: {{\"task_id\": \"{task_id}\", \"message\": \"已连接进度流\"}}\n\n"
         except Exception as subscribe_error:
-            # 🔥 订阅失败时立即清理 pubsub 连接
-            logger.error(f"❌ [SSE-Task] 订阅频道失败: {subscribe_error}")
+            #🔥 Cleanup pubsub connection as soon as the subscription fails
+            logger.error(f"[SSE-Task]{subscribe_error}")
             try:
                 await pubsub.close()
-                logger.info(f"🧹 [SSE-Task] 订阅失败后已关闭 PubSub 连接")
+                logger.info(f"Could not close temporary folder: %s")
             except Exception as close_error:
-                logger.error(f"❌ [SSE-Task] 关闭 PubSub 连接失败: {close_error}")
-            # 重新抛出异常，让外层 except 处理
+                logger.error(f"Could not close temporary folder: %s{close_error}")
+            #Releasing anomalies for except processing
             raise
 
         # Listen for progress updates
@@ -86,28 +86,28 @@ async def task_progress_generator(task_id: str, user_id: str):
         logger.exception(f"SSE error for task {task_id}: {e}")
         yield f"event: error\ndata: {{\"error\": \"连接异常: {str(e)}\"}}\n\n"
     finally:
-        # 🔥 修复：确保在所有情况下都释放连接
+        #Rehabilitation: ensure that connections are released in all circumstances
         if pubsub:
-            logger.info(f"🧹 [SSE-Task] 清理 PubSub 连接: task={task_id}")
+            logger.info(f"[SSE-Task] Cleanup PubSub Connection:{task_id}")
 
-            # 分步骤关闭，确保即使 unsubscribe 失败也能关闭连接
+            #Close in stages to ensure that the connection is closed even if unsubscribe fails
             try:
                 await pubsub.unsubscribe(channel)
-                logger.debug(f"✅ [SSE-Task] 已取消订阅频道: {channel}")
+                logger.debug(f"[SSE-Task]{channel}")
             except Exception as e:
-                logger.warning(f"⚠️ [SSE-Task] 取消订阅失败（将继续关闭连接）: {e}")
+                logger.warning(f"⚠️ [SSE-Task] Unsubscription failed (continue to close the connection):{e}")
 
             try:
                 await pubsub.close()
-                logger.info(f"✅ [SSE-Task] PubSub 连接已关闭: task={task_id}")
+                logger.info(f"[SSE-Task] PubSub connection closed:{task_id}")
             except Exception as e:
-                logger.error(f"❌ [SSE-Task] 关闭 PubSub 连接失败: {e}", exc_info=True)
-                # 即使关闭失败，也尝试重置连接
+                logger.error(f"Could not close temporary folder: %s{e}", exc_info=True)
+                #Even if closing failed, try to reset the connection
                 try:
                     await pubsub.reset()
-                    logger.info(f"🔄 [SSE-Task] PubSub 连接已重置: task={task_id}")
+                    logger.info(f"[SSE-Task] PubSub connection has been reset:{task_id}")
                 except Exception as reset_error:
-                    logger.error(f"❌ [SSE-Task] 重置 PubSub 连接也失败: {reset_error}")
+                    logger.error(f"[SSE-Task] Reset the PubSub connection also failed:{reset_error}")
 
 
 async def batch_progress_generator(batch_id: str, user_id: str):

@@ -1,6 +1,5 @@
-"""
-股票数据API路由 - 基于扩展数据模型
-提供标准化的股票数据访问接口
+"""Stock data API route - based on extended data model
+Provide standardized stock data access interfaces
 """
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -25,15 +24,14 @@ async def get_stock_basic_info(
     symbol: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取股票基础信息
+    """Access to basic stock information
 
-    Args:
-        symbol: 股票代码 (支持6位A股代码)
+Args:
+Symbol: Stock code
 
-    Returns:
-        StockBasicInfoResponse: 包含扩展字段的股票基础信息
-    """
+Returns:
+StockBasicInfoResponse: Stock Basic Information with Extended Fields
+"""
     try:
         service = get_stock_data_service()
         stock_info = await service.get_stock_basic_info(symbol)
@@ -62,15 +60,14 @@ async def get_market_quotes(
     symbol: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取实时行情数据
+    """Get Real Time Line Data
 
-    Args:
-        symbol: 股票代码 (支持6位A股代码)
+Args:
+Symbol: Stock code
 
-    Returns:
-        MarketQuotesResponse: 包含扩展字段的实时行情数据
-    """
+Returns:
+MarketQuotesReponse: Real-time line data with extended fields
+"""
     try:
         service = get_stock_data_service()
         quotes = await service.get_market_quotes(symbol)
@@ -102,18 +99,17 @@ async def get_stock_list(
     page_size: int = Query(20, ge=1, le=100, description="每页大小"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取股票列表
-    
-    Args:
-        market: 市场筛选 (可选)
-        industry: 行业筛选 (可选)
-        page: 页码 (从1开始)
-        page_size: 每页大小 (1-100)
-        
-    Returns:
-        StockListResponse: 股票列表数据
-    """
+    """Get Stock List
+
+Args:
+market: Market Filter (optional)
+Industry filter (optional)
+Page: Page Number (from 1)
+page size: per page size (1-100)
+
+Returns:
+StockListResponse: Stocklist data
+"""
     try:
         service = get_stock_data_service()
         stock_list = await service.get_stock_list(
@@ -123,7 +119,7 @@ async def get_stock_list(
             page_size=page_size
         )
         
-        # 计算总数 (简化实现，实际应该单独查询)
+        #Calculating the total (simplified and achieved, actually separately)
         total = len(stock_list)
         
         return StockListResponse(
@@ -147,19 +143,18 @@ async def get_combined_stock_data(
     symbol: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取股票综合数据 (基础信息 + 实时行情)
+    """Access to comprehensive stock data (basic information + real time lines)
 
-    Args:
-        symbol: 股票代码
+Args:
+symbol: stock code
 
-    Returns:
-        dict: 包含基础信息和实时行情的综合数据
-    """
+Returns:
+dict: Comprehensive data containing basic information and real time patterns
+"""
     try:
         service = get_stock_data_service()
 
-        # 并行获取基础信息和行情数据
+        #Parallel access to basic information and situational data
         import asyncio
         basic_info_task = service.get_stock_basic_info(symbol)
         quotes_task = service.get_market_quotes(symbol)
@@ -170,7 +165,7 @@ async def get_combined_stock_data(
             return_exceptions=True
         )
 
-        # 处理异常
+        #Deal with anomalies
         if isinstance(basic_info, Exception):
             basic_info = None
         if isinstance(quotes, Exception):
@@ -206,16 +201,15 @@ async def search_stocks(
     limit: int = Query(10, ge=1, le=50, description="返回数量限制"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    搜索股票
-    
-    Args:
-        keyword: 搜索关键词 (股票代码或名称)
-        limit: 返回数量限制
-        
-    Returns:
-        dict: 搜索结果
-    """
+    """Search stocks
+
+Args:
+Keyword: Search for keywords (stock code or name)
+Limited number of returns
+
+Returns:
+dict: Search results
+"""
     try:
         from app.core.database import get_mongo_db
         from app.core.unified_config import UnifiedConfigManager
@@ -223,11 +217,11 @@ async def search_stocks(
         db = get_mongo_db()
         collection = db.stock_basic_info
 
-        # 🔥 获取数据源优先级配置
+        #Access source priority configuration
         config = UnifiedConfigManager()
         data_source_configs = await config.get_data_source_configs_async()
 
-        # 提取启用的数据源，按优先级排序
+        #Extract enabled data sources in order of priority
         enabled_sources = [
             ds.type.lower() for ds in data_source_configs
             if ds.enabled and ds.type.lower() in ['tushare', 'akshare', 'baostock']
@@ -238,20 +232,20 @@ async def search_stocks(
 
         preferred_source = enabled_sources[0] if enabled_sources else 'tushare'
 
-        # 构建搜索条件
+        #Build search conditions
         search_conditions = []
 
-        # 如果是6位数字，按代码精确匹配
+        #If it's a six-digit number, match it by code.
         if keyword.isdigit() and len(keyword) == 6:
             search_conditions.append({"symbol": keyword})
         else:
-            # 按名称模糊匹配
+            #Match by name blur
             search_conditions.append({"name": {"$regex": keyword, "$options": "i"}})
-            # 如果包含数字，也尝试代码匹配
+            #If you include numbers, try code matching.
             if any(c.isdigit() for c in keyword):
                 search_conditions.append({"symbol": {"$regex": keyword}})
 
-        # 🔥 添加数据源筛选：只查询优先级最高的数据源
+        #Add data source filter 🔥: only the highest priority data source is asked
         query = {
             "$and": [
                 {"$or": search_conditions},
@@ -259,12 +253,12 @@ async def search_stocks(
             ]
         }
 
-        # 执行搜索
+        #Execute Search
         cursor = collection.find(query, {"_id": 0}).limit(limit)
 
         results = await cursor.to_list(length=limit)
 
-        # 数据标准化
+        #Data standardization
         service = get_stock_data_service()
         standardized_results = []
         for doc in results:
@@ -276,7 +270,7 @@ async def search_stocks(
             "data": standardized_results,
             "total": len(standardized_results),
             "keyword": keyword,
-            "source": preferred_source,  # 🔥 返回数据来源
+            "source": preferred_source,  #Return data source
             "message": "搜索完成"
         }
         
@@ -291,19 +285,18 @@ async def search_stocks(
 async def get_market_summary(
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取市场概览
+    """Overview of access markets
 
-    Returns:
-        dict: 各市场的股票数量统计
-    """
+Returns:
+Dict: Stock count by market
+"""
     try:
         from app.core.database import get_mongo_db
 
         db = get_mongo_db()
         collection = db.stock_basic_info
 
-        # 统计各市场股票数量
+        #Number of stocks by market
         pipeline = [
             {
                 "$group": {
@@ -319,7 +312,7 @@ async def get_market_summary(
         cursor = collection.aggregate(pipeline)
         market_stats = await cursor.to_list(length=None)
 
-        # 总数统计
+        #Total statistics
         total_count = await collection.count_documents({})
 
         return {
@@ -327,8 +320,8 @@ async def get_market_summary(
             "data": {
                 "total_stocks": total_count,
                 "market_breakdown": market_stats,
-                "supported_markets": ["CN"],  # 当前支持的市场
-                "last_updated": None  # 可以从数据中获取最新更新时间
+                "supported_markets": ["CN"],  #Current Supported Market
+                "last_updated": None  #Update time from data
             },
             "message": "获取成功"
         }
@@ -344,25 +337,13 @@ async def get_market_summary(
 async def get_quotes_sync_status(
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取实时行情同步状态
+    """Get Real Time Line Sync Status
 
-    Returns:
-        dict: {
-            "success": True,
-            "data": {
-                "last_sync_time": "2025-10-28 15:06:00",
-                "last_sync_time_iso": "2025-10-28T15:06:00+08:00",
-                "interval_seconds": 360,
-                "interval_minutes": 6,
-                "data_source": "tushare",
-                "success": True,
-                "records_count": 5440,
-                "error_message": None
-            },
-            "message": "获取成功"
-        }
-    """
+Returns:
+== sync, corrected by elderman ==
+"Message": "Access."
+♪ I'm sorry ♪
+"""
     try:
         from app.services.quotes_ingestion_service import QuotesIngestionService
 

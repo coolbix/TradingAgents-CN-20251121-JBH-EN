@@ -154,7 +154,7 @@ select_llm_provider() {
         2)
             PROVIDER="通义千问"
             API_KEY_NAME="DASHSCOPE_API_KEY"
-            API_URL="https://dashscope.aliyun.com/"
+            API_URL="https://dashscope-int.aliyun.com/"
             ;;
         3)
             PROVIDER="Google Gemini"

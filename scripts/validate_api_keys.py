@@ -162,7 +162,7 @@ def main():
             "name": "阿里百炼",
             "env_key": "DASHSCOPE_API_KEY",
             "validator": validate_dashscope,
-            "url": "https://dashscope.aliyun.com/"
+            "url": "https://dashscope-int.aliyun.com/"
         },
         {
             "name": "Google AI",

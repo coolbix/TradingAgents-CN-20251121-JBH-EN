@@ -1,6 +1,5 @@
-"""
-操作日志记录中间件
-自动记录用户的API操作日志
+"""Operation log record middle
+Autorecord user API Operations Log
 """
 
 import time
@@ -15,7 +14,7 @@ from app.models.operation_log import ActionType
 
 logger = logging.getLogger("webapi")
 
-# 全局开关：是否启用操作日志记录（可由系统设置动态控制）
+#Global Switches: Whether or not to enable operation log records (can be controlled dynamically by the system)
 OPLOG_ENABLED: bool = True
 
 def set_operation_log_enabled(flag: bool) -> None:
@@ -25,11 +24,11 @@ def set_operation_log_enabled(flag: bool) -> None:
 
 
 class OperationLogMiddleware(BaseHTTPMiddleware):
-    """操作日志记录中间件"""
+    """Operation log record middle"""
 
     def __init__(self, app, skip_paths: Optional[list] = None):
         super().__init__(app)
-        # 跳过记录日志的路径
+        #Skip the log path
         self.skip_paths = skip_paths or [
             "/health",
             "/healthz",
@@ -38,11 +37,11 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/redoc",
             "/openapi.json",
-            "/api/stream/",  # SSE流不记录
-            "/api/system/logs/",  # 操作日志API本身不记录
+            "/api/stream/",  #SSE streams are not recorded
+            "/api/system/logs/",  #Operation log API does not record itself
         ]
 
-        # 路径到操作类型的映射
+        #Map Path to Operation Type
         self.path_action_mapping = {
             "/api/analysis/": ActionType.STOCK_ANALYSIS,
             "/api/screening/": ActionType.SCREENING,
@@ -50,34 +49,34 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
             "/api/system/database/": ActionType.DATABASE_OPERATION,
             "/api/auth/login": ActionType.USER_LOGIN,
             "/api/auth/logout": ActionType.USER_LOGOUT,
-            "/api/auth/change-password": ActionType.USER_MANAGEMENT,  # 🔧 添加修改密码操作类型
+            "/api/auth/change-password": ActionType.USER_MANAGEMENT,  #Add Changes to Password Operations
             "/api/reports/": ActionType.REPORT_GENERATION,
         }
 
     async def dispatch(self, request: Request, call_next):
-        # 检查是否需要跳过记录
+        #Check if skipping records is required
         if self._should_skip_logging(request):
             return await call_next(request)
 
-        # 记录开始时间
+        #Record start time
         start_time = time.time()
 
-        # 获取请求信息
+        #Access to requested information
         method = request.method
         path = request.url.path
         ip_address = self._get_client_ip(request)
         user_agent = request.headers.get("user-agent", "")
 
-        # 获取用户信息（如果已认证）
+        #Access to user information (if certified)
         user_info = await self._get_user_info(request)
 
-        # 处理请求
+        #Processing of requests
         response = await call_next(request)
 
-        # 计算耗时
+        #Time-consuming calculation
         duration_ms = int((time.time() - start_time) * 1000)
 
-        # 异步记录操作日志
+        #Step Record Operations Log
         if user_info:
             try:
                 await self._log_operation(
@@ -91,36 +90,36 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
                     request=request
                 )
             except Exception as e:
-                logger.error(f"记录操作日志失败: {e}")
+                logger.error(f"Log operation log failed:{e}")
 
         return response
 
     def _should_skip_logging(self, request: Request) -> bool:
-        """判断是否应该跳过日志记录"""
-        # 全局关闭时直接跳过
+        """Judge whether logs should be skipped"""
+        #Skip directly when global closing
         if not OPLOG_ENABLED:
             return True
 
         path = request.url.path
 
-        # 检查跳过路径
+        #Check Skip Path
         for skip_path in self.skip_paths:
             if path.startswith(skip_path):
                 return True
 
-        # 只记录API请求
+        #Only record API requests
         if not path.startswith("/api/"):
             return True
 
-        # 只记录特定HTTP方法
+        #Record specific HTTP methods only
         if request.method not in ["POST", "PUT", "DELETE", "PATCH"]:
             return True
 
         return False
 
     def _get_client_ip(self, request: Request) -> str:
-        """获取客户端IP地址"""
-        # 检查代理头
+        """Get Client IP Address"""
+        #Check Agent
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
@@ -129,30 +128,30 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
         if real_ip:
             return real_ip
 
-        # 使用直接连接IP
+        #Use direct connection IP
         if request.client:
             return request.client.host
 
         return "unknown"
 
     async def _get_user_info(self, request: Request) -> Optional[Dict[str, Any]]:
-        """获取用户信息"""
+        """Get User Information"""
         try:
-            # 从请求状态中获取用户信息（由认证中间件设置）
+            #Fetch user information from request status (with authentication intermediate settings)
             if hasattr(request.state, "user"):
                 return request.state.user
 
-            # 尝试从Authorization头解析用户信息
+            #Try to decipher user information from Authorize head
             auth_header = request.headers.get("authorization")
             if auth_header and auth_header.startswith("Bearer "):
                 token = auth_header.split(" ", 1)[1]
 
-                # 使用AuthService验证token
+                #Authenticate token using AuthService
                 from app.services.auth_service import AuthService
                 token_data = AuthService.verify_token(token)
 
                 if token_data:
-                    # 返回用户信息（开源版只有admin用户）
+                    #Return user information (open-source only admin users)
                     return {
                         "id": "admin",
                         "username": "admin",
@@ -163,20 +162,20 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
 
             return None
         except Exception as e:
-            logger.debug(f"获取用户信息失败: {e}")
+            logger.debug(f"Could not close temporary folder: %s{e}")
             return None
 
     def _get_action_type(self, path: str) -> str:
-        """根据路径获取操作类型"""
+        """Get Operations Type From Path"""
         for path_prefix, action_type in self.path_action_mapping.items():
             if path.startswith(path_prefix):
                 return action_type
 
-        return ActionType.SYSTEM_SETTINGS  # 默认类型
+        return ActionType.SYSTEM_SETTINGS  #Default Type
 
     def _get_action_description(self, method: str, path: str, request: Request) -> str:
-        """生成操作描述"""
-        # 基础描述
+        """Generate Operation Description"""
+        #Basic description
         action_map = {
             "POST": "创建",
             "PUT": "更新",
@@ -186,7 +185,7 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
 
         action_verb = action_map.get(method, method)
 
-        # 根据路径生成更具体的描述
+        #Generate more specific descriptions by path
         if "/analysis/" in path:
             if "single" in path:
                 return f"{action_verb}单股分析任务"
@@ -238,16 +237,16 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
         user_agent: str,
         request: Request
     ):
-        """记录操作日志"""
+        """Log Operations Log"""
         try:
-            # 判断操作是否成功
+            #Judge whether the operation was successful
             success = 200 <= response.status_code < 400
 
-            # 获取操作类型和描述
+            #Get Operations Type and Description
             action_type = self._get_action_type(path)
             action = self._get_action_description(method, path, request)
 
-            # 构建详细信息
+            #Build Details
             details = {
                 "method": method,
                 "path": path,
@@ -255,12 +254,12 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
                 "query_params": dict(request.query_params) if request.query_params else None,
             }
 
-            # 获取错误信息（如果有）
+            #Get the wrong information (if any)
             error_message = None
             if not success:
                 error_message = f"HTTP {response.status_code}"
 
-            # 记录操作日志
+            #Log Operations Log
             await log_operation(
                 user_id=user_info.get("id", ""),
                 username=user_info.get("username", "unknown"),
@@ -276,10 +275,10 @@ class OperationLogMiddleware(BaseHTTPMiddleware):
             )
 
         except Exception as e:
-            logger.error(f"记录操作日志失败: {e}")
+            logger.error(f"Log operation log failed:{e}")
 
 
-# 便捷函数：手动记录操作日志
+#Easy function: Manual recording of operational logs
 async def manual_log_operation(
     request: Request,
     user_info: Dict[str, Any],
@@ -290,7 +289,7 @@ async def manual_log_operation(
     error_message: Optional[str] = None,
     duration_ms: Optional[int] = None
 ):
-    """手动记录操作日志"""
+    """Manual Log Operations Log"""
     try:
         ip_address = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "")
@@ -309,4 +308,4 @@ async def manual_log_operation(
             session_id=user_info.get("session_id")
         )
     except Exception as e:
-        logger.error(f"手动记录操作日志失败: {e}")
+        logger.error(f"Manual recording operation log failed:{e}")

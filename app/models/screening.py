@@ -1,5 +1,4 @@
-"""
-股票筛选相关的数据模型
+"""Stock screening related data model
 """
 
 from pydantic import BaseModel, Field
@@ -8,30 +7,30 @@ from enum import Enum
 
 
 class OperatorType(str, Enum):
-    """筛选操作符类型"""
-    GT = ">"           # 大于
-    LT = "<"           # 小于
-    GTE = ">="         # 大于等于
-    LTE = "<="         # 小于等于
-    EQ = "=="          # 等于
-    NE = "!="          # 不等于
-    BETWEEN = "between"  # 区间
-    IN = "in"          # 包含于
-    NOT_IN = "not_in"  # 不包含于
-    CONTAINS = "contains"  # 字符串包含
-    CROSS_UP = "cross_up"    # 技术指标：向上穿越
-    CROSS_DOWN = "cross_down"  # 技术指标：向下穿越
+    """Filter Operator Type"""
+    GT = ">"           #Greater than
+    LT = "<"           #less than
+    GTE = ">="         #greater than or equal to
+    LTE = "<="         #less than or equal to
+    EQ = "=="          #equals
+    NE = "!="          #Not equal to
+    BETWEEN = "between"  #Area
+    IN = "in"          #Included in
+    NOT_IN = "not_in"  #Other Organiser
+    CONTAINS = "contains"  #String contains
+    CROSS_UP = "cross_up"    #Technical indicator: uplink
+    CROSS_DOWN = "cross_down"  #Technical indicator: Downward crossing
 
 
 class FieldType(str, Enum):
-    """字段类型"""
-    BASIC = "basic"        # 基础信息字段
-    TECHNICAL = "technical"  # 技术指标字段
-    FUNDAMENTAL = "fundamental"  # 基本面字段
+    """Field Type"""
+    BASIC = "basic"        #Basic information field
+    TECHNICAL = "technical"  #Technical indicator fields
+    FUNDAMENTAL = "fundamental"  #Basic field
 
 
 class ScreeningCondition(BaseModel):
-    """单个筛选条件"""
+    """Single Filter Conditions"""
     field: str = Field(..., description="字段名")
     operator: OperatorType = Field(..., description="操作符")
     value: Union[float, int, str, List[Union[float, int, str]]] = Field(..., description="筛选值")
@@ -42,25 +41,25 @@ class ScreeningCondition(BaseModel):
 
 
 class ScreeningRequest(BaseModel):
-    """筛选请求"""
+    """Filter Requests"""
     market: str = Field("CN", description="市场：CN/HK/US")
     date: Optional[str] = Field(None, description="交易日YYYY-MM-DD，缺省为最新")
     adj: str = Field("qfq", description="复权口径：qfq/hfq/none")
     
-    # 筛选条件
+    #Filter Conditions
     conditions: List[ScreeningCondition] = Field(default_factory=list, description="筛选条件列表")
     
-    # 排序和分页
+    #Sort and Break
     order_by: Optional[List[Dict[str, str]]] = Field(None, description="排序条件")
     limit: int = Field(50, ge=1, le=500, description="返回数量限制")
     offset: int = Field(0, ge=0, description="偏移量")
     
-    # 优化选项
+    #Optimizing Options
     use_database_optimization: bool = Field(True, description="是否使用数据库优化")
 
 
 class ScreeningResponse(BaseModel):
-    """筛选响应"""
+    """Filter Response"""
     total: int = Field(..., description="总数量")
     items: List[Dict[str, Any]] = Field(..., description="筛选结果")
     took_ms: Optional[int] = Field(None, description="耗时(毫秒)")
@@ -69,7 +68,7 @@ class ScreeningResponse(BaseModel):
 
 
 class FieldInfo(BaseModel):
-    """字段信息"""
+    """Field Information"""
     name: str = Field(..., description="字段名")
     display_name: str = Field(..., description="显示名称")
     field_type: FieldType = Field(..., description="字段类型")
@@ -77,20 +76,20 @@ class FieldInfo(BaseModel):
     description: str = Field("", description="字段描述")
     unit: Optional[str] = Field(None, description="单位")
     
-    # 数值字段的统计信息
+    #Statistical information for numerical fields
     min_value: Optional[float] = Field(None, description="最小值")
     max_value: Optional[float] = Field(None, description="最大值")
     avg_value: Optional[float] = Field(None, description="平均值")
     
-    # 枚举字段的可选值
+    #Optional value for an item field
     available_values: Optional[List[str]] = Field(None, description="可选值列表")
     
-    # 支持的操作符
+    #Supported Operators
     supported_operators: List[OperatorType] = Field(default_factory=list, description="支持的操作符")
 
 
 class FieldStatistics(BaseModel):
-    """字段统计信息"""
+    """Field statistics"""
     field: str = Field(..., description="字段名")
     count: int = Field(..., description="有效数据数量")
     min_value: Optional[float] = Field(None, description="最小值")
@@ -100,7 +99,7 @@ class FieldStatistics(BaseModel):
     std_value: Optional[float] = Field(None, description="标准差")
 
 
-# 预定义的字段信息
+#Predefined Field Information
 BASIC_FIELDS_INFO = {
     "symbol": FieldInfo(
         name="symbol",
@@ -110,7 +109,7 @@ BASIC_FIELDS_INFO = {
         description="6位股票代码",
         supported_operators=[OperatorType.EQ, OperatorType.NE, OperatorType.IN, OperatorType.NOT_IN, OperatorType.CONTAINS]
     ),
-    "code": FieldInfo(  # 兼容旧字段
+    "code": FieldInfo(  #Compatible old fields
         name="code",
         display_name="股票代码(已废弃)",
         field_type=FieldType.BASIC,
@@ -232,11 +231,11 @@ BASIC_FIELDS_INFO = {
         supported_operators=[OperatorType.GT, OperatorType.LT, OperatorType.GTE, OperatorType.LTE, OperatorType.BETWEEN]
     ),
 
-    # 价格数据字段（现在在视图中，可以直接从数据库查询）
+    #Price data fields (now in view, directly from database)
     "close": FieldInfo(
         name="close",
         display_name="收盘价",
-        field_type=FieldType.FUNDAMENTAL,  # 改为 FUNDAMENTAL，因为现在在视图中可以直接查询
+        field_type=FieldType.FUNDAMENTAL,  #Change to FUNDAMENTAL because now you can search directly in the view
         data_type="number",
         description="最新收盘价",
         unit="元",
@@ -245,7 +244,7 @@ BASIC_FIELDS_INFO = {
     "pct_chg": FieldInfo(
         name="pct_chg",
         display_name="涨跌幅",
-        field_type=FieldType.FUNDAMENTAL,  # 改为 FUNDAMENTAL，因为现在在视图中可以直接查询
+        field_type=FieldType.FUNDAMENTAL,  #Change to FUNDAMENTAL because now you can search directly in the view
         data_type="number",
         description="涨跌幅",
         unit="%",
@@ -254,7 +253,7 @@ BASIC_FIELDS_INFO = {
     "amount": FieldInfo(
         name="amount",
         display_name="成交额",
-        field_type=FieldType.FUNDAMENTAL,  # 改为 FUNDAMENTAL，因为现在在视图中可以直接查询
+        field_type=FieldType.FUNDAMENTAL,  #Change to FUNDAMENTAL because now you can search directly in the view
         data_type="number",
         description="成交额",
         unit="元",
@@ -263,14 +262,14 @@ BASIC_FIELDS_INFO = {
     "volume": FieldInfo(
         name="volume",
         display_name="成交量",
-        field_type=FieldType.FUNDAMENTAL,  # 改为 FUNDAMENTAL，因为现在在视图中可以直接查询
+        field_type=FieldType.FUNDAMENTAL,  #Change to FUNDAMENTAL because now you can search directly in the view
         data_type="number",
         description="成交量",
         unit="手",
         supported_operators=[OperatorType.GT, OperatorType.LT, OperatorType.GTE, OperatorType.LTE, OperatorType.BETWEEN]
     ),
 
-    # 技术指标字段
+    #Technical indicator fields
     "ma20": FieldInfo(
         name="ma20",
         display_name="20日均线",

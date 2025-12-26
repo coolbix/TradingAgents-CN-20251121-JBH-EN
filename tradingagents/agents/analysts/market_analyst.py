@@ -3,72 +3,71 @@ import time
 import json
 import traceback
 
-# 导入分析模块日志装饰器
+#Import Analysis Module Log Decorator
 from tradingagents.utils.tool_logging import log_analyst_module
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
-# 导入Google工具调用处理器
+#Import Google Tool Call Processing Device
 from tradingagents.agents.utils.google_tool_handler import GoogleToolCallHandler
 
 
 def _get_company_name(ticker: str, market_info: dict) -> str:
-    """
-    根据股票代码获取公司名称
+    """Get company names by stock code
 
-    Args:
-        ticker: 股票代码
-        market_info: 市场信息字典
+Args:
+ticker: Stock code
+market info: market information dictionary
 
-    Returns:
-        str: 公司名称
-    """
+Returns:
+str: Company name
+"""
     try:
         if market_info['is_china']:
-            # 中国A股：使用统一接口获取股票信息
+            #China Unit A: Access to stock information using a unified interface
             from tradingagents.dataflows.interface import get_china_stock_info_unified
             stock_info = get_china_stock_info_unified(ticker)
 
-            logger.debug(f"📊 [市场分析师] 获取股票信息返回: {stock_info[:200] if stock_info else 'None'}...")
+            logger.debug(f"[Market Analyst ] To get stock information back:{stock_info[:200] if stock_info else 'None'}...")
 
-            # 解析股票名称
+            #Parsing stock name
             if stock_info and "股票名称:" in stock_info:
                 company_name = stock_info.split("股票名称:")[1].split("\n")[0].strip()
-                logger.info(f"✅ [市场分析师] 成功获取中国股票名称: {ticker} -> {company_name}")
+                logger.info(f"✅ [Market Analyst] Successfully obtained Chinese stock names:{ticker} -> {company_name}")
                 return company_name
             else:
-                # 降级方案：尝试直接从数据源管理器获取
-                logger.warning(f"⚠️ [市场分析师] 无法从统一接口解析股票名称: {ticker}，尝试降级方案")
+                #Downscaling: attempt to obtain directly from the data source manager
+                logger.warning(f"The name of the stock could not be deciphered from the unified interface:{ticker}, try to downgrade")
                 try:
                     from tradingagents.dataflows.data_source_manager import get_china_stock_info_unified as get_info_dict
                     info_dict = get_info_dict(ticker)
                     if info_dict and info_dict.get('name'):
                         company_name = info_dict['name']
-                        logger.info(f"✅ [市场分析师] 降级方案成功获取股票名称: {ticker} -> {company_name}")
+                        logger.info(f"✅ [Market Analyst] The downgrading program successfully obtained the name of the stock:{ticker} -> {company_name}")
                         return company_name
                 except Exception as e:
-                    logger.error(f"❌ [市场分析师] 降级方案也失败: {e}")
+                    logger.error(f"The downgrading programme also failed:{e}")
 
-                logger.error(f"❌ [市场分析师] 所有方案都无法获取股票名称: {ticker}")
+                logger.error(f"[Market Analyst] None of the programs can get stock names:{ticker}")
                 return f"股票代码{ticker}"
 
         elif market_info['is_hk']:
-            # 港股：使用改进的港股工具
+            #Port Unit: use of improved Port Unit tools
             try:
                 from tradingagents.dataflows.providers.hk.improved_hk import get_hk_company_name_improved
                 company_name = get_hk_company_name_improved(ticker)
-                logger.debug(f"📊 [DEBUG] 使用改进港股工具获取名称: {ticker} -> {company_name}")
+                logger.debug(f"📊 [DBUG] Use of the Port Improvement Unit tool to obtain names:{ticker} -> {company_name}")
                 return company_name
             except Exception as e:
-                logger.debug(f"📊 [DEBUG] 改进港股工具获取名称失败: {e}")
-                # 降级方案：生成友好的默认名称
+                logger.debug(f"📊 [DBUG] Improvements to the Port Unit Tool to get names failed:{e}")
+                #Downscaling scheme: Generate friendly default names
                 clean_ticker = ticker.replace('.HK', '').replace('.hk', '')
                 return f"港股{clean_ticker}"
 
         elif market_info['is_us']:
-            # 美股：使用简单映射或返回代码
+            #US share: use simple mapping or return code
             us_stock_names = {
                 'AAPL': '苹果公司',
                 'TSLA': '特斯拉',
@@ -81,51 +80,51 @@ def _get_company_name(ticker: str, market_info: dict) -> str:
             }
 
             company_name = us_stock_names.get(ticker.upper(), f"美股{ticker}")
-            logger.debug(f"📊 [DEBUG] 美股名称映射: {ticker} -> {company_name}")
+            logger.debug(f"[DEBUG] U.S. stock name map:{ticker} -> {company_name}")
             return company_name
 
         else:
             return f"股票{ticker}"
 
     except Exception as e:
-        logger.error(f"❌ [DEBUG] 获取公司名称失败: {e}")
+        logger.error(f"[DEBUG]{e}")
         return f"股票{ticker}"
 
 
 def create_market_analyst(llm, toolkit):
 
     def market_analyst_node(state):
-        logger.debug(f"📈 [DEBUG] ===== 市场分析师节点开始 =====")
+        logger.debug(f"== sync, corrected by elderman == @elder man")
 
-        # 🔧 工具调用计数器 - 防止无限循环
+        #🔧 Tool Call counter - to prevent infinite circulation
         tool_call_count = state.get("market_tool_call_count", 0)
-        max_tool_calls = 3  # 最大工具调用次数
-        logger.info(f"🔧 [死循环修复] 当前工具调用次数: {tool_call_count}/{max_tool_calls}")
+        max_tool_calls = 3  #Maximum tool call times
+        logger.info(f"The number of calls for the current tool:{tool_call_count}/{max_tool_calls}")
 
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
 
-        logger.debug(f"📈 [DEBUG] 输入参数: ticker={ticker}, date={current_date}")
-        logger.debug(f"📈 [DEBUG] 当前状态中的消息数量: {len(state.get('messages', []))}")
-        logger.debug(f"📈 [DEBUG] 现有市场报告: {state.get('market_report', 'None')}")
+        logger.debug(f"[DBUG] input parameter: ticker={ticker}, date={current_date}")
+        logger.debug(f"The number of messages in the current state:{len(state.get('messages', []))}")
+        logger.debug(f"[DBUG] Available market reports:{state.get('market_report', 'None')}")
 
-        # 根据股票代码格式选择数据源
+        #Select the data source according to the stock code format
         from tradingagents.utils.stock_utils import StockUtils
 
         market_info = StockUtils.get_market_info(ticker)
 
-        logger.debug(f"📈 [DEBUG] 股票类型检查: {ticker} -> {market_info['market_name']} ({market_info['currency_name']})")
+        logger.debug(f"[DBUG] Stock type checks:{ticker} -> {market_info['market_name']} ({market_info['currency_name']})")
 
-        # 获取公司名称
+        #Get company names
         company_name = _get_company_name(ticker, market_info)
-        logger.debug(f"📈 [DEBUG] 公司名称: {ticker} -> {company_name}")
+        logger.debug(f"[DEBUG]{ticker} -> {company_name}")
 
-        # 统一使用 get_stock_market_data_unified 工具
-        # 该工具内部会自动识别股票类型（A股/港股/美股）并调用相应的数据源
-        logger.info(f"📊 [市场分析师] 使用统一市场数据工具，自动识别股票类型")
+        #Get stock mark data unified tool
+        #The tool automatically identifies stock types (A/Hong Kong/US) and calls the corresponding data. Source
+        logger.info(f"📊 [Market Analyst] Automatically identify stock types using the Unified Market Data Tool")
         tools = [toolkit.get_stock_market_data_unified]
 
-        # 安全地获取工具名称用于调试
+        #Securely capture tool names for debugging
         tool_names_debug = []
         for tool in tools:
             if hasattr(tool, 'name'):
@@ -134,10 +133,10 @@ def create_market_analyst(llm, toolkit):
                 tool_names_debug.append(tool.__name__)
             else:
                 tool_names_debug.append(str(tool))
-        logger.info(f"📊 [市场分析师] 绑定的工具: {tool_names_debug}")
-        logger.info(f"📊 [市场分析师] 目标市场: {market_info['market_name']}")
+        logger.info(f"[Market Analyst]{tool_names_debug}")
+        logger.info(f"[Market Analyst] Target market:{market_info['market_name']}")
 
-        # 🔥 优化：将输出格式要求放在系统提示的开头，确保LLM遵循格式
+        #Optimization: Placing the output format requirement at the beginning of the system alert to ensure that the LLM follows the format
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -193,7 +192,7 @@ def create_market_analyst(llm, toolkit):
             ]
         )
 
-        # 安全地获取工具名称，处理函数和工具对象
+        #Securely capture tool names, process functions and tool objects
         tool_names = []
         for tool in tools:
             if hasattr(tool, 'name'):
@@ -203,7 +202,7 @@ def create_market_analyst(llm, toolkit):
             else:
                 tool_names.append(str(tool))
 
-        # 🔥 设置所有模板变量
+        #Set all template variables
         prompt = prompt.partial(tool_names=", ".join(tool_names))
         prompt = prompt.partial(current_date=current_date)
         prompt = prompt.partial(ticker=ticker)
@@ -212,53 +211,53 @@ def create_market_analyst(llm, toolkit):
         prompt = prompt.partial(currency_name=market_info['currency_name'])
         prompt = prompt.partial(currency_symbol=market_info['currency_symbol'])
 
-        # 添加详细日志
-        logger.info(f"📊 [市场分析师] LLM类型: {llm.__class__.__name__}")
-        logger.info(f"📊 [市场分析师] LLM模型: {getattr(llm, 'model_name', 'unknown')}")
-        logger.info(f"📊 [市场分析师] 消息历史数量: {len(state['messages'])}")
-        logger.info(f"📊 [市场分析师] 公司名称: {company_name}")
-        logger.info(f"📊 [市场分析师] 股票代码: {ticker}")
+        #Add Detailed Log
+        logger.info(f"[Market Analyst] LLM type:{llm.__class__.__name__}")
+        logger.info(f"[Market Analyst] LLM model:{getattr(llm, 'model_name', 'unknown')}")
+        logger.info(f"[Market Analyst]{len(state['messages'])}")
+        logger.info(f"[Market Analyst]{company_name}")
+        logger.info(f"[Market Analyst ] Stock code:{ticker}")
 
-        # 打印提示词模板信息
-        logger.info("📊 [市场分析师] ========== 提示词模板信息 ==========")
-        logger.info(f"📊 [市场分析师] 模板变量已设置: company_name={company_name}, ticker={ticker}, market={market_info['market_name']}")
-        logger.info("📊 [市场分析师] ==========================================")
+        #Print hint template information
+        logger.info("📊 [Market Analyst] = = = = = = Transcript information = = = = = = = = = = = = = = = = = = = = = = = = =")
+        logger.info(f"[Market Analyst] Template variable set: company name={company_name}, ticker={ticker}, market={market_info['market_name']}")
+        logger.info("📊 [Market Analyst] ==================================================================================================================================================================================================================================================")
 
-        # 打印实际传递给LLM的消息
-        logger.info(f"📊 [市场分析师] ========== 传递给LLM的消息 ==========")
+        #Print the actual message to LLM
+        logger.info(f"📊 [Market Analyst] = = = = = = = = message to LLM = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =")
         for i, msg in enumerate(state["messages"]):
             msg_type = type(msg).__name__
-            # 🔥 修复：更安全地提取消息内容
+            #🔥Recovery: extracting messages more securely
             if hasattr(msg, 'content'):
-                msg_content = str(msg.content)[:500]  # 增加到500字符以便查看完整内容
+                msg_content = str(msg.content)[:500]  #Increase to 500 characters to see full content
             elif isinstance(msg, tuple) and len(msg) >= 2:
-                # 处理旧格式的元组消息 ("human", "content")
+                #Deals with old group messages ( "human", "content")
                 msg_content = f"[元组消息] 类型={msg[0]}, 内容={str(msg[1])[:500]}"
             else:
                 msg_content = str(msg)[:500]
-            logger.info(f"📊 [市场分析师] 消息[{i}] 类型={msg_type}, 内容={msg_content}")
-        logger.info(f"📊 [市场分析师] ========== 消息列表结束 ==========")
+            logger.info(f"[Market Analyst ]{i}Type ={msg_type}, content={msg_content}")
+        logger.info(f"📊 [Market Analyst] = = = = = = = end of message list = = = = = = = = = = = = = = = =")
 
         chain = prompt | llm.bind_tools(tools)
 
-        logger.info(f"📊 [市场分析师] 开始调用LLM...")
-        # 修复：传递字典而不是直接传递消息列表，以便 ChatPromptTemplate 能正确处理所有变量
+        logger.info(f"[Market Analyst ]")
+        #Fix: pass the dictionary instead of the direct message list so that ChatPromptTemplate can handle all variables correctly
         result = chain.invoke({"messages": state["messages"]})
-        logger.info(f"📊 [市场分析师] LLM调用完成")
+        logger.info(f"[Market Analyst]")
 
-        # 打印LLM响应
-        logger.info(f"📊 [市场分析师] ========== LLM响应开始 ==========")
-        logger.info(f"📊 [市场分析师] 响应类型: {type(result).__name__}")
-        logger.info(f"📊 [市场分析师] 响应内容: {str(result.content)[:1000]}...")
+        #Print LLM response
+        logger.info(f"📊 [Market Analyst] = = = = = = LLM response start = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =")
+        logger.info(f"[Market Analyst] Type of response:{type(result).__name__}")
+        logger.info(f"[Market Analyst ]{str(result.content)[:1000]}...")
         if hasattr(result, 'tool_calls') and result.tool_calls:
-            logger.info(f"📊 [市场分析师] 工具调用: {result.tool_calls}")
-        logger.info(f"📊 [市场分析师] ========== LLM响应结束 ==========")
+            logger.info(f"[Market Analyst]{result.tool_calls}")
+        logger.info(f"📊 [Market Analyst] = = = = = = LLM response end= = = = = = = = = = = = = = = = = = = =")
 
-        # 使用统一的Google工具调用处理器
+        #Use a single Google tool to call for processing Device
         if GoogleToolCallHandler.is_google_model(llm):
-            logger.info(f"📊 [市场分析师] 检测到Google模型，使用统一工具调用处理器")
+            logger.info(f"[Market Analyst] Device")
             
-            # 创建分析提示词
+            #Create Analytic Tips
             analysis_prompt_template = GoogleToolCallHandler.create_analysis_prompt(
                 ticker=ticker,
                 company_name=company_name,
@@ -266,7 +265,7 @@ def create_market_analyst(llm, toolkit):
                 specific_requirements="重点关注市场数据、价格走势、交易量变化等市场指标。"
             )
             
-            # 处理Google模型工具调用
+            #Process Google Model Tool Call
             report, messages = GoogleToolCallHandler.handle_google_tool_calls(
                 result=result,
                 llm=llm,
@@ -276,35 +275,35 @@ def create_market_analyst(llm, toolkit):
                 analyst_name="市场分析师"
             )
 
-            # 🔧 更新工具调用计数器
+            #Update tool call counters
             return {
                 "messages": [result],
                 "market_report": report,
                 "market_tool_call_count": tool_call_count + 1
             }
         else:
-            # 非Google模型的处理逻辑
-            logger.info(f"📊 [市场分析师] 非Google模型 ({llm.__class__.__name__})，使用标准处理逻辑")
-            logger.info(f"📊 [市场分析师] 检查LLM返回结果...")
-            logger.info(f"📊 [市场分析师] - 是否有tool_calls: {hasattr(result, 'tool_calls')}")
+            #Non-Google processing logic
+            logger.info(f"[Market Analyst]{llm.__class__.__name__}) using standard processing logic")
+            logger.info(f"[Market Analyst ]")
+            logger.info(f"[Market Analyst ]{hasattr(result, 'tool_calls')}")
             if hasattr(result, 'tool_calls'):
-                logger.info(f"📊 [市场分析师] - tool_calls数量: {len(result.tool_calls)}")
+                logger.info(f"- Tool calls:{len(result.tool_calls)}")
                 if result.tool_calls:
                     for i, tc in enumerate(result.tool_calls):
-                        logger.info(f"📊 [市场分析师] - tool_call[{i}]: {tc.get('name', 'unknown')}")
+                        logger.info(f"[Market Analyst ]{i}]: {tc.get('name', 'unknown')}")
 
-            # 处理市场分析报告
+            #Processing market analysis reports
             if len(result.tool_calls) == 0:
-                # 没有工具调用，直接使用LLM的回复
+                #No tool to call, directly using LLM responses
                 report = result.content
-                logger.info(f"📊 [市场分析师] ✅ 直接回复（无工具调用），长度: {len(report)}")
-                logger.debug(f"📊 [DEBUG] 直接回复内容预览: {report[:200]}...")
+                logger.info(f"Direct response (no tool to call), length:{len(report)}")
+                logger.debug(f"📊 [DBUG] directs to the preview:{report[:200]}...")
             else:
-                # 有工具调用，执行工具并生成完整分析报告
-                logger.info(f"📊 [市场分析师] 🔧 检测到工具调用: {[call.get('name', 'unknown') for call in result.tool_calls]}")
+                #Tools to call, implement and generate complete analysis
+                logger.info(f"[Market Analyst] 📊 has detected a tool call:{[call.get('name', 'unknown') for call in result.tool_calls]}")
 
                 try:
-                    # 执行工具调用
+                    #Execute Tool Call
                     from langchain_core.messages import ToolMessage, HumanMessage
 
                     tool_messages = []
@@ -313,12 +312,12 @@ def create_market_analyst(llm, toolkit):
                         tool_args = tool_call.get('args', {})
                         tool_id = tool_call.get('id')
 
-                        logger.debug(f"📊 [DEBUG] 执行工具: {tool_name}, 参数: {tool_args}")
+                        logger.debug(f"[DBUG] Implementation tool:{tool_name}, Parameters:{tool_args}")
 
-                        # 找到对应的工具并执行
+                        #Find corresponding tools and execute them
                         tool_result = None
                         for tool in tools:
-                            # 安全地获取工具名称进行比较
+                            #Comparison of secure access to tool names
                             current_tool_name = None
                             if hasattr(tool, 'name'):
                                 current_tool_name = tool.name
@@ -328,29 +327,29 @@ def create_market_analyst(llm, toolkit):
                             if current_tool_name == tool_name:
                                 try:
                                     if tool_name == "get_china_stock_data":
-                                        # 中国股票数据工具
+                                        #China Stock Data Tool
                                         tool_result = tool.invoke(tool_args)
                                     else:
-                                        # 其他工具
+                                        #Other tools
                                         tool_result = tool.invoke(tool_args)
-                                    logger.debug(f"📊 [DEBUG] 工具执行成功，结果长度: {len(str(tool_result))}")
+                                    logger.debug(f"📊 [DBUG] tool successfully implemented, result length:{len(str(tool_result))}")
                                     break
                                 except Exception as tool_error:
-                                    logger.error(f"❌ [DEBUG] 工具执行失败: {tool_error}")
+                                    logger.error(f"[DEBUG] Tool failed:{tool_error}")
                                     tool_result = f"工具执行失败: {str(tool_error)}"
 
                         if tool_result is None:
                             tool_result = f"未找到工具: {tool_name}"
 
-                        # 创建工具消息
+                        #Create Tool Message
                         tool_message = ToolMessage(
                             content=str(tool_result),
                             tool_call_id=tool_id
                         )
                         tool_messages.append(tool_message)
 
-                    # 基于工具结果生成完整分析报告
-                    # 🔥 重要：这里必须包含公司名称和输出格式要求，确保LLM生成正确的报告标题
+                    #Generate complete analysis based on the results of the tool
+                    #🔥 Important: This must include company name and output format requirements to ensure that LLM produces the correct report title
                     analysis_prompt = f"""现在请基于上述工具获取的数据，生成详细的技术分析报告。
 
 **分析对象：**
@@ -466,17 +465,17 @@ def create_market_analyst(llm, toolkit):
 - 使用中文撰写
 - 使用表格展示数据时，确保格式规范"""
 
-                    # 构建完整的消息序列
+                    #Build a complete message sequence
                     messages = state["messages"] + [result] + tool_messages + [HumanMessage(content=analysis_prompt)]
 
-                    # 生成最终分析报告
+                    #Generate final analysis reports
                     final_result = llm.invoke(messages)
                     report = final_result.content
 
-                    logger.info(f"📊 [市场分析师] 生成完整分析报告，长度: {len(report)}")
+                    logger.info(f"📊 [market analyst] Generate complete analysis, length:{len(report)}")
 
-                    # 返回包含工具调用和最终分析的完整消息序列
-                    # 🔧 更新工具调用计数器
+                    #Returns complete message sequences containing tool calls and final analysis
+                    #Update tool call counters
                     return {
                         "messages": [result] + tool_messages + [final_result],
                         "market_report": report,
@@ -484,20 +483,20 @@ def create_market_analyst(llm, toolkit):
                     }
 
                 except Exception as e:
-                    logger.error(f"❌ [市场分析师] 工具执行或分析生成失败: {e}")
+                    logger.error(f"❌ [market analyst] tool implementation or analysis generation failed:{e}")
                     traceback.print_exc()
 
-                    # 降级处理：返回工具调用信息
+                    #Declining: Returning tool call information
                     report = f"市场分析师调用了工具但分析生成失败: {[call.get('name', 'unknown') for call in result.tool_calls]}"
 
-                    # 🔧 更新工具调用计数器
+                    #Update tool call counters
                     return {
                         "messages": [result],
                         "market_report": report,
                         "market_tool_call_count": tool_call_count + 1
                     }
 
-            # 🔧 更新工具调用计数器
+            #Update tool call counters
             return {
                 "messages": [result],
                 "market_report": report,

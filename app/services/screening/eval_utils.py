@@ -41,7 +41,7 @@ def evaluate_fund_conditions(snap: Dict[str, Any], node: Dict[str, Any], fund_fi
     field = node.get("field")
     op = node.get("op")
     if field not in fund_fields:
-        return True  # 非基本面字段在纯基本面路径中跳过
+        return True  #Non-basic field skips in a pure base path
     left = snap.get(field)
     if left is None:
         return False
@@ -83,7 +83,7 @@ def evaluate_conditions(
 ) -> bool:
     if not node:
         return True
-    # group 节点
+    #Group Nodes
     if node.get("op") == "group" or "children" in node:
         logic = (node.get("logic") or "AND").upper()
         children = node.get("children", [])
@@ -92,13 +92,13 @@ def evaluate_conditions(
         flags = [evaluate_conditions(df, c, allowed_fields, allowed_ops) for c in children]
         return all(flags) if logic == "AND" else any(flags)
 
-    # 叶子：字段比较
+    #Leaf: Field comparison
     field = node.get("field")
     op = node.get("op")
     if field not in allowed_fields or op not in set(allowed_ops):
         return False
 
-    # 需要最近两行（交叉）
+    #Need for the last two lines (crossing)
     if op in {"cross_up", "cross_down"}:
         right_field = node.get("right_field")
         if right_field not in allowed_fields:
@@ -118,7 +118,7 @@ def evaluate_conditions(
         else:
             return (a1 >= b1) and (a0 < b0)
 
-    # 普通比较：最近一行
+    #General comparison: the latest line
     t0 = df.iloc[-1]
     left = t0.get(field)
     if pd.isna(left):

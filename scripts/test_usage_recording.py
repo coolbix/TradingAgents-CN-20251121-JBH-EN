@@ -33,12 +33,12 @@ async def test_usage_recording():
     print("\n2️⃣ 创建测试使用记录...")
     try:
         from app.services.usage_statistics_service import UsageStatisticsService
-        from app.models.config import UsageRecord
+        from app.models.config import UsageRecordModel
         
         usage_service = UsageStatisticsService()
         
         # 创建一个完整的使用记录（包含 currency 字段）
-        test_record = UsageRecord(
+        test_record = UsageRecordModel(
             timestamp=datetime.now().isoformat(),
             provider="dashscope",
             model_name="qwen-plus",

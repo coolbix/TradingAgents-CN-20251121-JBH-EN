@@ -1,12 +1,11 @@
-"""
-数据源编码统一定义
-所有数据源的编码、名称、描述等信息都在这里定义
+"""Harmonized definitions of data source codes
+All data sources are defined here in terms of code, name, description, etc.
 
-添加新数据源的步骤：
-1. 在 DataSourceCode 枚举中添加新的数据源编码
-2. 在 DATA_SOURCE_REGISTRY 中注册数据源信息
-3. 在对应的 provider 中实现数据源接口
-4. 更新前端的数据源类型选项（如果需要）
+Steps to add a new data source:
+Add a new data source code to the DatasourceCode count
+Register data source information in DATA SOURCE REGISTRY
+3. Implement data source interfaces in corresponding providers
+4. Options for updating the front-end data source type (if required)
 """
 
 from enum import Enum
@@ -15,66 +14,65 @@ from dataclasses import dataclass
 
 
 class DataSourceCode(str, Enum):
-    """
-    数据源编码枚举
+    """Data source encoded entries
+
+Name code:
+- Use capital letters and underlineds
+- Values with lowercase letters and underlineds
+- Keep it simple and clear.
+"""
     
-    命名规范：
-    - 使用大写字母和下划线
-    - 值使用小写字母和下划线
-    - 保持简洁明了
-    """
+    #== sync, corrected by elderman == @elder man
+    MONGODB = "mongodb"  #MongoDB database cache (highest priority)
     
-    # ==================== 缓存数据源 ====================
-    MONGODB = "mongodb"  # MongoDB 数据库缓存（最高优先级）
+    #== sync, corrected by elderman == @elder man
+    TUSHARE = "tushare"      #Tushare - Professional A Unit Data
+    AKSHARE = "akshare"      #AKShare - Open Source Financial Data (Unit A + Port Unit)
+    BAOSTOCK = "baostock"    #BaoStock - Free A stock data
     
-    # ==================== 中国市场数据源 ====================
-    TUSHARE = "tushare"      # Tushare - 专业A股数据
-    AKSHARE = "akshare"      # AKShare - 开源金融数据（A股+港股）
-    BAOSTOCK = "baostock"    # BaoStock - 免费A股数据
+    #== sync, corrected by elderman == @elder man
+    YFINANCE = "yfinance"         #I'm sorry.
+    FINNHUB = "finnhub"           #Finnhub - USE Real-Time Data
+    YAHOO_FINANCE = "yahoo_finance"  #Yahoo Finance - Global Stock Data (alias)
+    ALPHA_VANTAGE = "alpha_vantage"  #Alpha Vantage - USE Technical Analysis
+    IEX_CLOUD = "iex_cloud"       #IEX Cloud - USU Real-Time Data
     
-    # ==================== 美股数据源 ====================
-    YFINANCE = "yfinance"         # yfinance - Yahoo Finance Python库
-    FINNHUB = "finnhub"           # Finnhub - 美股实时数据
-    YAHOO_FINANCE = "yahoo_finance"  # Yahoo Finance - 全球股票数据（别名）
-    ALPHA_VANTAGE = "alpha_vantage"  # Alpha Vantage - 美股技术分析
-    IEX_CLOUD = "iex_cloud"       # IEX Cloud - 美股实时数据
+    #== sync, corrected by elderman == @elder man
+    #Note: AKShare also supports the Port Unit, as defined above.
     
-    # ==================== 港股数据源 ====================
-    # 注意：AKShare 也支持港股，已在上面定义
+    #== sync, corrected by elderman == @elder man
+    WIND = "wind"        #Wind Wonder - Professional Financial Terminal
+    CHOICE = "choice"    #East Wealth Choice - Professional Financial Data
     
-    # ==================== 专业数据源 ====================
-    WIND = "wind"        # Wind 万得 - 专业金融终端
-    CHOICE = "choice"    # 东方财富 Choice - 专业金融数据
-    
-    # ==================== 其他数据源 ====================
-    QUANDL = "quandl"        # Quandl - 经济和金融数据
-    LOCAL_FILE = "local_file"  # 本地文件数据源
-    CUSTOM = "custom"        # 自定义数据源
+    #== sync, corrected by elderman == @elder man
+    QUANDL = "quandl"        #Quandl - Economic and Financial Data
+    LOCAL_FILE = "local_file"  #Local File Data Source
+    CUSTOM = "custom"        #Custom Data Source
 
 
 @dataclass
 class DataSourceInfo:
-    """数据源信息"""
-    code: str  # 数据源编码
-    name: str  # 数据源名称
-    display_name: str  # 显示名称
-    provider: str  # 提供商
-    description: str  # 描述
-    supported_markets: List[str]  # 支持的市场（a_shares, us_stocks, hk_stocks, etc.）
-    requires_api_key: bool  # 是否需要 API 密钥
-    is_free: bool  # 是否免费
-    official_website: Optional[str] = None  # 官方网站
-    documentation_url: Optional[str] = None  # 文档地址
-    features: List[str] = None  # 特性列表
+    """Data Source Information"""
+    code: str  #Data Source Encoding
+    name: str  #Data Source Name
+    display_name: str  #Show Name
+    provider: str  #Provider
+    description: str  #Description
+    supported_markets: List[str]  #Supported markets (a shares, us stocks, hk stocks, etc.)
+    requires_api_key: bool  #Need an API key
+    is_free: bool  #Is it free?
+    official_website: Optional[str] = None  #Official website
+    documentation_url: Optional[str] = None  #Document Address
+    features: List[str] = None  #Feature List
     
     def __post_init__(self):
         if self.features is None:
             self.features = []
 
 
-# ==================== 数据源注册表 ====================
+#== sync, corrected by elderman == @elder man
 DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
-    # MongoDB 缓存
+    #MongoDB Cache
     DataSourceCode.MONGODB: DataSourceInfo(
         code=DataSourceCode.MONGODB,
         name="MongoDB",
@@ -96,7 +94,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="专业的A股数据接口，提供高质量的历史数据和实时行情",
         supported_markets=["a_shares"],
         requires_api_key=True,
-        is_free=False,  # 免费版有限制，专业版需付费
+        is_free=False,  #Free editions are restricted, professional editions are paid.
         official_website="https://tushare.pro",
         documentation_url="https://tushare.pro/document/2",
         features=["历史行情", "实时行情", "财务数据", "基本面数据", "新闻公告"],
@@ -156,7 +154,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="美股实时数据和新闻接口，提供高质量的市场数据",
         supported_markets=["us_stocks"],
         requires_api_key=True,
-        is_free=True,  # 有免费版
+        is_free=True,  #It's free.
         official_website="https://finnhub.io",
         documentation_url="https://finnhub.io/docs/api",
         features=["实时行情", "历史数据", "新闻资讯", "财务数据", "技术指标"],
@@ -185,7 +183,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="美股技术分析数据接口，提供丰富的技术指标",
         supported_markets=["us_stocks"],
         requires_api_key=True,
-        is_free=True,  # 有免费版
+        is_free=True,  #It's free.
         official_website="https://www.alphavantage.co",
         documentation_url="https://www.alphavantage.co/documentation",
         features=["技术指标", "历史数据", "外汇数据", "加密货币"],
@@ -200,7 +198,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="美股实时数据接口，提供高质量的市场数据",
         supported_markets=["us_stocks"],
         requires_api_key=True,
-        is_free=False,  # 需付费
+        is_free=False,  #Fees required
         official_website="https://iexcloud.io",
         documentation_url="https://iexcloud.io/docs/api",
         features=["实时行情", "历史数据", "财务数据", "新闻资讯"],
@@ -215,7 +213,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="专业金融终端，提供全面的金融数据和分析工具",
         supported_markets=["a_shares", "hk_stocks", "us_stocks"],
         requires_api_key=True,
-        is_free=False,  # 专业版需付费
+        is_free=False,  #Professional edition fees
         official_website="https://www.wind.com.cn",
         features=["专业数据", "全市场覆盖", "高质量数据", "专业分析"],
     ),
@@ -229,7 +227,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="专业金融数据终端，提供全面的A股数据",
         supported_markets=["a_shares"],
         requires_api_key=True,
-        is_free=False,  # 专业版需付费
+        is_free=False,  #Professional edition fees
         official_website="http://choice.eastmoney.com",
         features=["专业数据", "A股专注", "高质量数据", "专业分析"],
     ),
@@ -243,7 +241,7 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
         description="经济和金融数据平台，提供全球经济数据",
         supported_markets=["us_stocks"],
         requires_api_key=True,
-        is_free=True,  # 有免费版
+        is_free=True,  #It's free.
         official_website="https://www.quandl.com",
         documentation_url="https://docs.quandl.com",
         features=["经济数据", "金融数据", "全球覆盖"],
@@ -277,41 +275,38 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
 }
 
 
-# ==================== 辅助函数 ====================
+#== sync, corrected by elderman == @elder man
 
 def get_data_source_info(code: str) -> Optional[DataSourceInfo]:
-    """
-    获取数据源信息
-    
-    Args:
-        code: 数据源编码
-    
-    Returns:
-        数据源信息，如果不存在则返回 None
-    """
+    """Access to data source information
+
+Args:
+code: Data source encoding
+
+Returns:
+Data source information, return None if not available
+"""
     return DATA_SOURCE_REGISTRY.get(code)
 
 
 def list_all_data_sources() -> List[DataSourceInfo]:
-    """
-    列出所有数据源
-    
-    Returns:
-        所有数据源信息列表
-    """
+    """List all data sources
+
+Returns:
+List of all data sources
+"""
     return list(DATA_SOURCE_REGISTRY.values())
 
 
 def list_data_sources_by_market(market: str) -> List[DataSourceInfo]:
-    """
-    列出支持指定市场的数据源
-    
-    Args:
-        market: 市场类型（a_shares, us_stocks, hk_stocks, etc.）
-    
-    Returns:
-        支持该市场的数据源列表
-    """
+    """List the data sources supporting the specified market
+
+Args:
+Market type (a shares, us stocks, hk stocks, etc.)
+
+Returns:
+List of data sources supporting the market
+"""
     return [
         info for info in DATA_SOURCE_REGISTRY.values()
         if market in info.supported_markets
@@ -319,12 +314,11 @@ def list_data_sources_by_market(market: str) -> List[DataSourceInfo]:
 
 
 def list_free_data_sources() -> List[DataSourceInfo]:
-    """
-    列出所有免费数据源
-    
-    Returns:
-        免费数据源列表
-    """
+    """List all free data sources
+
+Returns:
+Free Data Source List
+"""
     return [
         info for info in DATA_SOURCE_REGISTRY.values()
         if info.is_free
@@ -332,14 +326,13 @@ def list_free_data_sources() -> List[DataSourceInfo]:
 
 
 def is_data_source_supported(code: str) -> bool:
-    """
-    检查数据源是否支持
-    
-    Args:
-        code: 数据源编码
-    
-    Returns:
-        是否支持
-    """
+    """Check if data sources support
+
+Args:
+code: Data source encoding
+
+Returns:
+Supported
+"""
     return code in DATA_SOURCE_REGISTRY
 

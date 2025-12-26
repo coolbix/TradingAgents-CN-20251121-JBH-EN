@@ -1,6 +1,5 @@
-"""
-内部消息数据API路由
-提供内部消息的查询、搜索和管理接口
+"""Internal Message Data API Route
+Query, search and management interface for internal messages
 """
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
@@ -18,7 +17,7 @@ router = APIRouter(prefix="/api/internal-messages", tags=["internal-messages"])
 
 
 class InternalMessage(BaseModel):
-    """内部消息模型"""
+    """Internal Message Model"""
     message_id: str
     message_type: str  # research_report/insider_info/analyst_note/meeting_minutes/internal_analysis
     title: str
@@ -48,13 +47,13 @@ class InternalMessage(BaseModel):
 
 
 class InternalMessageBatchRequest(BaseModel):
-    """批量保存内部消息请求"""
+    """Batch Save Internal Message Request"""
     symbol: str = Field(..., description="股票代码")
     messages: List[InternalMessage] = Field(..., description="内部消息列表")
 
 
 class InternalMessageQueryRequest(BaseModel):
-    """内部消息查询请求"""
+    """Internal Message Query Request"""
     symbol: Optional[str] = None
     symbols: Optional[List[str]] = None
     message_type: Optional[str] = None
@@ -76,18 +75,18 @@ class InternalMessageQueryRequest(BaseModel):
 
 @router.post("/save", response_model=dict)
 async def save_internal_messages(request: InternalMessageBatchRequest):
-    """批量保存内部消息"""
+    """Batch Save Internal Messages"""
     try:
         service = await get_internal_message_service()
         
-        # 转换消息格式并添加股票代码
+        #Convert messages and add stock codes
         messages = []
         for msg in request.messages:
             message_dict = msg.dict()
             message_dict["symbol"] = request.symbol
             messages.append(message_dict)
         
-        # 保存消息
+        #Can not open message
         result = await service.save_internal_messages(messages)
         
         return ok(data=result,
@@ -100,11 +99,11 @@ async def save_internal_messages(request: InternalMessageBatchRequest):
 
 @router.post("/query", response_model=dict)
 async def query_internal_messages(request: InternalMessageQueryRequest):
-    """查询内部消息"""
+    """Query Internal Message"""
     try:
         service = await get_internal_message_service()
         
-        # 构建查询参数
+        #Build query parameters
         params = InternalMessageQueryParams(
             symbol=request.symbol,
             symbols=request.symbols,
@@ -125,7 +124,7 @@ async def query_internal_messages(request: InternalMessageQueryRequest):
             skip=request.skip
         )
         
-        # 执行查询
+        #Execute queries
         messages = await service.query_internal_messages(params)
         
         return ok(data={
@@ -147,7 +146,7 @@ async def get_latest_messages(
     access_level: Optional[str] = Query(None, description="访问级别"),
     limit: int = Query(20, ge=1, le=100, description="返回数量")
 ):
-    """获取最新内部消息"""
+    """Get an update on the inside."""
     try:
         service = await get_internal_message_service()
         messages = await service.get_latest_messages(symbol, message_type, access_level, limit)
@@ -173,7 +172,7 @@ async def search_messages(
     access_level: Optional[str] = Query(None, description="访问级别"),
     limit: int = Query(50, ge=1, le=200, description="返回数量")
 ):
-    """全文搜索内部消息"""
+    """Other Organiser"""
     try:
         service = await get_internal_message_service()
         messages = await service.search_messages(query, symbol, access_level, limit)
@@ -198,7 +197,7 @@ async def get_research_reports(
     department: Optional[str] = Query(None, description="部门"),
     limit: int = Query(20, ge=1, le=100, description="返回数量")
 ):
-    """获取研究报告"""
+    """Access to studies"""
     try:
         service = await get_internal_message_service()
         reports = await service.get_research_reports(symbol, department, limit)
@@ -222,7 +221,7 @@ async def get_analyst_notes(
     author: Optional[str] = Query(None, description="分析师"),
     limit: int = Query(20, ge=1, le=100, description="返回数量")
 ):
-    """获取分析师笔记"""
+    """Get the analyst's notes."""
     try:
         service = await get_internal_message_service()
         notes = await service.get_analyst_notes(symbol, author, limit)
@@ -245,11 +244,11 @@ async def get_statistics(
     symbol: Optional[str] = Query(None, description="股票代码"),
     hours_back: int = Query(24, ge=1, le=168, description="回溯小时数")
 ):
-    """获取内部消息统计信息"""
+    """Get internal news statistics"""
     try:
         service = await get_internal_message_service()
         
-        # 计算时间范围
+        #Calculate the time frame
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=hours_back)
         
@@ -273,7 +272,7 @@ async def get_statistics(
 
 @router.get("/message-types", response_model=dict)
 async def get_message_types():
-    """获取支持的消息类型列表"""
+    """Can not open message"""
     message_types = [
         {
             "code": "research_report",
@@ -312,7 +311,7 @@ async def get_message_types():
 
 @router.get("/categories", response_model=dict)
 async def get_categories():
-    """获取支持的分类列表"""
+    """List of categories to obtain support"""
     categories = [
         {
             "code": "fundamental_analysis",
@@ -346,11 +345,11 @@ async def get_categories():
 
 @router.get("/health", response_model=dict)
 async def health_check():
-    """健康检查"""
+    """Health screening"""
     try:
         service = await get_internal_message_service()
         
-        # 简单的连接测试
+        #Simple connection test
         collection = await service._get_collection()
         count = await collection.estimated_document_count()
         

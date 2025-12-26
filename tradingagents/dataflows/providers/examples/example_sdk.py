@@ -1,11 +1,10 @@
-"""
-示例SDK适配器实现 (tradingagents层)
-展示如何基于BaseStockDataProvider创建新的数据源适配器
+"""Example: SDK adapter achieved (tradingagents level)
+Show how to create a new data source adapter based on BaseStockDataProvider
 
-架构说明:
-- tradingagents层: 纯数据获取和标准化，不涉及数据库操作
-- app层: 数据同步服务，负责调用此适配器并写入数据库
-- 职责分离: 适配器只负责数据获取，同步服务负责数据存储
+Structure description:
+- Tradingagents Layer: Pure data acquisition and standardization, not involving database operations
+-app Layer: Data Synchronization Service to call this adapter and write the data Library
+- Segregation of duties: only data acquisition by adapter and data storage by synchronization service
 """
 import asyncio
 import aiohttp
@@ -18,35 +17,34 @@ from ..base_provider import BaseStockDataProvider
 
 
 class ExampleSDKProvider(BaseStockDataProvider):
-    """
-    示例SDK数据提供器 (tradingagents层)
+    """Example: SDK data provider (tradingagents layer)
 
-    职责:
-    - 连接外部SDK API
-    - 获取原始数据
-    - 数据标准化处理
-    - 返回标准格式数据
+Duties:
+- Connect external SDK API
+- Access to raw data
+- Standardization of data processing
+- returns standard format data
 
-    注意:
-    - 不涉及数据库操作
-    - 不包含业务逻辑
-    - 专注于数据获取和格式转换
-    - 由app层的同步服务调用
-    """
+Note:
+- Not about database operations
+- Not business logic.
+- Focus on data acquisition and formatting
+- Called by the HotSync service on the app layer
+"""
     
     def __init__(self, api_key: str = None, base_url: str = None, **kwargs):
         super().__init__("ExampleSDK")
         
-        # 配置参数
+        #Configure Parameters
         self.api_key = api_key or os.getenv("EXAMPLE_SDK_API_KEY")
         self.base_url = base_url or os.getenv("EXAMPLE_SDK_BASE_URL", "https://api.example-sdk.com")
         self.timeout = int(os.getenv("EXAMPLE_SDK_TIMEOUT", "30"))
         self.enabled = os.getenv("EXAMPLE_SDK_ENABLED", "false").lower() == "true"
         
-        # HTTP会话
+        #HTTP Session
         self.session = None
         
-        # 请求头
+        #Request Header
         self.headers = {
             "User-Agent": "TradingAgents/1.0",
             "Accept": "application/json",
@@ -57,32 +55,32 @@ class ExampleSDKProvider(BaseStockDataProvider):
             self.headers["Authorization"] = f"Bearer {self.api_key}"
     
     async def connect(self) -> bool:
-        """连接到数据源"""
+        """Connect to Data Source"""
         if not self.enabled:
-            self.logger.warning("ExampleSDK未启用")
+            self.logger.warning("ExampleSDK is not enabled")
             return False
         
         if not self.api_key:
-            self.logger.error("ExampleSDK API密钥未配置")
+            self.logger.error("ExampleSDK API key not configured")
             return False
         
         try:
-            # 创建HTTP会话
+            #Create HTTP Session
             timeout = aiohttp.ClientTimeout(total=self.timeout)
             self.session = aiohttp.ClientSession(
                 headers=self.headers,
                 timeout=timeout
             )
             
-            # 测试连接
+            #Test Connection
             test_url = f"{self.base_url}/ping"
             async with self.session.get(test_url) as response:
                 if response.status == 200:
                     self.connected = True
-                    self.logger.info("ExampleSDK连接成功")
+                    self.logger.info("ExampleSDK connection successfully")
                     return True
                 else:
-                    self.logger.error(f"ExampleSDK连接失败: HTTP {response.status}")
+                    self.logger.error(f"ExampleSDK connection failed: HTTP{response.status}")
                     return False
                     
         except Exception as e:
@@ -90,39 +88,39 @@ class ExampleSDKProvider(BaseStockDataProvider):
             return False
     
     async def disconnect(self):
-        """断开连接"""
+        """Disconnect"""
         if self.session:
             await self.session.close()
             self.session = None
         
         self.connected = False
-        self.logger.info("ExampleSDK连接已断开")
+        self.logger.info("ExampleSDK connection disconnected")
     
     async def get_stock_basic_info(self, symbol: str = None) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
-        """获取股票基础信息"""
+        """Access to basic stock information"""
         if not self.connected:
             await self.connect()
         
         try:
             if symbol:
-                # 获取单个股票信息
+                #Can not open message
                 url = f"{self.base_url}/stocks/{symbol}/info"
                 async with self.session.get(url) as response:
                     if response.status == 200:
                         data = await response.json()
                         return self.standardize_basic_info(data)
                     else:
-                        self.logger.warning(f"获取{symbol}基础信息失败: HTTP {response.status}")
+                        self.logger.warning(f"Access{symbol}Basic information failed: HTTP{response.status}")
                         return None
             else:
-                # 获取所有股票信息
+                #Get all stock information
                 url = f"{self.base_url}/stocks/list"
                 async with self.session.get(url) as response:
                     if response.status == 200:
                         data = await response.json()
                         return [self.standardize_basic_info(item) for item in data.get("stocks", [])]
                     else:
-                        self.logger.warning(f"获取股票列表失败: HTTP {response.status}")
+                        self.logger.warning(f"Could not close temporary folder: %s{response.status}")
                         return None
                         
         except Exception as e:
@@ -130,7 +128,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
             return None
     
     async def get_stock_list(self, market: str = None) -> Optional[List[Dict[str, Any]]]:
-        """获取股票列表"""
+        """Get Stock List"""
         if not self.connected:
             await self.connect()
         
@@ -145,7 +143,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
                     data = await response.json()
                     return [self.standardize_basic_info(item) for item in data.get("stocks", [])]
                 else:
-                    self.logger.warning(f"获取股票列表失败: HTTP {response.status}")
+                    self.logger.warning(f"Could not close temporary folder: %s{response.status}")
                     return None
                     
         except Exception as e:
@@ -153,7 +151,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
             return None
     
     async def get_stock_quotes(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """获取实时行情"""
+        """Get Real Time Lines"""
         if not self.connected:
             await self.connect()
         
@@ -164,7 +162,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
                     data = await response.json()
                     return self.standardize_quotes(data)
                 else:
-                    self.logger.warning(f"获取{symbol}实时行情失败: HTTP {response.status}")
+                    self.logger.warning(f"Access{symbol}Timeline failed: HTTP{response.status}")
                     return None
                     
         except Exception as e:
@@ -178,7 +176,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
         end_date: Union[str, date] = None,
         period: str = "daily"
     ) -> Optional[pd.DataFrame]:
-        """获取历史数据"""
+        """Access to historical data"""
         if not self.connected:
             await self.connect()
         
@@ -197,7 +195,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
                     data = await response.json()
                     return self._convert_to_dataframe(data.get("history", []))
                 else:
-                    self.logger.warning(f"获取{symbol}历史数据失败: HTTP {response.status}")
+                    self.logger.warning(f"Access{symbol}History data failed: HTTP{response.status}")
                     return None
                     
         except Exception as e:
@@ -205,7 +203,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
             return None
     
     async def get_financial_data(self, symbol: str, report_type: str = "annual") -> Optional[Dict[str, Any]]:
-        """获取财务数据"""
+        """Access to financial data"""
         if not self.connected:
             await self.connect()
         
@@ -218,7 +216,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
                     data = await response.json()
                     return self._standardize_financial_data(data)
                 else:
-                    self.logger.warning(f"获取{symbol}财务数据失败: HTTP {response.status}")
+                    self.logger.warning(f"Access{symbol}Financial data failed: HTTP{response.status}")
                     return None
                     
         except Exception as e:
@@ -226,7 +224,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
             return None
     
     async def get_stock_news(self, symbol: str = None, limit: int = 10) -> Optional[List[Dict[str, Any]]]:
-        """获取股票新闻"""
+        """Access to stock news"""
         if not self.connected:
             await self.connect()
         
@@ -243,18 +241,18 @@ class ExampleSDKProvider(BaseStockDataProvider):
                     data = await response.json()
                     return [self._standardize_news(item) for item in data.get("news", [])]
                 else:
-                    self.logger.warning(f"获取新闻失败: HTTP {response.status}")
+                    self.logger.warning(f"Access to news failed: HTTP{response.status}")
                     return None
                     
         except Exception as e:
             self._handle_error(e, f"获取新闻失败 symbol={symbol}")
             return None
     
-    # ==================== 数据转换方法 ====================
+    #== sync, corrected by elderman == @elder man
     
     def standardize_basic_info(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """标准化股票基础信息 - 重写以适配ExampleSDK格式"""
-        # 字段映射 (根据实际SDK的字段名称调整)
+        """Standardised Stock Basic Information - Rewrite to Fit ExampleSDK"""
+        #Field Map (adjusted to actual SDK field name)
         mapped_data = {
             "symbol": raw_data.get("ticker", raw_data.get("symbol")),
             "name": raw_data.get("company_name", raw_data.get("name")),
@@ -267,12 +265,12 @@ class ExampleSDKProvider(BaseStockDataProvider):
             "roe": raw_data.get("return_on_equity")
         }
         
-        # 调用父类的标准化方法
+        #Call parent standardized methods
         return super().standardize_basic_info(mapped_data)
     
     def standardize_quotes(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """标准化实时行情数据 - 重写以适配ExampleSDK格式"""
-        # 字段映射
+        """Standardized real-time behavioral data - rewrite to fit ExampleSDK format"""
+        #Field Map
         mapped_data = {
             "symbol": raw_data.get("ticker", raw_data.get("symbol")),
             "price": raw_data.get("last_price", raw_data.get("current_price")),
@@ -287,15 +285,15 @@ class ExampleSDKProvider(BaseStockDataProvider):
             "timestamp": raw_data.get("last_updated")
         }
         
-        # 调用父类的标准化方法
+        #Call parent standardized methods
         return super().standardize_quotes(mapped_data)
     
     def _convert_to_dataframe(self, history_data: List[Dict[str, Any]]) -> pd.DataFrame:
-        """将历史数据转换为DataFrame"""
+        """Convert historical data to DataFrame"""
         if not history_data:
             return pd.DataFrame()
         
-        # 标准化每条记录
+        #Standardized per record
         standardized_data = []
         for item in history_data:
             standardized_item = {
@@ -311,7 +309,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
         
         df = pd.DataFrame(standardized_data)
         
-        # 设置日期索引
+        #Set date index
         if "date" in df.columns:
             df["date"] = pd.to_datetime(df["date"])
             df.set_index("date", inplace=True)
@@ -319,7 +317,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
         return df
     
     def _standardize_financial_data(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """标准化财务数据"""
+        """Standardized financial data"""
         return {
             "symbol": raw_data.get("ticker", raw_data.get("symbol")),
             "report_period": raw_data.get("period"),
@@ -334,7 +332,7 @@ class ExampleSDKProvider(BaseStockDataProvider):
         }
     
     def _standardize_news(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
-        """标准化新闻数据"""
+        """Standardized public information data"""
         return {
             "title": raw_data.get("headline", raw_data.get("title")),
             "content": raw_data.get("summary", raw_data.get("content")),
@@ -347,44 +345,44 @@ class ExampleSDKProvider(BaseStockDataProvider):
             "created_at": datetime.utcnow()
         }
     
-    # ==================== 清理资源 ====================
+    #== sync, corrected by elderman == @elder man
     
     async def __aenter__(self):
-        """异步上下文管理器入口"""
+        """Step Context Manager Entry"""
         await self.connect()
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器出口"""
+        """Step Context Manager Export"""
         await self.disconnect()
 
 
-# ==================== 使用示例 ====================
+#== sync, corrected by elderman == @elder man
 
 async def example_usage():
-    """使用示例"""
-    # 方式1: 直接使用
+    """Use Example"""
+    #Mode 1: Direct use
     provider = ExampleSDKProvider(api_key="your_api_key")
     
     try:
-        # 连接
+        #Connection
         if await provider.connect():
-            # 获取股票基础信息
+            #Access to basic stock information
             basic_info = await provider.get_stock_basic_info("000001")
             print(f"基础信息: {basic_info}")
             
-            # 获取实时行情
+            #Get Real Time Lines
             quotes = await provider.get_stock_quotes("000001")
             print(f"实时行情: {quotes}")
             
-            # 获取历史数据
+            #Access to historical data
             history = await provider.get_historical_data("000001", "2024-01-01", "2024-01-31")
             print(f"历史数据: {history.head() if history is not None else None}")
             
     finally:
         await provider.disconnect()
     
-    # 方式2: 使用上下文管理器
+    #Mode 2: Use context manager
     async with ExampleSDKProvider(api_key="your_api_key") as provider:
         basic_info = await provider.get_stock_basic_info("000001")
         print(f"基础信息: {basic_info}")

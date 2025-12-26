@@ -1,5 +1,4 @@
-"""
-用户服务 - 基于数据库的用户管理
+"""User services - database-based user management
 """
 
 import hashlib
@@ -12,11 +11,11 @@ from bson import ObjectId
 from app.core.config import settings
 from app.models.user import User, UserCreate, UserUpdate, UserResponse
 
-# 尝试导入日志管理器
+#Try Import Log Manager
 try:
     from tradingagents.utils.logging_manager import get_logger
 except ImportError:
-    # 如果导入失败，使用标准日志
+    #Use standard log if import failed
     import logging
     def get_logger(name: str) -> logging.Logger:
         return logging.getLogger(name)
@@ -25,7 +24,7 @@ logger = get_logger('user_service')
 
 
 class UserService:
-    """用户服务类"""
+    """User service category"""
 
     def __init__(self):
         self.client = MongoClient(settings.MONGO_URI)
@@ -33,42 +32,42 @@ class UserService:
         self.users_collection = self.db.users
 
     def close(self):
-        """关闭数据库连接"""
+        """Close database connection"""
         if hasattr(self, 'client') and self.client:
             self.client.close()
-            logger.info("✅ UserService MongoDB 连接已关闭")
+            logger.info("UserService MongoDB connection closed")
 
     def __del__(self):
-        """析构函数，确保连接被关闭"""
+        """Parsing function to ensure that the connection is closed"""
         self.close()
     
     @staticmethod
     def hash_password(password: str) -> str:
-        """密码哈希"""
-        # 使用 bcrypt 会更安全，但为了兼容性先使用 SHA-256
+        """Password Hash."""
+        #It's safer to use bcrypt, but first for compatibility SHA-256
         return hashlib.sha256(password.encode()).hexdigest()
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
-        """验证密码"""
+        """Authentication password"""
         return UserService.hash_password(plain_password) == hashed_password
     
     async def create_user(self, user_data: UserCreate) -> Optional[User]:
-        """创建用户"""
+        """Create User"""
         try:
-            # 检查用户名是否已存在
+            #Check if username exists
             existing_user = self.users_collection.find_one({"username": user_data.username})
             if existing_user:
-                logger.warning(f"用户名已存在: {user_data.username}")
+                logger.warning(f"Username already exists:{user_data.username}")
                 return None
             
-            # 检查邮箱是否已存在
+            #Check if the mailbox exists
             existing_email = self.users_collection.find_one({"email": user_data.email})
             if existing_email:
-                logger.warning(f"邮箱已存在: {user_data.email}")
+                logger.warning(f"Mailbox already exists:{user_data.email}")
                 return None
             
-            # 创建用户文档
+            #Create User Document
             user_doc = {
                 "username": user_data.username,
                 "email": user_data.email,
@@ -80,18 +79,18 @@ class UserService:
                 "updated_at": datetime.utcnow(),
                 "last_login": None,
                 "preferences": {
-                    # 分析偏好
+                    #Analysis preferences
                     "default_market": "A股",
-                    "default_depth": "3",  # 1-5级，3级为标准分析（推荐）
+                    "default_depth": "3",  #Level 1-5, level 3, standard analysis (recommended)
                     "default_analysts": ["市场分析师", "基本面分析师"],
                     "auto_refresh": True,
                     "refresh_interval": 30,
-                    # 外观设置
+                    #Appearance Settings
                     "ui_theme": "light",
                     "sidebar_width": 240,
-                    # 语言和地区
+                    #Languages and regions
                     "language": "zh-CN",
-                    # 通知设置
+                    #Notification Settings
                     "notifications_enabled": True,
                     "email_notifications": False,
                     "desktop_notifications": True,
@@ -109,71 +108,71 @@ class UserService:
             result = self.users_collection.insert_one(user_doc)
             user_doc["_id"] = result.inserted_id
             
-            logger.info(f"✅ 用户创建成功: {user_data.username}")
+            logger.info(f"Other Organiser{user_data.username}")
             return User(**user_doc)
             
         except Exception as e:
-            logger.error(f"❌ 创建用户失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """用户认证"""
+        """User Authentication"""
         try:
-            logger.info(f"🔍 [authenticate_user] 开始认证用户: {username}")
+            logger.info(f"[Arabicate user]{username}")
 
-            # 查找用户
+            #Find Users
             user_doc = self.users_collection.find_one({"username": username})
-            logger.info(f"🔍 [authenticate_user] 数据库查询结果: {'找到用户' if user_doc else '用户不存在'}")
+            logger.info(f"[Arabicate user]{'Found User' if user_doc else 'User does not exist'}")
 
             if not user_doc:
-                logger.warning(f"❌ [authenticate_user] 用户不存在: {username}")
+                logger.warning(f"The user does not exist:{username}")
                 return None
 
-            logger.info(f"🔍 [authenticate_user] 用户信息: username={user_doc.get('username')}, email={user_doc.get('email')}, is_active={user_doc.get('is_active')}")
+            logger.info(f"Other Organiser{user_doc.get('username')}, email={user_doc.get('email')}, is_active={user_doc.get('is_active')}")
 
-            # 验证密码
+            #Authentication password
             input_password_hash = self.hash_password(password)
             stored_password_hash = user_doc["hashed_password"]
-            logger.info(f"🔍 [authenticate_user] 密码哈希对比:")
-            logger.info(f"   输入密码哈希: {input_password_hash[:20]}...")
-            logger.info(f"   存储密码哈希: {stored_password_hash[:20]}...")
-            logger.info(f"   哈希匹配: {input_password_hash == stored_password_hash}")
+            logger.info(f"[AG/CC BY-NC-SA 2.0]")
+            logger.info(f"Enter password Hash:{input_password_hash[:20]}...")
+            logger.info(f"Store password Hash:{stored_password_hash[:20]}...")
+            logger.info(f"Hash matches:{input_password_hash == stored_password_hash}")
 
             if not self.verify_password(password, user_doc["hashed_password"]):
-                logger.warning(f"❌ [authenticate_user] 密码错误: {username}")
+                logger.warning(f"[AG/CC] Password error:{username}")
                 return None
 
-            # 检查用户是否激活
+            #Check if user activated
             if not user_doc.get("is_active", True):
-                logger.warning(f"❌ [authenticate_user] 用户已禁用: {username}")
+                logger.warning(f"[Arabicate user] User disabled:{username}")
                 return None
 
-            # 更新最后登录时间
+            #Update final login time
             self.users_collection.update_one(
                 {"_id": user_doc["_id"]},
                 {"$set": {"last_login": datetime.utcnow()}}
             )
 
-            logger.info(f"✅ [authenticate_user] 用户认证成功: {username}")
+            logger.info(f"Could not close temporary folder: %s{username}")
             return User(**user_doc)
             
         except Exception as e:
-            logger.error(f"❌ 用户认证失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     async def get_user_by_username(self, username: str) -> Optional[User]:
-        """根据用户名获取用户"""
+        """Get users by user name"""
         try:
             user_doc = self.users_collection.find_one({"username": username})
             if user_doc:
                 return User(**user_doc)
             return None
         except Exception as e:
-            logger.error(f"❌ 获取用户失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
-        """根据用户ID获取用户"""
+        """Retrieving from user ID"""
         try:
             if not ObjectId.is_valid(user_id):
                 return None
@@ -183,23 +182,23 @@ class UserService:
                 return User(**user_doc)
             return None
         except Exception as e:
-            logger.error(f"❌ 获取用户失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     async def update_user(self, username: str, user_data: UserUpdate) -> Optional[User]:
-        """更新用户信息"""
+        """Update user information"""
         try:
             update_data = {"updated_at": datetime.utcnow()}
             
-            # 只更新提供的字段
+            #Update provided fields only
             if user_data.email:
-                # 检查邮箱是否已被其他用户使用
+                #Check if the mailbox is already used by other users
                 existing_email = self.users_collection.find_one({
                     "email": user_data.email,
                     "username": {"$ne": username}
                 })
                 if existing_email:
-                    logger.warning(f"邮箱已被使用: {user_data.email}")
+                    logger.warning(f"Mailbox has been used:{user_data.email}")
                     return None
                 update_data["email"] = user_data.email
             
@@ -218,26 +217,26 @@ class UserService:
             )
             
             if result.modified_count > 0:
-                logger.info(f"✅ 用户信息更新成功: {username}")
+                logger.info(f"User update successful:{username}")
                 return await self.get_user_by_username(username)
             else:
-                logger.warning(f"用户不存在或无需更新: {username}")
+                logger.warning(f"User does not exist or does not need to be updated:{username}")
                 return None
                 
         except Exception as e:
-            logger.error(f"❌ 更新用户信息失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     async def change_password(self, username: str, old_password: str, new_password: str) -> bool:
-        """修改密码"""
+        """Change Password"""
         try:
-            # 验证旧密码
+            #Authenticate old password
             user = await self.authenticate_user(username, old_password)
             if not user:
-                logger.warning(f"旧密码验证失败: {username}")
+                logger.warning(f"Synchronising {username}")
                 return False
             
-            # 更新密码
+            #Update Password
             new_hashed_password = self.hash_password(new_password)
             result = self.users_collection.update_one(
                 {"username": username},
@@ -250,18 +249,18 @@ class UserService:
             )
             
             if result.modified_count > 0:
-                logger.info(f"✅ 密码修改成功: {username}")
+                logger.info(f"The password was changed successfully:{username}")
                 return True
             else:
-                logger.error(f"❌ 密码修改失败: {username}")
+                logger.error(f"Could not close temporary folder: %s{username}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ 修改密码失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return False
     
     async def reset_password(self, username: str, new_password: str) -> bool:
-        """重置密码（管理员操作）"""
+        """Reset password (administrator operation)"""
         try:
             new_hashed_password = self.hash_password(new_password)
             result = self.users_collection.update_one(
@@ -275,26 +274,26 @@ class UserService:
             )
             
             if result.modified_count > 0:
-                logger.info(f"✅ 密码重置成功: {username}")
+                logger.info(f"Successfully reset password:{username}")
                 return True
             else:
-                logger.error(f"❌ 密码重置失败: {username}")
+                logger.error(f"Could not close temporary folder: %s{username}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ 重置密码失败: {e}")
+            logger.error(f"Failed to reset password:{e}")
             return False
     
     async def create_admin_user(self, username: str = "admin", password: str = "admin123", email: str = "admin@tradingagents.cn") -> Optional[User]:
-        """创建管理员用户"""
+        """Create administrator user"""
         try:
-            # 检查是否已存在管理员
+            #Check if an administrator exists
             existing_admin = self.users_collection.find_one({"username": username})
             if existing_admin:
-                logger.info(f"管理员用户已存在: {username}")
+                logger.info(f"Other Organiser{username}")
                 return User(**existing_admin)
             
-            # 创建管理员用户文档
+            #Create administrator user document
             admin_doc = {
                 "username": username,
                 "email": email,
@@ -313,7 +312,7 @@ class UserService:
                     "notifications_enabled": True,
                     "email_notifications": False
                 },
-                "daily_quota": 10000,  # 管理员更高配额
+                "daily_quota": 10000,  #Higher quota for administrators
                 "concurrent_limit": 10,
                 "total_analyses": 0,
                 "successful_analyses": 0,
@@ -324,18 +323,18 @@ class UserService:
             result = self.users_collection.insert_one(admin_doc)
             admin_doc["_id"] = result.inserted_id
             
-            logger.info(f"✅ 管理员用户创建成功: {username}")
-            logger.info(f"   密码: {password}")
-            logger.info("   ⚠️  请立即修改默认密码！")
+            logger.info(f"Could not close temporary folder: %s{username}")
+            logger.info(f"Password:{password}")
+            logger.info("Please change the default password immediately!")
             
             return User(**admin_doc)
             
         except Exception as e:
-            logger.error(f"❌ 创建管理员用户失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     async def list_users(self, skip: int = 0, limit: int = 100) -> List[UserResponse]:
-        """获取用户列表"""
+        """Get User List"""
         try:
             cursor = self.users_collection.find().skip(skip).limit(limit)
             users = []
@@ -361,11 +360,11 @@ class UserService:
             return users
             
         except Exception as e:
-            logger.error(f"❌ 获取用户列表失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return []
     
     async def deactivate_user(self, username: str) -> bool:
-        """禁用用户"""
+        """Disable User"""
         try:
             result = self.users_collection.update_one(
                 {"username": username},
@@ -378,18 +377,18 @@ class UserService:
             )
             
             if result.modified_count > 0:
-                logger.info(f"✅ 用户已禁用: {username}")
+                logger.info(f"User disabled:{username}")
                 return True
             else:
-                logger.warning(f"用户不存在: {username}")
+                logger.warning(f"Other Organiser{username}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ 禁用用户失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return False
     
     async def activate_user(self, username: str) -> bool:
-        """激活用户"""
+        """Activate User"""
         try:
             result = self.users_collection.update_one(
                 {"username": username},
@@ -402,16 +401,16 @@ class UserService:
             )
             
             if result.modified_count > 0:
-                logger.info(f"✅ 用户已激活: {username}")
+                logger.info(f"The user has activated:{username}")
                 return True
             else:
-                logger.warning(f"用户不存在: {username}")
+                logger.warning(f"Other Organiser{username}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ 激活用户失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return False
 
 
-# 全局用户服务实例
+#Examples of global user services
 user_service = UserService()

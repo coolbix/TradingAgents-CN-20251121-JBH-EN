@@ -1,19 +1,18 @@
-"""
-向后兼容导入模块
-保持旧的导入路径可用，避免破坏现有代码
+"""Import module backward compatible
+Maintaining old import paths is available to avoid damaging existing codes
 
-使用方法：
-    # 旧代码仍然可以这样导入
-    from tradingagents.dataflows.googlenews_utils import getNewsData
-    from tradingagents.dataflows.cache_manager import StockDataCache
-    
-    # 新代码推荐使用新路径
-    from tradingagents.dataflows.news import getNewsData
-    from tradingagents.dataflows.cache import StockDataCache
+Methods of use:
+# The old code can still be imported
+It's not like you're going to have to go to NewsData.
+You know, from traffickingagents.
+
+# The new code recommends a new path
+It's not like you're talking to me.
+It's a lot of work.
 """
 
-# 这个文件本身不导出任何内容
-# 它的存在是为了提醒开发者使用新的导入路径
+#The file itself does not export anything.
+#It exists to alert developers to new import paths
 
 __all__ = []
 

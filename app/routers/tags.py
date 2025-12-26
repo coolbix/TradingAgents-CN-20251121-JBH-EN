@@ -1,5 +1,4 @@
-"""
-标签管理 API
+"""Tag Management API
 """
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -53,7 +52,7 @@ async def create_tag(payload: TagCreate, current_user: dict = Depends(get_curren
         )
         return ok(tag, "创建成功")
     except Exception as e:
-        # 可能违反唯一索引（同名），返回400
+        #Possible violation of unique index (same name), return 400
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"创建标签失败: {e}")
 
 

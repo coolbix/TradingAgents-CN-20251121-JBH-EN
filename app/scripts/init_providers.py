@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-初始化大模型厂家数据脚本
+"""Initialization of large modeler data script
 """
 
 import asyncio
@@ -8,22 +7,22 @@ import sys
 import os
 from datetime import datetime
 
-# 添加项目根目录到Python路径
+#Add Item Root Directory to Python Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from app.core.database import init_db, get_mongo_db
 from app.models.config import LLMProvider
 
 async def init_providers():
-    """初始化大模型厂家数据"""
+    """Initialization of large modeler data"""
     print("🚀 开始初始化大模型厂家数据...")
     
-    # 初始化数据库连接
+    #Initialize database connection
     await init_db()
     db = get_mongo_db()
     providers_collection = db.llm_providers
     
-    # 预设厂家数据
+    #Pre-plant data
     providers_data = [
         {
             "name": "openai",
@@ -107,11 +106,11 @@ async def init_providers():
         }
     ]
     
-    # 清除现有数据
+    #Clear existing data
     await providers_collection.delete_many({})
     print("🧹 清除现有厂家数据")
     
-    # 插入新数据
+    #Insert new data
     for provider_data in providers_data:
         provider_data["created_at"] = datetime.utcnow()
         provider_data["updated_at"] = datetime.utcnow()

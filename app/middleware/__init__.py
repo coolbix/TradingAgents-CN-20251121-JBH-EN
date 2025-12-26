@@ -1,3 +1,2 @@
-"""
-中间件模块
+"""Intermediate module
 """

@@ -279,7 +279,7 @@ LOG_FILE=tradingagents.log
 4. 创建新的API密钥
 
 #### 阿里百炼 (DashScope)
-1. 访问 [阿里云百炼](https://dashscope.aliyun.com/)
+1. 访问 [阿里云百炼](https://dashscope-int.aliyun.com/)
 2. 注册/登录阿里云账户
 3. 开通百炼服务
 4. 获取API Key

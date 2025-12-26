@@ -1,7 +1,6 @@
-"""
-请求ID/Trace-ID 中间件
-- 为每个请求生成唯一 ID（trace_id），写入 request.state 与响应头
-- 将 trace_id 写入 logging 的 contextvars，使所有日志自动带出
+"""Request ID/Trace-ID middle
+- Generate a single ID (trace id) for each request, write to request.state and respond Head
+- Write track id to logging constextvars, so all logs are automatically taken out
 """
 
 from fastapi import Request, Response
@@ -17,58 +16,58 @@ logger = logging.getLogger(__name__)
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    """请求ID和日志中间件（trace_id）"""
+    """Request for ID and log middle (trace id)"""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # 生成请求ID/trace_id
+        #Generate request ID/trace id
         trace_id = str(uuid.uuid4())
-        request.state.request_id = trace_id  # 兼容现有字段名
+        request.state.request_id = trace_id  #Compatible existing field names
         request.state.trace_id = trace_id
 
-        # 将 trace_id 写入 contextvars
+        #Write track id to contactvars
         token = trace_id_var.set(trace_id)
 
-        # 记录请求开始时间
+        #Record request start time
         start_time = time.time()
 
-        # 记录请求信息
+        #Record request information
         logger.info(
-            f"请求开始 - trace_id: {trace_id}, "
-            f"方法: {request.method}, 路径: {request.url.path}, "
-            f"客户端: {request.client.host if request.client else 'unknown'}"
+            f"- Trace id:{trace_id}, "
+            f"Methodology:{request.method}, Path:{request.url.path}, "
+            f"Client:{request.client.host if request.client else 'unknown'}"
         )
 
         try:
-            # 处理请求
+            #Processing of requests
             response = await call_next(request)
 
-            # 计算处理时间
+            #Calculate processing time
             process_time = time.time() - start_time
 
-            # 添加响应头
+            #Add Response Header
             response.headers["X-Trace-ID"] = trace_id
-            response.headers["X-Request-ID"] = trace_id  # 兼容
+            response.headers["X-Request-ID"] = trace_id  #Compatibility
             response.headers["X-Process-Time"] = f"{process_time:.3f}"
 
-            # 记录请求完成信息
+            #Record requested completion information
             logger.info(
-                f"请求完成 - trace_id: {trace_id}, 状态码: {response.status_code}, 处理时间: {process_time:.3f}s"
+                f"- Trace id:{trace_id}, status code:{response.status_code}, processing time:{process_time:.3f}s"
             )
 
             return response
 
         except Exception as exc:
-            # 计算处理时间
+            #Calculate processing time
             process_time = time.time() - start_time
 
-            # 记录请求异常信息
+            #Record requested abnormal information
             logger.error(
-                f"请求异常 - trace_id: {trace_id}, 处理时间: {process_time:.3f}s, 异常: {str(exc)}"
+                f"Request abnormal - trace id:{trace_id}, processing time:{process_time:.3f}s, anomaly:{str(exc)}"
             )
             raise
 
         finally:
-            # 清理 contextvar，避免泄露到后续请求
+            #Clean up contacttvar, avoid leaking to subsequent requests
             try:
                 trace_id_var.reset(token)
             except Exception:

@@ -1,5 +1,4 @@
-"""
-操作日志API路由
+"""Operation log API route
 """
 
 import logging
@@ -33,9 +32,9 @@ async def get_operation_logs(
     keyword: str = Query(None, description="关键词搜索"),
     current_user: dict = Depends(get_current_user)
 ):
-    """获取操作日志列表"""
+    """Get Operations Log List"""
     try:
-        logger.info(f"🔍 用户 {current_user['username']} 获取操作日志列表")
+        logger.info(f"User 🔍{current_user['username']}Get Operations Log List")
         
         service = get_operation_log_service()
         query = OperationLogQuery(
@@ -63,7 +62,7 @@ async def get_operation_logs(
         )
         
     except Exception as e:
-        logger.error(f"获取操作日志列表失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取操作日志列表失败: {str(e)}"
@@ -75,9 +74,9 @@ async def get_operation_log_stats(
     days: int = Query(30, ge=1, le=365, description="统计天数"),
     current_user: dict = Depends(get_current_user)
 ):
-    """获取操作日志统计"""
+    """Get Operations Log Statistics"""
     try:
-        logger.info(f"📊 用户 {current_user['username']} 获取操作日志统计")
+        logger.info(f"User 📊{current_user['username']}Get Operations Log Statistics")
         
         service = get_operation_log_service()
         stats = await service.get_stats(days)
@@ -89,7 +88,7 @@ async def get_operation_log_stats(
         )
         
     except Exception as e:
-        logger.error(f"获取操作日志统计失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取操作日志统计失败: {str(e)}"
@@ -101,9 +100,9 @@ async def get_operation_log_detail(
     log_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """获取操作日志详情"""
+    """Get Operations Log Details"""
     try:
-        logger.info(f"🔍 用户 {current_user['username']} 获取操作日志详情: {log_id}")
+        logger.info(f"User 🔍{current_user['username']}Can not open message{log_id}")
         
         service = get_operation_log_service()
         log = await service.get_log_by_id(log_id)
@@ -123,7 +122,7 @@ async def get_operation_log_detail(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"获取操作日志详情失败: {e}")
+        logger.error(f"Failed to get operation log details:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取操作日志详情失败: {str(e)}"
@@ -135,9 +134,9 @@ async def clear_operation_logs(
     request: ClearLogsRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """清空操作日志"""
+    """Empty Operations Log"""
     try:
-        logger.info(f"🗑️ 用户 {current_user['username']} 清空操作日志")
+        logger.info(f"User 🗑️{current_user['username']}Empty Operations Log")
         
         service = get_operation_log_service()
         result = await service.clear_logs(
@@ -158,7 +157,7 @@ async def clear_operation_logs(
         )
         
     except Exception as e:
-        logger.error(f"清空操作日志失败: {e}")
+        logger.error(f"Clear operation log failed:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"清空操作日志失败: {str(e)}"
@@ -171,13 +170,13 @@ async def create_operation_log(
     request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """手动创建操作日志"""
+    """Create operation log manually"""
     try:
-        logger.info(f"📝 用户 {current_user['username']} 手动创建操作日志")
+        logger.info(f"User 📝{current_user['username']}Create operation log manually")
         
         service = get_operation_log_service()
         
-        # 获取客户端信息
+        #Get Client Information
         ip_address = request.client.host if request.client else None
         user_agent = request.headers.get("user-agent")
         
@@ -196,7 +195,7 @@ async def create_operation_log(
         }
         
     except Exception as e:
-        logger.error(f"创建操作日志失败: {e}")
+        logger.error(f"Failed to create operation log:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"创建操作日志失败: {str(e)}"
@@ -210,14 +209,14 @@ async def export_logs_csv(
     action_type: str = Query(None, description="操作类型"),
     current_user: dict = Depends(get_current_user)
 ):
-    """导出操作日志为CSV"""
+    """Export Operations Log as CSV"""
     try:
-        logger.info(f"📤 用户 {current_user['username']} 导出操作日志CSV")
+        logger.info(f"User 📤{current_user['username']}Export Operations Log CSV")
         
         service = get_operation_log_service()
         query = OperationLogQuery(
             page=1,
-            page_size=10000,  # 导出时获取更多数据
+            page_size=10000,  #Get More Data on Export
             start_date=start_date,
             end_date=end_date,
             action_type=action_type
@@ -225,19 +224,19 @@ async def export_logs_csv(
         
         logs, _ = await service.get_logs(query)
         
-        # 生成CSV内容
+        #Generate CSV content
         import csv
         import io
         
         output = io.StringIO()
         writer = csv.writer(output)
         
-        # 写入表头
+        #Writing Header
         writer.writerow([
             "时间", "用户", "操作类型", "操作内容", "状态", "耗时(ms)", "IP地址", "错误信息"
         ])
         
-        # 写入数据
+        #Writing data
         for log in logs:
             writer.writerow([
                 log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
@@ -252,7 +251,7 @@ async def export_logs_csv(
         
         output.seek(0)
         
-        # 返回CSV文件
+        #Return CSV file
         from datetime import datetime
         filename = f"operation_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         
@@ -263,7 +262,7 @@ async def export_logs_csv(
         )
         
     except Exception as e:
-        logger.error(f"导出操作日志CSV失败: {e}")
+        logger.error(f"Export operation log CSV failed:{e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"导出操作日志CSV失败: {str(e)}"

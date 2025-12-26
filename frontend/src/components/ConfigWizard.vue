@@ -471,7 +471,7 @@ const getProviderHelp = (provider: string) => {
 const getProviderUrl = (provider: string) => {
   const urls: Record<string, string> = {
     deepseek: 'https://platform.deepseek.com/',
-    dashscope: 'https://dashscope.aliyun.com/',
+    dashscope: 'https://dashscope-int.aliyun.com/',
     openai: 'https://platform.openai.com/',
     google: 'https://ai.google.dev/'
   }

@@ -1,7 +1,7 @@
 import time
 import json
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
@@ -18,11 +18,11 @@ def create_research_manager(llm, memory):
 
         curr_situation = f"{market_research_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}"
 
-        # 安全检查：确保memory不为None
+        #Security check: ensure memory is not None
         if memory is not None:
             past_memories = memory.get_memories(curr_situation, n_matches=2)
         else:
-            logger.warning(f"⚠️ [DEBUG] memory为None，跳过历史记忆检索")
+            logger.warning(f"[DEBUG] memory is None, skip historical memory search")
             past_memories = []
 
         past_memory_str = ""
@@ -67,29 +67,29 @@ def create_research_manager(llm, memory):
 
 请用中文撰写所有分析内容和建议。"""
 
-        # 📊 统计 prompt 大小
+        #Statistics prompt size
         prompt_length = len(prompt)
         estimated_tokens = int(prompt_length / 1.8)
 
-        logger.info(f"📊 [Research Manager] Prompt 统计:")
-        logger.info(f"   - 辩论历史长度: {len(history)} 字符")
-        logger.info(f"   - 总 Prompt 长度: {prompt_length} 字符")
-        logger.info(f"   - 估算输入 Token: ~{estimated_tokens} tokens")
+        logger.info(f"[Research Manager] Statistics:")
+        logger.info(f"- The length of the debate:{len(history)}Character")
+        logger.info(f"- Total Prompt length:{prompt_length}Character")
+        logger.info(f"- Estimating input Token: ~{estimated_tokens} tokens")
 
-        # ⏱️ 记录开始时间
+        #Record time
         start_time = time.time()
 
         response = llm.invoke(prompt)
 
-        # ⏱️ 记录结束时间
+        #End of record
         elapsed_time = time.time() - start_time
 
-        # 📊 统计响应信息
+        #Statistical response information
         response_length = len(response.content) if response and hasattr(response, 'content') else 0
         estimated_output_tokens = int(response_length / 1.8)
 
-        logger.info(f"⏱️ [Research Manager] LLM调用耗时: {elapsed_time:.2f}秒")
-        logger.info(f"📊 [Research Manager] 响应统计: {response_length} 字符, 估算~{estimated_output_tokens} tokens")
+        logger.info(f"[Research Manager] LLM calls time:{elapsed_time:.2f}sec")
+        logger.info(f"[Research Manager]{response_length}Character, estimate?{estimated_output_tokens} tokens")
 
         new_investment_debate_state = {
             "judge_decision": response.content,

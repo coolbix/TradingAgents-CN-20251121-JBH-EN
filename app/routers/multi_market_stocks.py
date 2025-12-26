@@ -1,13 +1,12 @@
-"""
-多市场股票API路由
-支持A股、港股、美股的统一查询接口
+"""Multimarket Stock API Route
+Support for a unified query interface for Unit A, the Port Unit and the United States Unit
 
-功能：
-1. 跨市场股票信息查询
-2. 多数据源优先级查询
-3. 统一的响应格式
+Function:
+1. Cross-market equity information search
+2. Multi-data source priority queries
+3. Harmonized response format
 
-路径前缀: /api/markets
+Path prefix: /api/markets
 """
 from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -25,26 +24,15 @@ router = APIRouter(prefix="/markets", tags=["multi-market"])
 
 @router.get("", response_model=dict)
 async def get_supported_markets(current_user: dict = Depends(get_current_user)):
-    """
-    获取支持的市场列表
-    
-    Returns:
-        {
-            "success": true,
-            "data": {
-                "markets": [
-                    {
-                        "code": "CN",
-                        "name": "A股",
-                        "name_en": "China A-Shares",
-                        "currency": "CNY",
-                        "timezone": "Asia/Shanghai"
-                    },
-                    ...
-                ]
-            }
-        }
-    """
+    """List of markets to obtain support
+
+Returns:
+FMT 0,
+I don't know.
+
+♪ I'm sorry ♪
+♪ I'm sorry ♪
+"""
     markets = [
         {
             "code": "CN",
@@ -82,32 +70,20 @@ async def search_stocks(
     limit: int = Query(20, ge=1, le=100, description="返回结果数量"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    搜索股票（支持多市场）
-    
-    Args:
-        market: 市场类型 (CN/HK/US)
-        q: 搜索关键词
-        limit: 返回结果数量
-    
-    Returns:
-        {
-            "success": true,
-            "data": {
-                "stocks": [
-                    {
-                        "code": "00700",
-                        "name": "腾讯控股",
-                        "name_en": "Tencent Holdings",
-                        "market": "HK",
-                        "source": "yfinance",
-                        ...
-                    }
-                ],
-                "total": 1
-            }
-        }
-    """
+    """Search for stocks (support multi-market)
+
+Args:
+Market type (CN/HK/US)
+q: Search keyword
+Number of returns
+
+Returns:
+FMT 0 
+I don't know.
+"Total": 1
+♪ I'm sorry ♪
+♪ I'm sorry ♪
+"""
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -125,7 +101,7 @@ async def search_stocks(
             "total": len(results)
         })
     except Exception as e:
-        logger.error(f"❌ 搜索股票失败: market={market}, q={q}, error={e}", exc_info=True)
+        logger.error(f"Search for stock failed: market={market}, q={q}, error={e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"搜索失败: {str(e)}"
@@ -139,32 +115,17 @@ async def get_stock_info(
     source: Optional[str] = Query(None, description="指定数据源（可选）"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取股票基础信息（支持多市场、多数据源）
-    
-    Args:
-        market: 市场类型 (CN/HK/US)
-        code: 股票代码
-        source: 指定数据源（可选，不指定则按优先级自动选择）
-    
-    Returns:
-        {
-            "success": true,
-            "data": {
-                "code": "00700",
-                "name": "腾讯控股",
-                "name_en": "Tencent Holdings",
-                "market": "HK",
-                "source": "yfinance",
-                "total_mv": 32000.0,
-                "pe": 25.5,
-                "pb": 4.2,
-                "lot_size": 100,
-                "currency": "HKD",
-                ...
-            }
-        }
-    """
+    """Access to basic stock information (support to multi-market, multi-data sources)
+
+Args:
+Market type (CN/HK/US)
+code: stock code
+source: specify the data source (optional, not assigned automatic selection by priority)
+
+Returns:
+FMT 0 
+♪ I'm sorry ♪
+"""
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -188,7 +149,7 @@ async def get_stock_info(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 获取股票信息失败: market={market}, code={code}, error={e}", exc_info=True)
+        logger.error(f"Could not close temporary folder: %s{market}, code={code}, error={e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取股票信息失败: {str(e)}"
@@ -201,31 +162,16 @@ async def get_stock_quote(
     code: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取股票实时行情（支持多市场）
-    
-    Args:
-        market: 市场类型 (CN/HK/US)
-        code: 股票代码
-    
-    Returns:
-        {
-            "success": true,
-            "data": {
-                "code": "00700",
-                "close": 320.50,
-                "pct_chg": 2.15,
-                "open": 315.00,
-                "high": 325.00,
-                "low": 312.00,
-                "volume": 48500000,
-                "amount": 15800000000,
-                "trade_date": "2024-01-15",
-                "currency": "HKD",
-                ...
-            }
-        }
-    """
+    """Access to real-time equity (support to multiple markets)
+
+Args:
+Market type (CN/HK/US)
+code: stock code
+
+Returns:
+FMT 0 
+♪ I'm sorry ♪
+"""
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -249,7 +195,7 @@ async def get_stock_quote(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ 获取股票行情失败: market={market}, code={code}, error={e}", exc_info=True)
+        logger.error(f"♪ I can't get it ♪{market}, code={code}, error={e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取股票行情失败: {str(e)}"
@@ -265,38 +211,23 @@ async def get_stock_daily_quotes(
     limit: int = Query(100, ge=1, le=1000, description="返回记录数"),
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    获取股票历史K线数据（支持多市场）
-    
-    Args:
-        market: 市场类型 (CN/HK/US)
-        code: 股票代码
-        start_date: 开始日期
-        end_date: 结束日期
-        limit: 返回记录数
-    
-    Returns:
-        {
-            "success": true,
-            "data": {
-                "code": "00700",
-                "market": "HK",
-                "quotes": [
-                    {
-                        "trade_date": "2024-01-15",
-                        "open": 315.00,
-                        "high": 325.00,
-                        "low": 312.00,
-                        "close": 320.50,
-                        "volume": 48500000,
-                        "amount": 15800000000
-                    },
-                    ...
-                ],
-                "total": 100
-            }
-        }
-    """
+    """Acquisition of stock history K-line data (support to multi-market)
+
+Args:
+Market type (CN/HK/US)
+code: stock code
+Start date: Start date
+End date: End date
+Other Organiser
+
+Returns:
+FMT 0,
+I don't know.
+I don't know.
+"Total": 100
+♪ I'm sorry ♪
+♪ I'm sorry ♪
+"""
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -319,7 +250,7 @@ async def get_stock_daily_quotes(
             "total": len(quotes)
         })
     except Exception as e:
-        logger.error(f"❌ 获取历史K线失败: market={market}, code={code}, error={e}", exc_info=True)
+        logger.error(f"Getting history line failed: market={market}, code={code}, error={e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"获取历史K线失败: {str(e)}"

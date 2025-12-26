@@ -1,6 +1,5 @@
-"""
-数据一致性检查和处理服务
-处理多数据源之间的数据不一致性问题
+"""Data consistency inspection and processing services
+Addressing data inconsistencies between multiple data sources
 """
 import logging
 import pandas as pd
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DataConsistencyResult:
-    """数据一致性检查结果"""
+    """Results of data consistency checks"""
     is_consistent: bool
     primary_source: str
     secondary_source: str
@@ -24,7 +23,7 @@ class DataConsistencyResult:
 
 @dataclass
 class FinancialMetricComparison:
-    """财务指标比较结果"""
+    """Comparison of financial indicators"""
     metric_name: str
     primary_value: Optional[float]
     secondary_value: Optional[float]
@@ -33,20 +32,20 @@ class FinancialMetricComparison:
     tolerance: float
 
 class DataConsistencyChecker:
-    """数据一致性检查器"""
+    """Data Consistency Monitor"""
     
     def __init__(self):
-        # 设置各种指标的容忍度阈值
+        #Setting tolerance thresholds for various indicators
         self.tolerance_thresholds = {
-            'pe': 0.05,      # PE允许5%差异
-            'pb': 0.05,      # PB允许5%差异
-            'total_mv': 0.02, # 市值允许2%差异
-            'price': 0.01,   # 股价允许1%差异
-            'volume': 0.10,  # 成交量允许10%差异
-            'turnover_rate': 0.05  # 换手率允许5%差异
+            'pe': 0.05,      #PE allows 5% difference
+            'pb': 0.05,      #PB allows 5% difference
+            'total_mv': 0.02, #Market value allows 2 per cent variance
+            'price': 0.01,   #1% difference in share price allowed
+            'volume': 0.10,  #Exchange allowed 10% difference
+            'turnover_rate': 0.05  #Exchange rate allows a 5% difference
         }
         
-        # 关键指标权重（用于计算置信度分数）
+        #Weights for key indicators (for confidence scores)
         self.metric_weights = {
             'pe': 0.25,
             'pb': 0.25,
@@ -63,19 +62,18 @@ class DataConsistencyChecker:
         primary_source: str,
         secondary_source: str
     ) -> DataConsistencyResult:
-        """
-        检查daily_basic数据的一致性
-        
-        Args:
-            primary_data: 主数据源数据
-            secondary_data: 次数据源数据
-            primary_source: 主数据源名称
-            secondary_source: 次数据源名称
-        """
+        """Check the data consistency of the Daily basic
+
+Args:
+Primary data: Main data source data
+Secondary data: Subdata source data
+Primary source: Main data source name
+Secondary source: Subdata source name
+"""
         try:
-            logger.info(f"🔍 检查数据一致性: {primary_source} vs {secondary_source}")
+            logger.info(f"Check data consistency:{primary_source} vs {secondary_source}")
             
-            # 1. 基础检查
+            #1. Basic inspections
             if primary_data.empty or secondary_data.empty:
                 return DataConsistencyResult(
                     is_consistent=False,
@@ -87,7 +85,7 @@ class DataConsistencyChecker:
                     details={'reason': 'Empty dataset detected'}
                 )
             
-            # 2. 股票代码匹配
+            #Stock code matching
             common_stocks = self._find_common_stocks(primary_data, secondary_data)
             if len(common_stocks) == 0:
                 return DataConsistencyResult(
@@ -100,9 +98,9 @@ class DataConsistencyChecker:
                     details={'reason': 'No overlapping stocks'}
                 )
             
-            logger.info(f"📊 找到{len(common_stocks)}只共同股票进行比较")
+            logger.info(f"Found it.{len(common_stocks)}Common stocks only")
             
-            # 3. 逐指标比较
+            #3. Indicator-by-indicator comparison
             metric_comparisons = []
             for metric in ['pe', 'pb', 'total_mv']:
                 comparison = self._compare_metric(
@@ -111,7 +109,7 @@ class DataConsistencyChecker:
                 if comparison:
                     metric_comparisons.append(comparison)
             
-            # 4. 计算整体一致性
+            #4. Calculate overall consistency
             consistency_result = self._calculate_overall_consistency(
                 metric_comparisons, primary_source, secondary_source
             )
@@ -119,7 +117,7 @@ class DataConsistencyChecker:
             return consistency_result
             
         except Exception as e:
-            logger.error(f"❌ 数据一致性检查失败: {e}")
+            logger.error(f"Data consistency check failed:{e}")
             return DataConsistencyResult(
                 is_consistent=False,
                 primary_source=primary_source,
@@ -131,8 +129,8 @@ class DataConsistencyChecker:
             )
     
     def _find_common_stocks(self, df1: pd.DataFrame, df2: pd.DataFrame) -> List[str]:
-        """找到两个数据集中的共同股票"""
-        # 尝试不同的股票代码列名
+        """Find two data-concentrated shares."""
+        #Try different stock codes.
         code_cols = ['ts_code', 'symbol', 'code', 'stock_code']
         
         df1_codes = set()
@@ -153,16 +151,16 @@ class DataConsistencyChecker:
         common_stocks: List[str], 
         metric: str
     ) -> Optional[FinancialMetricComparison]:
-        """比较特定指标"""
+        """Comparison of selected indicators"""
         try:
             if metric not in df1.columns or metric not in df2.columns:
                 return None
             
-            # 获取共同股票的指标值
+            #Indicator value of acquisition of common stocks
             df1_values = []
             df2_values = []
             
-            for stock in common_stocks[:100]:  # 限制比较数量
+            for stock in common_stocks[:100]:  #Limited Number
                 val1 = self._get_stock_metric_value(df1, stock, metric)
                 val2 = self._get_stock_metric_value(df2, stock, metric)
                 
@@ -173,7 +171,7 @@ class DataConsistencyChecker:
             if len(df1_values) == 0:
                 return None
             
-            # 计算平均值和差异
+            #Calculated averages and differences
             avg1 = np.mean(df1_values)
             avg2 = np.mean(df2_values)
             
@@ -195,13 +193,13 @@ class DataConsistencyChecker:
             )
             
         except Exception as e:
-            logger.warning(f"⚠️ 比较指标{metric}失败: {e}")
+            logger.warning(f"Comparative indicators{metric}Failed:{e}")
             return None
     
     def _get_stock_metric_value(self, df: pd.DataFrame, stock_code: str, metric: str) -> Optional[float]:
-        """获取特定股票的指标值"""
+        """Indicator value for selected stocks"""
         try:
-            # 尝试不同的匹配方式
+            #Try different matching methods
             for code_col in ['ts_code', 'symbol', 'code']:
                 if code_col in df.columns:
                     mask = df[code_col].astype(str) == stock_code
@@ -219,7 +217,7 @@ class DataConsistencyChecker:
         primary_source: str,
         secondary_source: str
     ) -> DataConsistencyResult:
-        """计算整体一致性结果"""
+        """Calculate overall consistency results"""
         if not comparisons:
             return DataConsistencyResult(
                 is_consistent=False,
@@ -231,7 +229,7 @@ class DataConsistencyChecker:
                 details={'reason': 'No comparable metrics'}
             )
         
-        # 计算加权置信度分数
+        #Calculate weighted confidence score
         total_weight = 0
         weighted_score = 0
         differences = {}
@@ -240,7 +238,7 @@ class DataConsistencyChecker:
             weight = self.metric_weights.get(comp.metric_name, 0.1)
             total_weight += weight
             
-            # 一致性分数：差异越小分数越高
+            #Consistency fractions: the difference is higher by smaller fractions
             if comp.difference_pct is not None and comp.difference_pct != float('inf'):
                 consistency_score = max(0, 1 - (comp.difference_pct / comp.tolerance))
             else:
@@ -248,7 +246,7 @@ class DataConsistencyChecker:
             
             weighted_score += weight * consistency_score
             
-            # 记录差异
+            #Recording discrepancies
             differences[comp.metric_name] = {
                 'primary_value': comp.primary_value,
                 'secondary_value': comp.secondary_value,
@@ -259,19 +257,19 @@ class DataConsistencyChecker:
         
         confidence_score = weighted_score / total_weight if total_weight > 0 else 0
         
-        # 判断整体一致性
+        #Overall coherence judged
         significant_differences = sum(1 for comp in comparisons if comp.is_significant)
-        is_consistent = significant_differences <= len(comparisons) * 0.3  # 允许30%的指标有显著差异
+        is_consistent = significant_differences <= len(comparisons) * 0.3  #There are significant differences in the 30 per cent allowed target
         
-        # 推荐行动
+        #Recommended action
         if confidence_score > 0.8:
-            recommended_action = 'use_either'  # 数据高度一致，可以使用任一数据源
+            recommended_action = 'use_either'  #Data height is consistent and any data source can be used
         elif confidence_score > 0.6:
-            recommended_action = 'use_primary_with_warning'  # 使用主数据源但发出警告
+            recommended_action = 'use_primary_with_warning'  #Use main data source but issue warning
         elif confidence_score > 0.3:
-            recommended_action = 'use_primary_only'  # 仅使用主数据源
+            recommended_action = 'use_primary_only'  #Use main data source only
         else:
-            recommended_action = 'investigate_sources'  # 需要调查数据源问题
+            recommended_action = 'investigate_sources'  #Need to investigate data sources
         
         return DataConsistencyResult(
             is_consistent=is_consistent,
@@ -293,26 +291,25 @@ class DataConsistencyChecker:
         secondary_data: pd.DataFrame,
         consistency_result: DataConsistencyResult
     ) -> Tuple[pd.DataFrame, str]:
-        """
-        根据一致性检查结果解决数据冲突
-        
-        Returns:
-            Tuple[pd.DataFrame, str]: (最终数据, 解决策略说明)
-        """
+        """Resolution of data conflicts based on consistency checks
+
+Returns:
+Tuple [pd.DataFrame, st]: (final data, resolution strategy statement)
+"""
         action = consistency_result.recommended_action
         
         if action == 'use_either':
-            logger.info("✅ 数据高度一致，使用主数据源")
+            logger.info("✅ Data Altitude with Main Data Source")
             return primary_data, "数据源高度一致，使用主数据源"
         
         elif action == 'use_primary_with_warning':
-            logger.warning("⚠️ 数据存在差异但在可接受范围内，使用主数据源")
+            logger.warning("⚠️ Data differ but to the extent acceptable, use main data source")
             return primary_data, f"数据存在轻微差异（置信度: {consistency_result.confidence_score:.2f}），使用主数据源"
         
         elif action == 'use_primary_only':
-            logger.warning("🚨 数据差异较大，仅使用主数据源")
+            logger.warning("🚨 Data vary widely, using only primary data sources")
             return primary_data, f"数据差异显著（置信度: {consistency_result.confidence_score:.2f}），仅使用主数据源"
         
         else:  # investigate_sources
-            logger.error("❌ 数据源存在严重问题，需要人工调查")
+            logger.error("❌ Data sources are seriously problematic and require manual survey")
             return primary_data, f"数据源存在严重不一致（置信度: {consistency_result.confidence_score:.2f}），建议检查数据源"

@@ -1,7 +1,6 @@
-"""
-API Key 处理工具函数
+"""API Key Processing Tool Function
 
-提供统一的 API Key 验证、缩略、环境变量读取等功能
+Provide uniform API Key authentication, abbreviation, environmental variable reading, etc.
 """
 
 import os
@@ -9,44 +8,43 @@ from typing import Optional
 
 
 def is_valid_api_key(api_key: Optional[str]) -> bool:
-    """
-    判断 API Key 是否有效
-    
-    有效的 API Key 必须满足：
-    1. 不能为空
-    2. 长度必须 > 10
-    3. 不能是占位符（前缀：your_, your-）
-    4. 不能是占位符（后缀：_here, -here）
-    5. 不能是截断的密钥（包含 '...'）
-    
-    Args:
-        api_key: 要验证的 API Key
-        
-    Returns:
-        bool: 是否有效
-    """
+    """Determines whether API Key is valid
+
+Effective API Key must satisfy:
+1. Can't be empty
+2. Length must > 10
+3. Not a placeholder (prefix: your , your-)
+4. Not a placeholder (suffix:  here,-here)
+A key that cannot be cut off (includes '...')
+
+Args:
+api key: API Key to verify
+
+Returns:
+Bool: Effective
+"""
     if not api_key:
         return False
     
     api_key = api_key.strip()
     
-    # 1. 不能为空
+    #1. Can't be empty
     if not api_key:
         return False
     
-    # 2. 长度必须 > 10
+    #2. Length must > 10
     if len(api_key) <= 10:
         return False
     
-    # 3. 不能是占位符（前缀）
+    #Not a placeholder (prefix)
     if api_key.startswith('your_') or api_key.startswith('your-'):
         return False
     
-    # 4. 不能是占位符（后缀）
+    #No placeholder (suffix)
     if api_key.endswith('_here') or api_key.endswith('-here'):
         return False
     
-    # 5. 不能是截断的密钥（包含 '...'）
+    #A key that cannot be cut off (includes '...')
     if '...' in api_key:
         return False
     
@@ -54,19 +52,18 @@ def is_valid_api_key(api_key: Optional[str]) -> bool:
 
 
 def truncate_api_key(api_key: Optional[str]) -> Optional[str]:
-    """
-    缩略 API Key，显示前6位和后6位
-    
-    示例：
-        输入：'d1el869r01qghj41hahgd1el869r01qghj41hai0'
-        输出：'d1el86...j41hai0'
-    
-    Args:
-        api_key: 要缩略的 API Key
-        
-    Returns:
-        str: 缩略后的 API Key，如果输入为空或长度 <= 12 则返回原值
-    """
+    """API Key, show top six and bottom six.
+
+Example:
+Enter:'d1el869r01qghj41hgd1el869r01qghj41hai0'
+Output: 'd1el86...j41hai0'
+
+Args:
+api key: abbreviated API Key
+
+Returns:
+str: API Key after abbreviation returns the original value if the input is empty or long < = 12
+"""
     if not api_key or len(api_key) <= 12:
         return api_key
     
@@ -74,17 +71,16 @@ def truncate_api_key(api_key: Optional[str]) -> Optional[str]:
 
 
 def get_env_api_key_for_provider(provider_name: str) -> Optional[str]:
-    """
-    从环境变量获取大模型厂家的 API Key
-    
-    环境变量名格式：{PROVIDER_NAME}_API_KEY
-    
-    Args:
-        provider_name: 厂家名称（如 'deepseek', 'dashscope'）
-        
-    Returns:
-        str: 环境变量中的 API Key，如果不存在或无效则返回 None
-    """
+    """API Key from a large modeler from an environmental variable
+
+Environmental variable name format:   FMT 0   API KEY
+
+Args:
+provider name: manufacturer's name (e. g. 'deepseek', 'dashscope')
+
+Returns:
+str: API Key from the environment variable, returns None if it does not exist or is invalid
+"""
     env_key_name = f"{provider_name.upper()}_API_KEY"
     env_key = os.getenv(env_key_name)
     
@@ -95,24 +91,23 @@ def get_env_api_key_for_provider(provider_name: str) -> Optional[str]:
 
 
 def get_env_api_key_for_datasource(ds_type: str) -> Optional[str]:
-    """
-    从环境变量获取数据源的 API Key
-    
-    数据源类型到环境变量名的映射：
-    - tushare → TUSHARE_TOKEN
-    - finnhub → FINNHUB_API_KEY
-    - polygon → POLYGON_API_KEY
-    - iex → IEX_API_KEY
-    - quandl → QUANDL_API_KEY
-    - alphavantage → ALPHAVANTAGE_API_KEY
-    
-    Args:
-        ds_type: 数据源类型（如 'tushare', 'finnhub'）
-        
-    Returns:
-        str: 环境变量中的 API Key，如果不存在或无效则返回 None
-    """
-    # 数据源类型到环境变量名的映射
+    """API Key for data sources from environmental variables
+
+Map of data source type to environmental variable name:
+- TUSHARE TOKEN
+- Finnhub.
+- Polygon.
+IEX API KEY
+Quindl API KEY
+- Alphavantage — ALPHAVANTAGE API KEY
+
+Args:
+ds type: data source type (e.g. 'tushare', 'finnhub')
+
+Returns:
+str: API Key from the environment variable, returns None if it does not exist or is invalid
+"""
+    #Map of data source type to environmental variable name
     env_key_map = {
         "tushare": "TUSHARE_TOKEN",
         "finnhub": "FINNHUB_API_KEY",
@@ -135,29 +130,28 @@ def get_env_api_key_for_datasource(ds_type: str) -> Optional[str]:
 
 
 def should_skip_api_key_update(api_key: Optional[str]) -> bool:
-    """
-    判断是否应该跳过 API Key 的更新
-    
-    以下情况应该跳过更新（保留原值）：
-    1. API Key 是截断的密钥（包含 '...'）
-    2. API Key 是占位符（your_*, your-*）
-    
-    Args:
-        api_key: 要检查的 API Key
-        
-    Returns:
-        bool: 是否应该跳过更新
-    """
+    """Judge whether to skip API Key updates
+
+The following should skip the update (main value retained):
+API Key is the cut-off key (includes '...')
+API Key is a placeholder (your *, your-*)
+
+Args:
+api key: API Key to check
+
+Returns:
+Bool: Should Update
+"""
     if not api_key:
         return False
     
     api_key = api_key.strip()
     
-    # 1. 截断的密钥（包含 '...'）
+    #1. Interrupted key (includes '...')
     if '...' in api_key:
         return True
     
-    # 2. 占位符
+    #Placeholders
     if api_key.startswith('your_') or api_key.startswith('your-'):
         return True
     

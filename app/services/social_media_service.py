@@ -1,6 +1,5 @@
-"""
-社媒消息数据服务
-提供统一的社媒消息存储、查询和分析功能
+"""Social Media Data Service
+Provide unified media message storage, query and analysis functions
 """
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime, timedelta
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SocialMediaQueryParams:
-    """社媒消息查询参数"""
+    """Social Message Query Parameters"""
     symbol: Optional[str] = None
     symbols: Optional[List[str]] = None
     platform: Optional[str] = None  # weibo/wechat/douyin/xiaohongshu/zhihu/twitter/reddit
@@ -38,7 +37,7 @@ class SocialMediaQueryParams:
 
 @dataclass
 class SocialMediaStats:
-    """社媒消息统计信息"""
+    """Social media statistics"""
     total_count: int = 0
     positive_count: int = 0
     negative_count: int = 0
@@ -54,7 +53,7 @@ class SocialMediaStats:
 
 
 class SocialMediaService:
-    """社媒消息数据服务"""
+    """Social Media Data Service"""
     
     def __init__(self):
         self.db = None
@@ -62,17 +61,17 @@ class SocialMediaService:
         self.logger = logging.getLogger(self.__class__.__name__)
     
     async def initialize(self):
-        """初始化服务"""
+        """Initialization services"""
         try:
             self.db = get_database()
             self.collection = self.db.social_media_messages
-            self.logger.info("✅ 社媒消息数据服务初始化成功")
+            self.logger.info("The social media data service was successfully initiated")
         except Exception as e:
-            self.logger.error(f"❌ 社媒消息数据服务初始化失败: {e}")
+            self.logger.error(f"The initialization of the social media data service failed:{e}")
             raise
     
     async def _get_collection(self):
-        """获取集合实例"""
+        """Get Collective Examples"""
         if self.collection is None:
             await self.initialize()
         return self.collection
@@ -81,29 +80,28 @@ class SocialMediaService:
         self, 
         messages: List[Dict[str, Any]]
     ) -> Dict[str, int]:
-        """
-        批量保存社媒消息
-        
-        Args:
-            messages: 社媒消息列表
-            
-        Returns:
-            保存统计信息
-        """
+        """Batch Save Media Messages
+
+Args:
+Messages: Social Message List
+
+Returns:
+Save statistical information
+"""
         if not messages:
             return {"saved": 0, "failed": 0}
         
         try:
             collection = await self._get_collection()
             
-            # 准备批量操作
+            #Prepare batch operations
             operations = []
             for message in messages:
-                # 添加时间戳
+                #Add Timetamp
                 message["created_at"] = datetime.utcnow()
                 message["updated_at"] = datetime.utcnow()
                 
-                # 使用message_id和platform作为唯一标识
+                #Use message id and platform as unique identifiers
                 filter_dict = {
                     "message_id": message.get("message_id"),
                     "platform": message.get("platform")
@@ -111,11 +109,11 @@ class SocialMediaService:
                 
                 operations.append(ReplaceOne(filter_dict, message, upsert=True))
             
-            # 执行批量操作
+            #Execute Batch Operations
             result = await collection.bulk_write(operations, ordered=False)
             
             saved_count = result.upserted_count + result.modified_count
-            self.logger.info(f"✅ 社媒消息批量保存完成: {saved_count}/{len(messages)}")
+            self.logger.info(f"Media message batch saved:{saved_count}/{len(messages)}")
             
             return {
                 "saved": saved_count,
@@ -125,33 +123,32 @@ class SocialMediaService:
             }
             
         except BulkWriteError as e:
-            self.logger.error(f"❌ 社媒消息批量保存部分失败: {e.details}")
+            self.logger.error(f"The mass saving of media messages failed:{e.details}")
             return {
                 "saved": e.details.get("nUpserted", 0) + e.details.get("nModified", 0),
                 "failed": len(e.details.get("writeErrors", [])),
                 "errors": e.details.get("writeErrors", [])
             }
         except Exception as e:
-            self.logger.error(f"❌ 社媒消息保存失败: {e}")
+            self.logger.error(f"Media message storage failed:{e}")
             return {"saved": 0, "failed": len(messages), "error": str(e)}
     
     async def query_social_media_messages(
         self, 
         params: SocialMediaQueryParams
     ) -> List[Dict[str, Any]]:
-        """
-        查询社媒消息
-        
-        Args:
-            params: 查询参数
-            
-        Returns:
-            社媒消息列表
-        """
+        """Search for media messages
+
+Args:
+Params: query parameters
+
+Returns:
+Social Message List
+"""
         try:
             collection = await self._get_collection()
             
-            # 构建查询条件
+            #Build query conditions
             query = {}
             
             if params.symbol:
@@ -194,23 +191,23 @@ class SocialMediaService:
             if params.hashtags:
                 query["hashtags"] = {"$in": params.hashtags}
             
-            # 执行查询
+            #Execute queries
             cursor = collection.find(query)
             
-            # 排序
+            #Sort
             cursor = cursor.sort(params.sort_by, params.sort_order)
             
-            # 分页
+            #Page Break
             cursor = cursor.skip(params.skip).limit(params.limit)
             
-            # 获取结果
+            #Get results
             messages = await cursor.to_list(length=params.limit)
             
-            self.logger.debug(f"📊 查询到 {len(messages)} 条社媒消息")
+            self.logger.debug(f"Other Organiser{len(messages)}A news agency.")
             return messages
             
         except Exception as e:
-            self.logger.error(f"❌ 社媒消息查询失败: {e}")
+            self.logger.error(f"Media query failed:{e}")
             return []
     
     async def get_latest_messages(
@@ -219,7 +216,7 @@ class SocialMediaService:
         platform: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """获取最新社媒消息"""
+        """Get an update on the media."""
         params = SocialMediaQueryParams(
             symbol=symbol,
             platform=platform,
@@ -236,11 +233,11 @@ class SocialMediaService:
         platform: str = None,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """全文搜索社媒消息"""
+        """Other Organiser"""
         try:
             collection = await self._get_collection()
             
-            # 构建搜索条件
+            #Build search conditions
             search_query = {
                 "$text": {"$search": query}
             }
@@ -251,7 +248,7 @@ class SocialMediaService:
             if platform:
                 search_query["platform"] = platform
             
-            # 执行搜索
+            #Execute Search
             cursor = collection.find(
                 search_query,
                 {"score": {"$meta": "textScore"}}
@@ -259,11 +256,11 @@ class SocialMediaService:
             
             messages = await cursor.limit(limit).to_list(length=limit)
             
-            self.logger.debug(f"🔍 搜索到 {len(messages)} 条相关消息")
+            self.logger.debug(f"Other Organiser{len(messages)}Can not open message")
             return messages
             
         except Exception as e:
-            self.logger.error(f"❌ 社媒消息搜索失败: {e}")
+            self.logger.error(f"The media search failed:{e}")
             return []
     
     async def get_social_media_statistics(
@@ -272,11 +269,11 @@ class SocialMediaService:
         start_time: datetime = None,
         end_time: datetime = None
     ) -> SocialMediaStats:
-        """获取社媒消息统计信息"""
+        """Access to media statistics"""
         try:
             collection = await self._get_collection()
             
-            # 构建匹配条件
+            #Build Match Conditions
             match_stage = {}
             if symbol:
                 match_stage["symbol"] = symbol
@@ -288,7 +285,7 @@ class SocialMediaService:
                     time_query["$lte"] = end_time
                 match_stage["publish_time"] = time_query
             
-            # 聚合管道
+            #Aggregation Conduit
             pipeline = []
             if match_stage:
                 pipeline.append({"$match": match_stage})
@@ -316,7 +313,7 @@ class SocialMediaService:
                 }
             ])
             
-            # 执行聚合
+            #Execute Convergence
             result = await collection.aggregate(pipeline).to_list(length=1)
             
             if result:
@@ -336,15 +333,15 @@ class SocialMediaService:
                 return SocialMediaStats()
                 
         except Exception as e:
-            self.logger.error(f"❌ 社媒消息统计失败: {e}")
+            self.logger.error(f"The media has failed:{e}")
             return SocialMediaStats()
 
 
-# 全局服务实例
+#Examples of global services
 _social_media_service = None
 
 async def get_social_media_service() -> SocialMediaService:
-    """获取社媒消息数据服务实例"""
+    """Examples of accessing media data services"""
     global _social_media_service
     if _social_media_service is None:
         _social_media_service = SocialMediaService()

@@ -11,7 +11,7 @@ from tradingagents.agents.utils.agent_utils import Toolkit
 
 from .conditional_logic import ConditionalLogic
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
@@ -69,10 +69,10 @@ class GraphSetup:
         tool_nodes = {}
 
         if "market" in selected_analysts:
-            # 现在所有LLM都使用标准市场分析师（包括阿里百炼的OpenAI兼容适配器）
+            #All LLMs now use standard market analysts.
             llm_provider = self.config.get("llm_provider", "").lower()
 
-            # 检查是否使用OpenAI兼容的阿里百炼适配器
+            #Check for the use of the OpenAI compatible Aliper adaptor
             using_dashscope_openai = (
                 "dashscope" in llm_provider and
                 hasattr(self.quick_thinking_llm, '__class__') and
@@ -80,15 +80,15 @@ class GraphSetup:
             )
 
             if using_dashscope_openai:
-                logger.debug(f"📈 [DEBUG] 使用标准市场分析师（阿里百炼OpenAI兼容模式）")
+                logger.debug(f"📈 [DEBUG] Using standard market analyst (Aliberian OpenAI compatible model)")
             elif "dashscope" in llm_provider or "阿里百炼" in self.config.get("llm_provider", ""):
-                logger.debug(f"📈 [DEBUG] 使用标准市场分析师（阿里百炼原生模式）")
+                logger.debug(f"📈 [DEBUG] Using standard market analyst (Alibenian model)")
             elif "deepseek" in llm_provider:
-                logger.debug(f"📈 [DEBUG] 使用标准市场分析师（DeepSeek）")
+                logger.debug(f"📈 [DEBUG] Use standard market analyst (DeepSeek)")
             else:
-                logger.debug(f"📈 [DEBUG] 使用标准市场分析师")
+                logger.debug(f"[DBUG] Use standard market analysis Division")
 
-            # 所有LLM都使用标准分析师
+            #All LLMs use standard analysts.
             analyst_nodes["market"] = create_market_analyst(
                 self.quick_thinking_llm, self.toolkit
             )
@@ -110,10 +110,10 @@ class GraphSetup:
             tool_nodes["news"] = self.tool_nodes["news"]
 
         if "fundamentals" in selected_analysts:
-            # 现在所有LLM都使用标准基本面分析师（包括阿里百炼的OpenAI兼容适配器）
+            #All LLMs now use standard base surface analyzers (including the OpenAI compatible adaptor at Aliblanc).
             llm_provider = self.config.get("llm_provider", "").lower()
 
-            # 检查是否使用OpenAI兼容的阿里百炼适配器
+            #Check for the use of the OpenAI compatible Aliper adaptor
             using_dashscope_openai = (
                 "dashscope" in llm_provider and
                 hasattr(self.quick_thinking_llm, '__class__') and
@@ -121,15 +121,15 @@ class GraphSetup:
             )
 
             if using_dashscope_openai:
-                logger.debug(f"📊 [DEBUG] 使用标准基本面分析师（阿里百炼OpenAI兼容模式）")
+                logger.debug(f"📊 [DEBUG] Using standard fundamentals analysts (Aliberian OpenAI compatible model)")
             elif "dashscope" in llm_provider or "阿里百炼" in self.config.get("llm_provider", ""):
-                logger.debug(f"📊 [DEBUG] 使用标准基本面分析师（阿里百炼原生模式）")
+                logger.debug(f"📊 [DEBUG] Using standard fundamentals analysts (Alibinian model)")
             elif "deepseek" in llm_provider:
-                logger.debug(f"📊 [DEBUG] 使用标准基本面分析师（DeepSeek）")
+                logger.debug(f"[DBUG] Using DeepSeek")
             else:
-                logger.debug(f"📊 [DEBUG] 使用标准基本面分析师")
+                logger.debug(f"[DBUG]")
 
-            # 所有LLM都使用标准分析师（包含强制工具调用机制）
+            #All LLMs use standard analysts (including mandatory tool call mechanisms)
             analyst_nodes["fundamentals"] = create_fundamentals_analyst(
                 self.quick_thinking_llm, self.toolkit
             )

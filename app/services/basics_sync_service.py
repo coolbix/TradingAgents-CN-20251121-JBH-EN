@@ -57,58 +57,58 @@ class BasicsSyncService:
         self._indexes_ensured = False
 
     async def _ensure_indexes(self, db: AsyncIOMotorDatabase) -> None:
-        """确保必要的索引存在"""
+        """Ensure the necessary index exists"""
         if self._indexes_ensured:
             return
 
         try:
             collection = db[DATA_COLLECTION]
-            logger.info("📊 检查并创建股票基础信息索引...")
+            logger.info("Check and create a stock base index...")
 
-            # 1. 复合唯一索引：股票代码+数据源（用于 upsert）
+            #1. Composite unique index: stock code + data source (for upset)
             await collection.create_index([
                 ("code", 1),
                 ("source", 1)
             ], unique=True, name="code_source_unique", background=True)
 
-            # 2. 股票代码索引（查询所有数据源）
+            #Stock code index (search of all data sources)
             await collection.create_index([("code", 1)], name="code_index", background=True)
 
-            # 3. 数据源索引（按数据源筛选）
+            #3. Data source index (screened by data source)
             await collection.create_index([("source", 1)], name="source_index", background=True)
 
-            # 4. 股票名称索引（按名称搜索）
+            #4. Index of stock names (search by name)
             await collection.create_index([("name", 1)], name="name_index", background=True)
 
-            # 5. 行业索引（按行业筛选）
+            #5. Industry index (screened by industry)
             await collection.create_index([("industry", 1)], name="industry_index", background=True)
 
-            # 6. 市场索引（按市场筛选）
+            #Market index (market-based screening)
             await collection.create_index([("market", 1)], name="market_index", background=True)
 
-            # 7. 总市值索引（按市值排序）
+            #7. Index of total market value by market value
             await collection.create_index([("total_mv", -1)], name="total_mv_desc", background=True)
 
-            # 8. 流通市值索引（按流通市值排序）
+            #8. Index of market value in circulation (in order of market value in circulation)
             await collection.create_index([("circ_mv", -1)], name="circ_mv_desc", background=True)
 
-            # 9. 更新时间索引（数据维护）
+            #9. Update time index (data maintenance)
             await collection.create_index([("updated_at", -1)], name="updated_at_desc", background=True)
 
-            # 10. PE索引（按估值筛选）
+            #10. PE Index (valued)
             await collection.create_index([("pe", 1)], name="pe_index", background=True)
 
-            # 11. PB索引（按估值筛选）
+            #11. PB Index (valued)
             await collection.create_index([("pb", 1)], name="pb_index", background=True)
 
-            # 12. 换手率索引（按活跃度筛选）
+            #12. Exchange rate index (screened by activity)
             await collection.create_index([("turnover_rate", -1)], name="turnover_rate_desc", background=True)
 
             self._indexes_ensured = True
-            logger.info("✅ 股票基础信息索引检查完成")
+            logger.info("The stock base index check is complete.")
         except Exception as e:
-            # 索引创建失败不应该阻止服务启动
-            logger.warning(f"⚠️ 创建索引时出现警告（可能已存在）: {e}")
+            #Index creation failure should not prevent service startup
+            logger.warning(f"Warning (possibly exists) when creating index:{e}")
 
     async def get_status(self, db: Optional[AsyncIOMotorDatabase] = None) -> Dict[str, Any]:
         """Return last persisted status; falls back to in-memory snapshot."""
@@ -133,17 +133,16 @@ class BasicsSyncService:
         operations: List,
         max_retries: int = 3
     ) -> tuple:
-        """
-        执行批量写入，带重试机制
+        """Implementation batch writing with retry mechanism
 
-        Args:
-            db: MongoDB数据库实例
-            operations: 批量操作列表
-            max_retries: 最大重试次数
+Args:
+db: Example of MongoDB database
+Organisations: Batch Operations List
+max retries: maximum number of retries
 
-        Returns:
-            (新增数量, 更新数量)
-        """
+Returns:
+(Add, Update)
+"""
         inserted = 0
         updated = 0
         retry_count = 0
@@ -153,21 +152,21 @@ class BasicsSyncService:
                 result = await db[DATA_COLLECTION].bulk_write(operations, ordered=False)
                 inserted = len(result.upserted_ids) if result.upserted_ids else 0
                 updated = result.modified_count or 0
-                logger.debug(f"✅ 批量写入成功: 新增 {inserted}, 更新 {updated}")
+                logger.debug(f"Bulk writing success: Add{inserted}Update{updated}")
                 return inserted, updated
 
             except asyncio.TimeoutError as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    wait_time = 2 ** retry_count  # 指数退避：2秒、4秒、8秒
-                    logger.warning(f"⚠️ 批量写入超时 (第{retry_count}次重试)，等待{wait_time}秒后重试...")
+                    wait_time = 2 ** retry_count  #Index retreat: 2 seconds, 4 seconds, 8 seconds
+                    logger.warning(f"⚠️ Bulk writing timeout (no.{retry_count}Try again, wait{wait_time}Try again in seconds...")
                     await asyncio.sleep(wait_time)
                 else:
-                    logger.error(f"❌ 批量写入失败，已重试{max_retries}次: {e}")
+                    logger.error(f"Failed to write batch ❌. Try again{max_retries}Times:{e}")
                     return 0, 0
 
             except Exception as e:
-                logger.error(f"❌ 批量写入失败: {e}")
+                logger.error(f"Batch writing failed:{e}")
                 return 0, 0
 
         return inserted, updated
@@ -182,7 +181,7 @@ class BasicsSyncService:
 
         db = get_mongo_db()
 
-        # 🔥 确保索引存在（提升查询和 upsert 性能）
+        #🔥 to ensure that index exists (upgrade query and upsert performance)
         await self._ensure_indexes(db)
 
         stats = SyncStats()
@@ -235,7 +234,7 @@ class BasicsSyncService:
                     symbol = row.get("symbol") or ""
                     code = str(symbol).zfill(6) if symbol else ""
 
-                # 根据 ts_code 判断交易所
+                #Based on ts code
                 if isinstance(ts_code, str):
                     if ts_code.endswith(".SH"):
                         sse = "上海证券交易所"
@@ -255,7 +254,7 @@ class BasicsSyncService:
                 if isinstance(ts_code, str) and ts_code in daily_data_map:
                     daily_metrics = daily_data_map[ts_code]
 
-                # Process market cap (convert from 万元 to 亿元)
+                #Process market cap
                 total_mv_yi = None
                 circ_mv_yi = None
                 if "total_mv" in daily_metrics:
@@ -269,12 +268,12 @@ class BasicsSyncService:
                     except Exception:
                         pass
 
-                # 生成 full_symbol（完整标准化代码）
+                #Generate full symbol
                 full_symbol = self._generate_full_symbol(code)
 
                 doc = {
                     "code": code,
-                    "symbol": code,  # 添加 symbol 字段（标准化字段）
+                    "symbol": code,  #Add symbol field (standardized field)
                     "name": name,
                     "area": area,
                     "industry": industry,
@@ -282,9 +281,9 @@ class BasicsSyncService:
                     "list_date": list_date,
                     "sse": sse,
                     "sec": category,
-                    "source": "tushare",  # 🔥 数据源标识
+                    "source": "tushare",  #🔥 Data source identifier
                     "updated_at": now_iso,
-                    "full_symbol": full_symbol,  # 添加完整标准化代码
+                    "full_symbol": full_symbol,  #Add Full Standard Code
                 }
 
                 # Add market cap fields
@@ -293,7 +292,7 @@ class BasicsSyncService:
                 if circ_mv_yi is not None:
                     doc["circ_mv"] = circ_mv_yi
 
-                # Add financial ratios (🔥 新增 ps 和 ps_ttm)
+                #Add financial radios (🔥) Add ps and ps tm
                 for field in ["pe", "pb", "ps", "pe_ttm", "pb_mrq", "ps_ttm"]:
                     if field in daily_metrics:
                         doc[field] = daily_metrics[field]
@@ -313,7 +312,7 @@ class BasicsSyncService:
                     if field in daily_metrics:
                         doc[field] = daily_metrics[field]
 
-                # 🔥 使用 (code, source) 联合查询条件
+                #Use (code, source) of joint query conditions
                 ops.append(
                     UpdateOne({"code": code, "source": "tushare"}, {"$set": doc}, upsert=True)
                 )
@@ -359,7 +358,7 @@ class BasicsSyncService:
 
     # ---- Blocking helpers (run in thread) ----
     def _fetch_stock_basic_df(self):
-        """委托到 basics_sync.utils 的阻塞式实现"""
+        """Entrusted blockage to Basics sync.utils"""
         return _fetch_stock_basic_df_util()
 
     def _find_latest_trade_date(self) -> str:
@@ -375,35 +374,34 @@ class BasicsSyncService:
         return _fetch_latest_roe_map_util()
 
     def _generate_full_symbol(self, code: str) -> str:
-        """
-        根据股票代码生成完整标准化代码
+        """Generate full standard code by stock code
 
-        Args:
-            code: 6位股票代码
+Args:
+code: 6-bit stock code
 
-        Returns:
-            完整标准化代码（如 000001.SZ），如果代码无效则返回原始代码（确保不为空）
-        """
-        # 确保 code 不为空
+Returns:
+Full standardized code (e.g. 00001.SZ) returns original code if the code is invalid (ensure not to be empty)
+"""
+        #Make sure the code isn't empty.
         if not code:
             return ""
 
-        # 标准化为字符串并去除空格
+        #Standardise as string and remove spaces
         code = str(code).strip()
 
-        # 如果长度不是 6，返回原始代码（避免返回 None）
+        #Return original code if length is not 6 (avoid not return None)
         if len(code) != 6:
             return code
 
-        # 根据代码判断交易所
+        #By code, the exchange.
         if code.startswith(('60', '68', '90')):
-            return f"{code}.SS"  # 上海证券交易所
+            return f"{code}.SS"  #Shanghai Stock Exchange
         elif code.startswith(('00', '30', '20')):
-            return f"{code}.SZ"  # 深圳证券交易所
+            return f"{code}.SZ"  #Shenzhen Stock Exchange
         elif code.startswith(('8', '4')):
-            return f"{code}.BJ"  # 北京证券交易所
+            return f"{code}.BJ"  #Beijing Stock Exchange
         else:
-            # 无法识别的代码，返回原始代码（确保不为空）
+            #Unidentifiable code, return original code (ensure not to be empty)
             return code if code else ""
 
 

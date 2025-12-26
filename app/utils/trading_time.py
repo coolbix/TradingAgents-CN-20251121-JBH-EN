@@ -1,7 +1,6 @@
-"""
-交易时间判断工具模块
+"""Transaction time judgement tool module
 
-提供统一的交易时间判断逻辑，用于判断当前是否在A股交易时间内。
+Provides a uniform transaction timing logic to be used to determine whether or not the current time is within Unit A trading time.
 """
 
 from datetime import datetime, time as dtime
@@ -12,68 +11,66 @@ from app.core.config import settings
 
 
 def is_trading_time(now: Optional[datetime] = None) -> bool:
-    """
-    判断是否在A股交易时间或收盘后缓冲期
+    """Judge whether or not the buffer period occurs at the time of A-stock trading or after closing
 
-    交易时间：
-    - 上午：9:30-11:30
-    - 下午：13:00-15:00
-    - 收盘后缓冲期：15:00-15:30（确保获取到收盘价）
+Transaction time:
+- 9.30-11.30 a.m.
+- 15:00 to 15:00
+- Post-disclose buffer period: 15:00-15:30 (ensure that closing prices are obtained)
 
-    收盘后缓冲期说明：
-    - 交易时间结束后继续获取30分钟
-    - 假设6分钟一次，可以增加5次同步机会
-    - 大大降低错过收盘价的风险
+Description of the buffer period after closing:
+- 30 minutes after the transaction.
+- Assuming six minutes at a time, we can add five opportunities for synchronization.
+- significantly reduce the risk of missing closing prices
 
-    Args:
-        now: 指定时间，默认为当前时间（使用配置的时区）
+Args:
+Now: Specify the time, default to the current time (use the configured time zone)
 
-    Returns:
-        bool: 是否在交易时间内
-    """
+Returns:
+Bool: Is it within the trading time
+"""
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
-    # 工作日 Mon-Fri
+    #Chile
     if now.weekday() > 4:
         return False
     
     t = now.time()
     
-    # 上交所/深交所常规交易时段
+    #Regular period of transactions at the point of surrender/deep exchange
     morning = dtime(9, 30)
     noon = dtime(11, 30)
     afternoon_start = dtime(13, 0)
-    # 收盘后缓冲期（延长30分钟到15:30）
+    #Post-disclose buffer period (extended 30 minutes to 15:30)
     buffer_end = dtime(15, 30)
     
     return (morning <= t <= noon) or (afternoon_start <= t <= buffer_end)
 
 
 def is_strict_trading_time(now: Optional[datetime] = None) -> bool:
-    """
-    判断是否在严格的A股交易时间内（不包含缓冲期）
+    """Determination of whether or not to be within strict A stock trading time (not including buffer period)
 
-    交易时间：
-    - 上午：9:30-11:30
-    - 下午：13:00-15:00
+Transaction time:
+- 9.30-11.30 a.m.
+- 15:00 to 15:00
 
-    Args:
-        now: 指定时间，默认为当前时间（使用配置的时区）
+Args:
+Now: Specify the time, default to the current time (use the configured time zone)
 
-    Returns:
-        bool: 是否在严格交易时间内
-    """
+Returns:
+Bool: In strict trading time Internal
+"""
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
-    # 工作日 Mon-Fri
+    #Chile
     if now.weekday() > 4:
         return False
     
     t = now.time()
     
-    # 上交所/深交所常规交易时段
+    #Regular period of transactions at the point of surrender/deep exchange
     morning = dtime(9, 30)
     noon = dtime(11, 30)
     afternoon_start = dtime(13, 0)
@@ -83,19 +80,18 @@ def is_strict_trading_time(now: Optional[datetime] = None) -> bool:
 
 
 def is_pre_market_time(now: Optional[datetime] = None) -> bool:
-    """
-    判断是否在盘前时间（9:00-9:30）
+    """Adjudication of pre-discretion time (9-9:30)
 
-    Args:
-        now: 指定时间，默认为当前时间（使用配置的时区）
+Args:
+Now: Specify the time, default to the current time (use the configured time zone)
 
-    Returns:
-        bool: 是否在盘前时间
-    """
+Returns:
+Bool: Whether the time is before the disk
+"""
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
-    # 工作日 Mon-Fri
+    #Chile
     if now.weekday() > 4:
         return False
     
@@ -107,19 +103,18 @@ def is_pre_market_time(now: Optional[datetime] = None) -> bool:
 
 
 def is_after_market_time(now: Optional[datetime] = None) -> bool:
-    """
-    判断是否在盘后时间（15:00-15:30）
+    """Post-disbursement time (15-5:30)
 
-    Args:
-        now: 指定时间，默认为当前时间（使用配置的时区）
+Args:
+Now: Specify the time, default to the current time (use the configured time zone)
 
-    Returns:
-        bool: 是否在盘后时间
-    """
+Returns:
+Bool: Is it after schedule time?
+"""
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
-    # 工作日 Mon-Fri
+    #Chile
     if now.weekday() > 4:
         return False
     
@@ -131,31 +126,30 @@ def is_after_market_time(now: Optional[datetime] = None) -> bool:
 
 
 def get_trading_status(now: Optional[datetime] = None) -> str:
-    """
-    获取当前交易状态
+    """Get Current Transaction Status
 
-    Args:
-        now: 指定时间，默认为当前时间（使用配置的时区）
+Args:
+Now: Specify the time, default to the current time (use the configured time zone)
 
-    Returns:
-        str: 交易状态
-            - "pre_market": 盘前
-            - "morning_session": 上午交易时段
-            - "noon_break": 午间休市
-            - "afternoon_session": 下午交易时段
-            - "after_market": 盘后缓冲期
-            - "closed": 休市
-    """
+Returns:
+str: Transaction status
+- "pre market":
+- "Morning session" :
+- "noon break":
+- "afternoon session":
+- "after market": Post-drive buffer period
+- "Closed":
+"""
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
-    # 周末
+    #Weekend
     if now.weekday() > 4:
         return "closed"
     
     t = now.time()
     
-    # 定义时间点
+    #Define Time Points
     pre_market_start = dtime(9, 0)
     morning_start = dtime(9, 30)
     noon = dtime(11, 30)
@@ -163,7 +157,7 @@ def get_trading_status(now: Optional[datetime] = None) -> str:
     afternoon_end = dtime(15, 0)
     after_market_end = dtime(15, 30)
     
-    # 判断状态
+    #Decision Status
     if pre_market_start <= t < morning_start:
         return "pre_market"
     elif morning_start <= t <= noon:

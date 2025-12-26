@@ -28,7 +28,7 @@ load_dotenv()
 async def test_add_provider_with_key():
     """测试添加厂家并配置 API Key"""
     from app.services.config_service import ConfigService
-    from app.models.config import LLMProvider
+    from app.models.config import LLMProviderModel
     from app.core.database import init_db
     
     # 初始化数据库
@@ -41,7 +41,7 @@ async def test_add_provider_with_key():
     print("=" * 80)
     
     # 创建测试厂家
-    test_provider = LLMProvider(
+    test_provider = LLMProviderModel(
         name="test_provider",
         display_name="测试厂家",
         description="用于测试 API Key 配置的厂家",

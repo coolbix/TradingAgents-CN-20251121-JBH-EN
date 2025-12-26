@@ -27,12 +27,12 @@ def _get_tushare_snapshot(symbol: str) -> Dict[str, Optional[float]]:
         provider = get_tushare_provider()
         if not getattr(provider, 'connected', False):
             return {}
-        # 先取 ts_code
+        #Start with ts code
         info = provider.get_stock_info(symbol)
         ts_code = info.get('ts_code') if isinstance(info, dict) else None
         if not ts_code:
             return {}
-        # daily_basic 拿 pe/pb/total_mv
+        #Daily basic
         api = provider.api
         if api is None:
             return {}
@@ -43,7 +43,7 @@ def _get_tushare_snapshot(symbol: str) -> Dict[str, Optional[float]]:
             pe = _safe_float(db.get('pe'))
             pb = _safe_float(db.get('pb'))
             mv = _safe_float(db.get('total_mv'))
-        # roe 通过 fina_indicator（若不可用则忽略）
+        #roe via fia indicator (negative if not available)
         roe = None
         try:
             fi = api.fina_indicator(ts_code=ts_code, fields='ts_code,end_date,roe')
@@ -55,7 +55,7 @@ def _get_tushare_snapshot(symbol: str) -> Dict[str, Optional[float]]:
         return {
             'pe': pe,
             'pb': pb,
-            'market_cap': mv,  # 单位：万元
+            'market_cap': mv,  #Unit: tens of thousands
             'roe': roe,
         }
     except Exception as e:
@@ -64,10 +64,9 @@ def _get_tushare_snapshot(symbol: str) -> Dict[str, Optional[float]]:
 
 
 def get_cn_fund_snapshot(symbol: str) -> Dict[str, Optional[float]]:
-    """
-    获取A股基础基本面快照（pe/pb/roe/market_cap）。
-    优先Tushare，失败则返回空字典（后续可扩展AKShare/东方财富等）。
-    """
+    """Obtain basic base profile of Unit A (pe/pb/roe/market cap).
+To give priority to Tushare, the failure returns to an empty dictionary (a follow-up extension of AKShare/Oriental Wealth, etc.).
+"""
     snap = _get_tushare_snapshot(symbol)
     if snap:
         return snap

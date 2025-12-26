@@ -15,12 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class DataSourceManager:
-    """
-    数据源管理器
-    - 管理多个适配器，基于优先级排序
-    - 提供 fallback 获取能力
-    - 可选：一致性检查（若依赖存在）
-    """
+    """Data Source Manager
+- Manage multiple adapters based on priority ranking
+- Offering capacity to fallback
+- Optional: Consistency check (if dependent)
+"""
 
     def __init__(self):
         self.adapters: List[DataSourceAdapter] = [
@@ -29,62 +28,62 @@ class DataSourceManager:
             BaoStockAdapter(),
         ]
 
-        # 从数据库加载优先级配置
+        #Load priority configuration from database
         self._load_priority_from_database()
 
-        # 按优先级排序（数字越大优先级越高，所以降序排列）
+        #Sort in order of priority (the larger the number, the higher the priority, the lower the order)
         self.adapters.sort(key=lambda x: x.priority, reverse=True)
 
         try:
             from .data_consistency_checker import DataConsistencyChecker  # type: ignore
             self.consistency_checker = DataConsistencyChecker()
         except Exception:
-            logger.warning("⚠️ 数据一致性检查器不可用")
+            logger.warning("Data Consistency Checker Not Available")
             self.consistency_checker = None
 
     def _load_priority_from_database(self):
-        """从数据库加载数据源优先级配置（从 datasource_groupings 集合读取 A股市场的优先级）"""
+        """Data source priority configuration from database load (read A stock market priority from data groupings)"""
         try:
             from app.core.database import get_mongo_db_sync
             db = get_mongo_db_sync()
             groupings_collection = db.datasource_groupings
 
-            # 查询 A股市场的数据源分组配置
+            #Query data source grouping for Unit A market
             groupings = list(groupings_collection.find({
                 "market_category_id": "a_shares",
                 "enabled": True
             }))
 
             if groupings:
-                # 创建名称到优先级的映射（数据源名称需要转换为小写）
+                #Create a map with a name to priority (data source name needs to be converted to lowercase)
                 priority_map = {}
                 for grouping in groupings:
                     data_source_name = grouping.get('data_source_name', '').lower()
                     priority = grouping.get('priority')
                     if data_source_name and priority is not None:
                         priority_map[data_source_name] = priority
-                        logger.info(f"📊 从数据库读取 {data_source_name} 在 A股市场的优先级: {priority}")
+                        logger.info(f"Read from the database{data_source_name}In the A stock market priorities:{priority}")
 
-                # 更新各个 Adapter 的优先级
+                #Update priority for each Adapter
                 for adapter in self.adapters:
                     if adapter.name in priority_map:
-                        # 动态设置优先级
+                        #Dynamic setting priorities
                         adapter._priority = priority_map[adapter.name]
-                        logger.info(f"✅ 设置 {adapter.name} 优先级: {adapter._priority}")
+                        logger.info(f"Settings{adapter.name}Priority:{adapter._priority}")
                     else:
-                        # 使用默认优先级
+                        #Use default priority
                         adapter._priority = adapter._get_default_priority()
-                        logger.info(f"⚠️ 数据库中未找到 {adapter.name} 配置，使用默认优先级: {adapter._priority}")
+                        logger.info(f"Not found in database ⚠️{adapter.name}, use the default priority:{adapter._priority}")
             else:
-                logger.info("⚠️ 数据库中未找到 A股市场的数据源配置，使用默认优先级")
-                # 使用默认优先级
+                logger.info("No data source configuration for the A share market was found in ⚠️ database, using default priority")
+                #Use default priority
                 for adapter in self.adapters:
                     adapter._priority = adapter._get_default_priority()
         except Exception as e:
-            logger.warning(f"⚠️ 从数据库加载优先级失败: {e}，使用默认优先级")
+            logger.warning(f"Could not close temporary folder: %s{e}, using default priority")
             import traceback
-            logger.warning(f"堆栈跟踪:\n{traceback.format_exc()}")
-            # 使用默认优先级
+            logger.warning(f"Stack tracking: \n{traceback.format_exc()}")
+            #Use default priority
             for adapter in self.adapters:
                 adapter._priority = adapter._get_default_priority()
 
@@ -101,27 +100,26 @@ class DataSourceManager:
         return available
 
     def get_stock_list_with_fallback(self, preferred_sources: Optional[List[str]] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
-        """
-        获取股票列表，支持指定优先数据源
+        """Get a list of shares to support the designation of priority data sources
 
-        Args:
-            preferred_sources: 优先使用的数据源列表，例如 ['akshare', 'baostock']
-                             如果为 None，则按照默认优先级顺序
+Args:
+Prefered sources: list of preferred data sources, such as ['akshare', 'baostock']
+If None, in the default priority order
 
-        Returns:
-            (DataFrame, source_name) 或 (None, None)
-        """
+Returns:
+(DataFrame, source name) or (None, None)
+"""
         available_adapters = self.get_available_adapters()
 
-        # 如果指定了优先数据源，重新排序
+        #Reorder if priority data sources are specified
         if preferred_sources:
             logger.info(f"Using preferred data sources: {preferred_sources}")
-            # 创建优先级映射
+            #Create Priority Map
             priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
-            # 将指定的数据源排在前面，其他的保持原顺序
+            #Line the specified data sources ahead, and keep the rest in order
             preferred = [a for a in available_adapters if a.name in priority_map]
             others = [a for a in available_adapters if a.name not in priority_map]
-            # 按照 preferred_sources 的顺序排序
+            #Sort in order of prefered sources
             preferred.sort(key=lambda a: priority_map.get(a.name, 999))
             available_adapters = preferred + others
             logger.info(f"Reordered adapters: {[a.name for a in available_adapters]}")
@@ -138,19 +136,18 @@ class DataSourceManager:
         return None, None
 
     def get_daily_basic_with_fallback(self, trade_date: str, preferred_sources: Optional[List[str]] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
-        """
-        获取每日基础数据，支持指定优先数据源
+        """Access to daily basic data to support the designation of priority data sources
 
-        Args:
-            trade_date: 交易日期
-            preferred_sources: 优先使用的数据源列表
+Args:
+trade date: transaction date
+Prefered sources: Priority list of data sources
 
-        Returns:
-            (DataFrame, source_name) 或 (None, None)
-        """
+Returns:
+(DataFrame, source name) or (None, None)
+"""
         available_adapters = self.get_available_adapters()
 
-        # 如果指定了优先数据源，重新排序
+        #Reorder if priority data sources are specified
         if preferred_sources:
             priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
             preferred = [a for a in available_adapters if a.name in priority_map]
@@ -170,18 +167,17 @@ class DataSourceManager:
         return None, None
 
     def find_latest_trade_date_with_fallback(self, preferred_sources: Optional[List[str]] = None) -> Optional[str]:
-        """
-        查找最新交易日期，支持指定优先数据源
+        """Find the latest transaction date and support the designation of priority data Source
 
-        Args:
-            preferred_sources: 优先使用的数据源列表
+Args:
+Prefered sources: Priority list of data sources
 
-        Returns:
-            交易日期字符串（YYYYMMDD格式）或 None
-        """
+Returns:
+Transaction Date String (YYYMMDD format) or None
+"""
         available_adapters = self.get_available_adapters()
 
-        # 如果指定了优先数据源，重新排序
+        #Reorder if priority data sources are specified
         if preferred_sources:
             priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
             preferred = [a for a in available_adapters if a.name in priority_map]
@@ -200,11 +196,10 @@ class DataSourceManager:
         return (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
 
     def get_realtime_quotes_with_fallback(self) -> Tuple[Optional[Dict], Optional[str]]:
-        """
-        获取全市场实时快照，按适配器优先级依次尝试，返回首个成功结果
-        Returns: (quotes_dict, source_name)
-        quotes_dict 形如 { '000001': {'close': 10.0, 'pct_chg': 1.2, 'amount': 1.2e8}, ... }
-        """
+        """Get market-wide real-time snapshots, try in order of adaptor priority, and return the first successful result
+RETURNS: (quates dict, source name)
+Quotes dict forms    FMT 0,...}
+"""
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
             try:
@@ -221,12 +216,11 @@ class DataSourceManager:
     def get_daily_basic_with_consistency_check(
         self, trade_date: str
     ) -> Tuple[Optional[pd.DataFrame], Optional[str], Optional[Dict]]:
-        """
-        使用一致性检查获取每日基础数据
+        """Access to daily basic data using consistency checks
 
-        Returns:
-            Tuple[DataFrame, source_name, consistency_report]
-        """
+Returns:
+Tuple.
+"""
         available_adapters = self.get_available_adapters()
         if len(available_adapters) < 2:
             df, source = self.get_daily_basic_with_fallback(trade_date)
@@ -235,16 +229,16 @@ class DataSourceManager:
         secondary_adapter = available_adapters[1]
         try:
             logger.info(
-                f"🔍 获取数据进行一致性检查: {primary_adapter.name} vs {secondary_adapter.name}"
+                f"Access to data for consistency check:{primary_adapter.name} vs {secondary_adapter.name}"
             )
             primary_data = primary_adapter.get_daily_basic(trade_date)
             secondary_data = secondary_adapter.get_daily_basic(trade_date)
             if primary_data is None or primary_data.empty:
-                logger.warning(f"⚠️ 主数据源{primary_adapter.name}失败，使用fallback")
+                logger.warning(f"Main data source{primary_adapter.name}Failed, use fallback")
                 df, source = self.get_daily_basic_with_fallback(trade_date)
                 return df, source, None
             if secondary_data is None or secondary_data.empty:
-                logger.warning(f"⚠️ 次数据源{secondary_adapter.name}失败，使用主数据源")
+                logger.warning(f"Data source{secondary_adapter.name}Failed, use main data source")
                 return primary_data, primary_adapter.name, None
             if self.consistency_checker:
                 consistency_result = self.consistency_checker.check_daily_basic_consistency(
@@ -266,21 +260,21 @@ class DataSourceManager:
                     'secondary_source': secondary_adapter.name,
                 }
                 logger.info(
-                    f"📊 数据一致性检查完成: 置信度={consistency_result.confidence_score:.2f}, 策略={consistency_result.recommended_action}"
+                    f"Data consistency check complete: confidence ={consistency_result.confidence_score:.2f},Text={consistency_result.recommended_action}"
                 )
                 return final_data, primary_adapter.name, consistency_report
             else:
-                logger.warning("⚠️ 一致性检查器不可用，使用主数据源")
+                logger.warning("⚠️ Consistency check not available, using main data source")
                 return primary_data, primary_adapter.name, None
         except Exception as e:
-            logger.error(f"❌ 一致性检查失败: {e}")
+            logger.error(f"Consistency check failed:{e}")
             df, source = self.get_daily_basic_with_fallback(trade_date)
             return df, source, None
 
 
 
     def get_kline_with_fallback(self, code: str, period: str = "day", limit: int = 120, adj: Optional[str] = None) -> Tuple[Optional[List[Dict]], Optional[str]]:
-        """按优先级尝试获取K线，返回(items, source)"""
+        """Try K-line on priority, return (items, source)"""
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
             try:
@@ -294,7 +288,7 @@ class DataSourceManager:
         return None, None
 
     def get_news_with_fallback(self, code: str, days: int = 2, limit: int = 50, include_announcements: bool = True) -> Tuple[Optional[List[Dict]], Optional[str]]:
-        """按优先级尝试获取新闻与公告，返回(items, source)"""
+        """Try to get news and announcements on priority, return (items, source)"""
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
             try:

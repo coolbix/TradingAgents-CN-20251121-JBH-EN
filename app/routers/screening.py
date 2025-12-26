@@ -15,13 +15,13 @@ from app.models.screening import (
 router = APIRouter(tags=["screening"])
 logger = logging.getLogger("webapi")
 
-# 筛选字段配置响应模型
+#Filter field configuration response model
 class FieldConfigResponse(BaseModel):
-    """筛选字段配置响应"""
+    """Filter field configuration response"""
     fields: Dict[str, FieldInfo]
     categories: Dict[str, List[str]]
 
-# 传统的请求/响应模型（保持向后兼容）
+#Traditional request/response model (maintaining backward compatibility)
 class OrderByItem(BaseModel):
     field: str
     direction: str = Field("desc", pattern=r"^(?i)(asc|desc)$")
@@ -39,19 +39,18 @@ class ScreeningResponse(BaseModel):
     total: int
     items: List[dict]
 
-# 服务实例
+#Examples of services
 svc = ScreeningService()
 enhanced_svc = get_enhanced_screening_service()
 
 
 @router.get("/fields", response_model=FieldConfigResponse)
 async def get_screening_fields(user: dict = Depends(get_current_user)):
-    """
-    获取筛选字段配置
-    返回所有可用的筛选字段及其配置信息
-    """
+    """Get Filter Field Configuration
+Returns all available filter fields and their configuration information
+"""
     try:
-        # 字段分类
+        #Field Classification
         categories = {
             "basic": ["code", "name", "industry", "area", "market"],
             "market_value": ["total_mv", "circ_mv"],
@@ -67,40 +66,36 @@ async def get_screening_fields(user: dict = Depends(get_current_user)):
         )
 
     except Exception as e:
-        logger.error(f"[get_screening_fields] 获取字段配置失败: {e}", exc_info=True)
+        logger.error(f"Could not close temporary folder: %s{e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
 def _convert_legacy_conditions_to_new_format(legacy_conditions: Dict[str, Any]) -> List[ScreeningCondition]:
-    """
-    将传统格式的筛选条件转换为新格式
+    """Convert filter conditions in traditional format to new format
 
-    传统格式示例:
-    {
-        "logic": "AND",
-        "children": [
-            {"field": "market_cap", "op": "between", "value": [5000000, 9007199254740991]}
-        ]
-    }
+Example of traditional format:
+FMT 0 
 
-    新格式:
-    [
-        ScreeningCondition(field="total_mv", operator="between", value=[50, 90071992547])
-    ]
-    """
+♪ I'm sorry ♪
+
+New format:
+[ Chuckles ]
+ScreeningCondition (field = "total mv", operator = "between", value = [50, 900771992547])
+
+"""
     conditions = []
 
-    # 字段名映射（前端可能使用的旧字段名 -> 统一的后端字段名）
+    #Field name map (old field name - > unified backend field name that may be used at the front end)
     field_mapping = {
-        "market_cap": "total_mv",      # 市值（兼容旧字段名）
-        "pe_ratio": "pe",              # 市盈率（兼容旧字段名）
-        "pb_ratio": "pb",              # 市净率（兼容旧字段名）
-        "turnover": "turnover_rate",   # 换手率（兼容旧字段名）
-        "change_percent": "pct_chg",   # 涨跌幅（兼容旧字段名）
-        "price": "close",              # 价格（兼容旧字段名）
+        "market_cap": "total_mv",      #Market value (old field compatible)
+        "pe_ratio": "pe",              #Market share (compatible with old field names)
+        "pb_ratio": "pb",              #Net market ratio (compatible with old field names)
+        "turnover": "turnover_rate",   #Exchange rate (compatible with old field names)
+        "change_percent": "pct_chg",   #Increase or decrease (compatible old field names)
+        "price": "close",              #Price (compatible with old field names)
     }
 
-    # 操作符映射
+    #Operator Map
     operator_mapping = {
         "between": "between",
         "gt": ">",
@@ -123,23 +118,23 @@ def _convert_legacy_conditions_to_new_format(legacy_conditions: Dict[str, Any]) 
                 value = child.get("value")
 
                 if field and op and value is not None:
-                    # 映射字段名
+                    #Map field name
                     mapped_field = field_mapping.get(field, field)
 
-                    # 映射操作符
+                    #Map Operator
                     mapped_op = operator_mapping.get(op, op)
 
-                    # 处理市值单位转换（前端传入的是万元，数据库存储的是亿元）
+                    #Processing of market value unit conversions (millions in front end and billions in database)
                     if mapped_field == "total_mv" and isinstance(value, list):
-                        # 将万元转换为亿元
+                        #Convert millions to billions
                         converted_value = [v / 10000 for v in value if isinstance(v, (int, float))]
-                        logger.info(f"[screening] 市值单位转换: {value} 万元 -> {converted_value} 亿元")
+                        logger.info(f"[screening]{value}A million dollars.{converted_value}Billions.")
                         value = converted_value
                     elif mapped_field == "total_mv" and isinstance(value, (int, float)):
                         value = value / 10000
-                        logger.info(f"[screening] 市值单位转换: {child.get('value')} 万元 -> {value} 亿元")
+                        logger.info(f"[screening]{child.get('value')}A million dollars.{value}Billions.")
 
-                    # 创建筛选条件
+                    #Create Filter Condition
                     condition = ScreeningCondition(
                         field=mapped_field,
                         operator=mapped_op,
@@ -147,23 +142,23 @@ def _convert_legacy_conditions_to_new_format(legacy_conditions: Dict[str, Any]) 
                     )
                     conditions.append(condition)
 
-                    logger.info(f"[screening] 转换条件: {field}({op}) -> {mapped_field}({mapped_op}), 值: {value}")
+                    logger.info(f"[screening]{field}({op}) -> {mapped_field}({mapped_op}) value:{value}")
 
     return conditions
 
 
-# 传统筛选接口（保持向后兼容，但使用增强服务）
+#Traditional screening interfaces (backward compatibility but use of enhanced services)
 @router.post("/run", response_model=ScreeningResponse)
 async def run_screening(req: ScreeningRequest, user: dict = Depends(get_current_user)):
     try:
-        logger.info(f"[screening] 请求条件: {req.conditions}")
-        logger.info(f"[screening] 排序与分页: order_by={req.order_by}, limit={req.limit}, offset={req.offset}")
+        logger.info(f"[screening] Request terms:{req.conditions}")
+        logger.info(f"[screening] Sort with page break: order by={req.order_by}, limit={req.limit}, offset={req.offset}")
 
-        # 转换传统格式的条件为新格式
+        #The condition for converting the traditional format is new
         conditions = _convert_legacy_conditions_to_new_format(req.conditions)
-        logger.info(f"[screening] 转换后的条件: {conditions}")
+        logger.info(f"[screening]{conditions}")
 
-        # 使用增强筛选服务
+        #Use enhanced screening services
         result = await enhanced_svc.screen_stocks(
             conditions=conditions,
             market=req.market,
@@ -175,34 +170,33 @@ async def run_screening(req: ScreeningRequest, user: dict = Depends(get_current_
             use_database_optimization=True
         )
 
-        logger.info(f"[screening] 筛选完成: total={result.get('total')}, "
+        logger.info(f"[screening] Screening complete: total={result.get('total')}, "
                    f"took={result.get('took_ms')}ms, optimization={result.get('optimization_used')}")
 
         if result.get('items'):
             sample = result['items'][:3]
-            logger.info(f"[screening] 返回样例(前3条): {sample}")
+            logger.info(f"[screening] Returns sample (first 3):{sample}")
 
         return ScreeningResponse(total=result["total"], items=result["items"])
 
     except Exception as e:
-        logger.error(f"[screening] 处理失败: {e}", exc_info=True)
+        logger.error(f"[screening] Process failed:{e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# 新的优化筛选接口
+#New Optimised Filter Interface
 @router.post("/enhanced", response_model=NewScreeningResponse)
 async def enhanced_screening(req: NewScreeningRequest, user: dict = Depends(get_current_user)):
-    """
-    增强的股票筛选接口
-    - 支持更丰富的筛选条件格式
-    - 自动选择最优的筛选策略（数据库优化 vs 传统方法）
-    - 提供详细的性能统计信息
-    """
+    """Enhanced stock filter interface
+- Support for richer filtering conditions formats
+- Automatically select the best selection strategy (database optimization vs traditional method)
+- Provide detailed performance statistics
+"""
     try:
-        logger.info(f"[enhanced_screening] 筛选条件: {len(req.conditions)}个")
-        logger.info(f"[enhanced_screening] 排序与分页: order_by={req.order_by}, limit={req.limit}, offset={req.offset}")
+        logger.info(f"[enhanced screening]{len(req.conditions)}individual")
+        logger.info(f"[enhanced screening] Sort with page break: order by={req.order_by}, limit={req.limit}, offset={req.offset}")
 
-        # 执行增强筛选
+        #Execute Enhanced Filter
         result = await enhanced_svc.screen_stocks(
             conditions=req.conditions,
             market=req.market,
@@ -214,7 +208,7 @@ async def enhanced_screening(req: NewScreeningRequest, user: dict = Depends(get_
             use_database_optimization=req.use_database_optimization
         )
 
-        logger.info(f"[enhanced_screening] 筛选完成: total={result.get('total')}, "
+        logger.info(f"[enhanced screening] Screening complete: total={result.get('total')}, "
                    f"took={result.get('took_ms')}ms, optimization={result.get('optimization_used')}")
 
         return NewScreeningResponse(
@@ -226,26 +220,26 @@ async def enhanced_screening(req: NewScreeningRequest, user: dict = Depends(get_
         )
 
     except Exception as e:
-        logger.error(f"[enhanced_screening] 筛选失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"增强筛选失败: {str(e)}")
 
 
-# 获取支持的字段信息
+#Get Supported Field Information
 @router.get("/fields", response_model=List[Dict[str, Any]])
 async def get_supported_fields(user: dict = Depends(get_current_user)):
-    """获取所有支持的筛选字段信息"""
+    """Get all supported filter field information"""
     try:
         fields = await enhanced_svc.get_all_supported_fields()
         return fields
     except Exception as e:
-        logger.error(f"[screening] 获取字段信息失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取字段信息失败: {str(e)}")
 
 
-# 获取单个字段的详细信息
+#Fetch details for individual fields
 @router.get("/fields/{field_name}", response_model=Dict[str, Any])
 async def get_field_info(field_name: str, user: dict = Depends(get_current_user)):
-    """获取指定字段的详细信息"""
+    """Get details of the specified field"""
     try:
         field_info = await enhanced_svc.get_field_info(field_name)
         if not field_info:
@@ -254,31 +248,30 @@ async def get_field_info(field_name: str, user: dict = Depends(get_current_user)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[screening] 获取字段信息失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取字段信息失败: {str(e)}")
 
 
-# 验证筛选条件
+#Verify Filter Conditions
 @router.post("/validate", response_model=Dict[str, Any])
 async def validate_conditions(conditions: List[ScreeningCondition], user: dict = Depends(get_current_user)):
-    """验证筛选条件的有效性"""
+    """Validation of filter conditions"""
     try:
         validation_result = await enhanced_svc.validate_conditions(conditions)
         return validation_result
     except Exception as e:
-        logger.error(f"[screening] 验证条件失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"验证条件失败: {str(e)}")
 
-# 重复定义的旧端点移除（保留带日志的版本）
+#Repeat defined old peer removal (retain version with log)
 
 
 @router.get("/industries")
 async def get_industries(user: dict = Depends(get_current_user)):
-    """
-    获取数据库中所有可用的行业列表
-    根据系统配置的数据源优先级，从优先级最高的数据源获取行业分类数据
-    返回按股票数量排序的行业列表
-    """
+    """Get a list of all available industries in the database
+Obtain industry-specific data from the highest-priority data sources according to the data source priorities configured by the system
+Returns the list of industries by stock count
+"""
     try:
         from app.core.database import get_mongo_db
         from app.core.unified_config import UnifiedConfigManager
@@ -286,31 +279,31 @@ async def get_industries(user: dict = Depends(get_current_user)):
         db = get_mongo_db()
         collection = db["stock_basic_info"]
 
-        # 🔥 获取数据源优先级配置（使用统一配置管理器的异步方法）
+        #🔥 Access to data source priority configuration (using the uniform configuration manager's walk method)
         config = UnifiedConfigManager()
         data_source_configs = await config.get_data_source_configs_async()
 
-        # 提取启用的数据源，按优先级排序（已排序）
+        #Extract enabled data sources in order of priority (ordered)
         enabled_sources = [
             ds.type.lower() for ds in data_source_configs
             if ds.enabled and ds.type.lower() in ['tushare', 'akshare', 'baostock']
         ]
 
         if not enabled_sources:
-            # 如果没有配置，使用默认顺序
+            #Use default order if no configuration
             enabled_sources = ['tushare', 'akshare', 'baostock']
 
-        logger.info(f"[get_industries] 数据源优先级: {enabled_sources}")
+        logger.info(f"[get industries] Data source priority:{enabled_sources}")
 
-        # 🔥 按优先级查询：优先使用优先级最高的数据源
+        #🔥 Priority query: Prioritize the highest priority data sources
         preferred_source = enabled_sources[0] if enabled_sources else 'tushare'
 
-        # 聚合查询：按行业分组并统计股票数量（只查询指定数据源）
+        #Aggregation queries: grouping by industry and counting the number of shares (see only specified data sources)
         pipeline = [
             {
                 "$match": {
-                    "source": preferred_source,  # 🔥 只查询优先级最高的数据源
-                    "industry": {"$ne": None, "$ne": ""}  # 过滤空行业
+                    "source": preferred_source,  #🔥 Only query the highest priority data source
+                    "industry": {"$ne": None, "$ne": ""}  #Filter Empty Industry
                 }
             },
             {
@@ -319,7 +312,7 @@ async def get_industries(user: dict = Depends(get_current_user)):
                     "count": {"$sum": 1}
                 }
             },
-            {"$sort": {"count": -1}},  # 按股票数量降序排序
+            {"$sort": {"count": -1}},  #Sort by stock volume decrease
             {
                 "$project": {
                     "industry": "$_id",
@@ -331,7 +324,7 @@ async def get_industries(user: dict = Depends(get_current_user)):
 
         industries = []
         async for doc in collection.aggregate(pipeline):
-            # 清洗字段，避免 NaN/Inf 导致 JSON 序列化失败
+            #Purge fields to avoid NAN/Inf resulting in the serialization of JSON
             raw_industry = doc.get("industry")
             safe_industry = ""
             try:
@@ -366,14 +359,14 @@ async def get_industries(user: dict = Depends(get_current_user)):
                 "count": safe_count,
             })
 
-        logger.info(f"[get_industries] 从数据源 {preferred_source} 返回 {len(industries)} 个行业")
+        logger.info(f"[get industries] from data sources{preferred_source}Back{len(industries)}Industry")
 
         return {
             "industries": industries,
             "total": len(industries),
-            "source": preferred_source  # 🔥 返回数据来源
+            "source": preferred_source  #Return data source
         }
 
     except Exception as e:
-        logger.error(f"[get_industries] 获取行业列表失败: {e}", exc_info=True)
+        logger.error(f"[get industries] Failed to get industry list:{e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

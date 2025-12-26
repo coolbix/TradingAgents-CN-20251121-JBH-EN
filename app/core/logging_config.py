@@ -7,7 +7,7 @@ import platform
 
 from app.core.logging_context import LoggingContextFilter, trace_id_var
 
-# 🔥 在 Windows 上使用 concurrent-log-handler 避免文件占用问题
+#Use concurent-log-handler on Windows to avoid file occupancy problems
 _IS_WINDOWS = platform.system() == "Windows"
 if _IS_WINDOWS:
     try:
@@ -15,7 +15,7 @@ if _IS_WINDOWS:
         _USE_CONCURRENT_HANDLER = True
     except ImportError:
         _USE_CONCURRENT_HANDLER = False
-        logging.warning("concurrent-log-handler 未安装，在 Windows 上可能遇到日志轮转问题")
+        logging.warning("Concurrent-log-handler is not installed and may encounter log rotation problems on Windows")
 else:
     _USE_CONCURRENT_HANDLER = False
 
@@ -29,9 +29,9 @@ except Exception:
 
 
 def resolve_logging_cfg_path() -> Path:
-    """根据环境选择日志配置文件路径（可能不存在）
-    优先 docker 配置，其次默认配置。
-    """
+    """Select a path to the profile according to the environment (may not exist)
+Prefers the docker configuration, with the second default configuration.
+"""
     profile = os.environ.get("LOGGING_PROFILE", "").lower()
     is_docker_env = os.environ.get("DOCKER", "").lower() in {"1", "true", "yes"} or Path("/.dockerenv").exists()
     cfg_candidate = "config/logging_docker.toml" if profile == "docker" or is_docker_env else "config/logging.toml"
@@ -53,7 +53,7 @@ class SimpleJsonFormatter(logging.Formatter):
 
 
 def _parse_size(size_str: str) -> int:
-    """解析大小字符串（如 '10MB'）为字节数"""
+    """Parsing size strings (e. g. '10MB') as bytes"""
     if isinstance(size_str, int):
         return size_str
     if isinstance(size_str, str) and size_str.upper().endswith("MB"):
@@ -64,12 +64,11 @@ def _parse_size(size_str: str) -> int:
     return 10 * 1024 * 1024
 
 def setup_logging(log_level: str = "INFO"):
-    """
-    设置应用日志配置：
-    1) 优先尝试从 config/logging.toml 读取并转化为 dictConfig
-    2) 失败或不存在时，回退到内置默认配置
-    """
-    # 1) 若存在 TOML 配置且可解析，则优先使用
+    """Set application log configuration:
+1) Prioritize reading from config/ logging.toml to dictConfig
+2) Back to the built-in default configuration when failed or non-existent
+"""
+    #1) Priority if TOML configuration exists and is parsable
     try:
         cfg_path = resolve_logging_cfg_path()
         print(f"🔍 [setup_logging] 日志配置文件路径: {cfg_path}")
@@ -82,7 +81,7 @@ def setup_logging(log_level: str = "INFO"):
 
             print(f"🔍 [setup_logging] 成功加载TOML配置")
 
-            # 读取基础字段
+            #Read base field
             logging_root = toml_data.get("logging", {})
             level = logging_root.get("level", log_level)
             fmt_cfg = logging_root.get("format", {})
@@ -92,7 +91,7 @@ def setup_logging(log_level: str = "INFO"):
             fmt_file = fmt_cfg.get(
                 "file", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
-            # 确保文本格式包含 trace_id（若未显式包含）
+            #Ensure text format contains track id (if not visible)
             if "%(trace_id)" not in str(fmt_console):
                 fmt_console = str(fmt_console) + " trace=%(trace_id)s"
             if "%(trace_id)" not in str(fmt_file):
@@ -103,7 +102,7 @@ def setup_logging(log_level: str = "INFO"):
             file_dir = file_handler_cfg.get("directory", "./logs")
             file_level = file_handler_cfg.get("level", "DEBUG")
             max_bytes = file_handler_cfg.get("max_size", "10MB")
-            # 支持 "10MB" 形式
+            #Support "10MB" forms
             if isinstance(max_bytes, str) and max_bytes.upper().endswith("MB"):
                 try:
                     max_bytes = int(float(max_bytes[:-2]) * 1024 * 1024)
@@ -115,7 +114,7 @@ def setup_logging(log_level: str = "INFO"):
 
             Path(file_dir).mkdir(parents=True, exist_ok=True)
 
-            # 从TOML配置读取各个日志文件路径
+            #Read log file paths from TOML configuration
             main_handler_cfg = handlers_cfg.get("main", {})
             webapi_handler_cfg = handlers_cfg.get("webapi", {})
             worker_handler_cfg = handlers_cfg.get("worker", {})
@@ -125,7 +124,7 @@ def setup_logging(log_level: str = "INFO"):
             print(f"🔍 [setup_logging] webapi_handler_cfg: {webapi_handler_cfg}")
             print(f"🔍 [setup_logging] worker_handler_cfg: {worker_handler_cfg}")
 
-            # 主日志文件（tradingagents.log）
+            #Main Log Files (tradingAGents.log)
             main_log = main_handler_cfg.get("filename", str(Path(file_dir) / "tradingagents.log"))
             main_enabled = main_handler_cfg.get("enabled", True)
             main_level = main_handler_cfg.get("level", "INFO")
@@ -139,7 +138,7 @@ def setup_logging(log_level: str = "INFO"):
             print(f"  - 最大大小: {main_max_bytes} bytes")
             print(f"  - 备份数量: {main_backup_count}")
 
-            # WebAPI日志文件
+            #WebAPI Log File
             webapi_log = webapi_handler_cfg.get("filename", str(Path(file_dir) / "webapi.log"))
             webapi_enabled = webapi_handler_cfg.get("enabled", True)
             webapi_level = webapi_handler_cfg.get("level", "DEBUG")
@@ -148,7 +147,7 @@ def setup_logging(log_level: str = "INFO"):
 
             print(f"🔍 [setup_logging] WebAPI日志文件: {webapi_log}, 启用: {webapi_enabled}")
 
-            # Worker日志文件
+            #Worker Log File
             worker_log = worker_handler_cfg.get("filename", str(Path(file_dir) / "worker.log"))
             worker_enabled = worker_handler_cfg.get("enabled", True)
             worker_level = worker_handler_cfg.get("level", "DEBUG")
@@ -157,7 +156,7 @@ def setup_logging(log_level: str = "INFO"):
 
             print(f"🔍 [setup_logging] Worker日志文件: {worker_log}, 启用: {worker_enabled}")
 
-            # 错误日志文件
+            #Error Log File
             error_handler_cfg = handlers_cfg.get("error", {})
             error_log = error_handler_cfg.get("filename", str(Path(file_dir) / "error.log"))
             error_enabled = error_handler_cfg.get("enabled", True)
@@ -165,7 +164,7 @@ def setup_logging(log_level: str = "INFO"):
             error_max_bytes = _parse_size(error_handler_cfg.get("max_size", "100MB"))
             error_backup_count = int(error_handler_cfg.get("backup_count", 5))
 
-            # JSON 开关：保持向后兼容（json/mode 仅控制台）；新增 file_json/file_mode 控制文件 handler
+            #JSON switch: Keep backward compatibility (json/mode console only); add file json/file mode control file handler
             use_json_console = bool(fmt_cfg.get("json", False)) or str(fmt_cfg.get("mode", "")).lower() == "json"
             use_json_file = (
                 bool(fmt_cfg.get("file_json", False))
@@ -173,7 +172,7 @@ def setup_logging(log_level: str = "INFO"):
                 or str(fmt_cfg.get("file_mode", "")).lower() == "json"
             )
 
-            # 构建处理器配置
+            #Build Processor Configuration
             handlers_config = {
                 "console": {
                     "class": "logging.StreamHandler",
@@ -186,10 +185,10 @@ def setup_logging(log_level: str = "INFO"):
 
             print(f"🔍 [setup_logging] 开始构建handlers配置")
 
-            # 🔥 选择日志处理器类（Windows 使用 ConcurrentRotatingFileHandler）
+            #🔥 Select the log processor class (Windows using ConcurrentRotatingFilehandler)
             handler_class = "concurrent_log_handler.ConcurrentRotatingFileHandler" if _USE_CONCURRENT_HANDLER else "logging.handlers.RotatingFileHandler"
 
-            # 主日志文件（tradingagents.log）
+            #Main Log Files (tradingAGents.log)
             if main_enabled:
                 print(f"✅ [setup_logging] 添加 main_file handler: {main_log} (使用 {handler_class})")
                 handlers_config["main_file"] = {
@@ -205,7 +204,7 @@ def setup_logging(log_level: str = "INFO"):
             else:
                 print(f"⚠️ [setup_logging] main_file handler 未启用")
 
-            # WebAPI日志文件
+            #WebAPI Log File
             if webapi_enabled:
                 handlers_config["file"] = {
                     "class": handler_class,
@@ -218,7 +217,7 @@ def setup_logging(log_level: str = "INFO"):
                     "filters": ["request_context"],
                 }
 
-            # Worker日志文件
+            #Worker Log File
             if worker_enabled:
                 handlers_config["worker_file"] = {
                     "class": handler_class,
@@ -231,7 +230,7 @@ def setup_logging(log_level: str = "INFO"):
                     "filters": ["request_context"],
                 }
 
-            # 添加错误日志处理器（如果启用）
+            #Add Error Log Processor (if enabled)
             if error_enabled:
                 handlers_config["error_file"] = {
                     "class": "logging.handlers.RotatingFileHandler",
@@ -244,7 +243,7 @@ def setup_logging(log_level: str = "INFO"):
                     "filters": ["request_context"],
                 }
 
-            # 构建logger handlers列表
+            #Build a logger handlers list
             main_handlers = ["console"]
             if main_enabled:
                 main_handlers.append("main_file")
@@ -340,22 +339,22 @@ def setup_logging(log_level: str = "INFO"):
 
             logging.getLogger("webapi").info(f"Logging configured from {cfg_path}")
 
-            # 测试主日志文件是否可写
+            #Test whether the main log file is written
             if main_enabled:
                 test_logger = logging.getLogger("tradingagents")
-                test_logger.info(f"🔍 测试主日志文件写入: {main_log}")
+                test_logger.info(f"🔍 Test Master Log files to write:{main_log}")
                 print(f"🔍 [setup_logging] 已向 tradingagents logger 写入测试日志")
 
             return
     except Exception as e:
-        # TOML 存在但加载失败，回退到默认配置
+        #TOML exists but loading failed. Back to default configuration
         logging.getLogger("webapi").warning(f"Failed to load logging.toml, fallback to defaults: {e}")
 
-    # 2) 默认内置配置（与原先一致）
+    #2) Default built-in configuration (same)
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
 
-    # 🔥 选择日志处理器类（Windows 使用 ConcurrentRotatingFileHandler）
+    #🔥 Select the log processor class (Windows using ConcurrentRotatingFilehandler)
     handler_class = "concurrent_log_handler.ConcurrentRotatingFileHandler" if _USE_CONCURRENT_HANDLER else "logging.handlers.RotatingFileHandler"
 
     logging_config = {

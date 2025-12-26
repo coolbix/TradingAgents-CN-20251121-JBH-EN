@@ -15,14 +15,14 @@ class BaoStockAdapter(DataSourceAdapter):
     """BaoStockdata source adapter"""
 
     def __init__(self):
-        super().__init__()  # 调用父类初始化
+        super().__init__()  #Call Parent Initialization
 
     @property
     def name(self) -> str:
         return "baostock"
 
     def _get_default_priority(self) -> int:
-        return 1  # lowest priority (数字越大优先级越高)
+        return 1  #(the larger the number, the higher the priority)
 
     def is_available(self) -> bool:
         try:
@@ -61,7 +61,7 @@ class BaoStockAdapter(DataSourceAdapter):
                 df['name'] = df['code_name']
                 df['area'] = ''
 
-                # 获取行业信息
+                #Access to industry information
                 logger.info("BaoStock: Querying stock industry info...")
                 industry_rs = bs.query_stock_industry()
                 if industry_rs.error_code == '0':
@@ -71,20 +71,20 @@ class BaoStockAdapter(DataSourceAdapter):
                     if industry_list:
                         industry_df = pd.DataFrame(industry_list, columns=industry_rs.fields)
 
-                        # 去掉行业编码前缀（如 "I65软件和信息技术服务业" -> "软件和信息技术服务业"）
+                        #Remove industry prefixes.
                         def clean_industry_name(industry_str):
                             if not industry_str or pd.isna(industry_str):
                                 return ''
-                            # 使用正则表达式去掉前面的字母和数字编码（如 I65、C31 等）
+                            #Remove the letters and numeric codes (e. g. I65, C31, etc.) from the front using regular expressions
                             import re
                             cleaned = re.sub(r'^[A-Z]\d+', '', str(industry_str))
                             return cleaned.strip()
 
                         industry_df['industry_clean'] = industry_df['industry'].apply(clean_industry_name)
 
-                        # 创建行业映射字典 {code: industry_clean}
+                        #Create industry map dictionary   FMT 0   
                         industry_map = dict(zip(industry_df['code'], industry_df['industry_clean']))
-                        # 将行业信息合并到主DataFrame
+                        #Merge industry information with main DataFrame
                         df['industry'] = df['code'].map(industry_map).fillna('')
                         logger.info(f"BaoStock: Successfully mapped industry info for {len(industry_map)} stocks")
                     else:
@@ -105,13 +105,12 @@ class BaoStockAdapter(DataSourceAdapter):
             return None
 
     def get_daily_basic(self, trade_date: str, max_stocks: int = None) -> Optional[pd.DataFrame]:
-        """
-        获取每日基础数据（包含PE、PB、总市值等）
+        """Access to daily basic data (including PE, PB, total market value, etc.)
 
-        Args:
-            trade_date: 交易日期 (YYYYMMDD)
-            max_stocks: 最大处理股票数量，None表示处理所有股票
-        """
+Args:
+trade date: transaction date (YYYYMMDD)
+Max stocks: Max. Number of processed equities.
+"""
         if not self.is_available():
             return None
         try:
@@ -135,7 +134,7 @@ class BaoStockAdapter(DataSourceAdapter):
                     return None
 
                 total_stocks = len([s for s in stock_list if len(s) > 5 and s[4] == '1' and s[5] == '1'])
-                logger.info(f"📊 BaoStock: 找到 {total_stocks} 只活跃股票，开始处理{'全部' if max_stocks is None else f'前 {max_stocks} 只'}...")
+                logger.info(f"BaoStock:{total_stocks}Only active stocks. Start processing.{'All' if max_stocks is None else f'Front{max_stocks}Only'}...")
 
                 basic_data = []
                 processed_count = 0
@@ -150,7 +149,7 @@ class BaoStockAdapter(DataSourceAdapter):
                     if stock_type == '1' and status == '1':
                         try:
                             formatted_date = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:8]}"
-                            # 🔥 获取估值数据和总股本
+                            #🔥 Access to valuation data and gross equity
                             rs_valuation = bs.query_history_k_data_plus(
                                 code,
                                 "date,code,close,peTTM,pbMRQ,psTTM,pcfNcfTTM,isST",
@@ -173,29 +172,29 @@ class BaoStockAdapter(DataSourceAdapter):
                                     pcf_ttm = self._safe_float(row[6]) if len(row) > 6 else None
                                     close_price = self._safe_float(row[2]) if len(row) > 2 else None
 
-                                    # 🔥 BaoStock 不直接提供总市值和总股本
-                                    # 为了避免同步超时，这里不调用额外的 API 获取总股本
-                                    # total_mv 留空，后续可以通过其他数据源补充
+                                    #BaoStock does not directly provide total market value and gross equity
+                                    #In order to avoid synchronized overtime, no additional API is called here for total equity.
+                                    #total mv left blank, followed by additional data sources
                                     total_mv = None
 
                                     basic_data.append({
                                         'ts_code': ts_code,
                                         'trade_date': trade_date,
                                         'name': name,
-                                        'pe': pe_ttm,  # 🔥 市盈率（TTM）
-                                        'pb': pb_mrq,  # 🔥 市净率（MRQ）
-                                        'ps': ps_ttm,  # 市销率
-                                        'pcf': pcf_ttm,  # 市现率
+                                        'pe': pe_ttm,  #Profits (TTM)
+                                        'pb': pb_mrq,  #Net ratio (MRQ)
+                                        'ps': ps_ttm,  #Marketing rate
+                                        'pcf': pcf_ttm,  #Current rate
                                         'close': close_price,
-                                        'total_mv': total_mv,  # ⚠️ BaoStock 不提供，留空
-                                        'turnover_rate': None,  # ⚠️ BaoStock 不提供
+                                        'total_mv': total_mv,  #BaoStock is not available.
+                                        'turnover_rate': None,  #BaoStock not available
                                     })
                                     processed_count += 1
 
-                                    # 🔥 每处理50只股票输出一次进度日志
+                                    #🔥For every 50 stocks processed to export progress log
                                     if processed_count % 50 == 0:
                                         progress_pct = (processed_count / total_stocks) * 100
-                                        logger.info(f"📈 BaoStock 同步进度: {processed_count}/{total_stocks} ({progress_pct:.1f}%) - 最新: {name}({ts_code})")
+                                        logger.info(f"BaoStock Sync Progress:{processed_count}/{total_stocks} ({progress_pct:.1f}Other Organiser{name}({ts_code})")
                                 else:
                                     failed_count += 1
                             else:
@@ -203,15 +202,15 @@ class BaoStockAdapter(DataSourceAdapter):
                         except Exception as e:
                             failed_count += 1
                             if failed_count % 50 == 0:
-                                logger.warning(f"⚠️ BaoStock: 已有 {failed_count} 只股票获取失败")
+                                logger.warning(f"BaoStock:{failed_count}Only stock acquisition failed")
                             logger.debug(f"BaoStock: Failed to get valuation for {code}: {e}")
                             continue
                 if basic_data:
                     df = pd.DataFrame(basic_data)
-                    logger.info(f"✅ BaoStock 同步完成: 成功 {len(df)} 只，失败 {failed_count} 只，日期 {trade_date}")
+                    logger.info(f"== sync, corrected by elderman =={len(df)}Only, failure.{failed_count}Date only{trade_date}")
                     return df
                 else:
-                    logger.warning(f"⚠️ BaoStock: 未获取到任何估值数据（失败 {failed_count} 只）")
+                    logger.warning(f"BaoStock: No valuation data obtained (failed){failed_count}Only)")
                     return None
             finally:
                 bs.logout()

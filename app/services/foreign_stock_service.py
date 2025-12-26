@@ -1,8 +1,7 @@
-"""
-港股和美股数据服务
-🔥 复用统一数据源管理器（UnifiedStockService）
-🔥 按照数据库配置的数据源优先级调用API
-🔥 请求去重机制：防止并发请求重复调用API
+"""Port and United States data services
+RenewedStockService
+🔥 Call API according to the data source priorities configured in the database
+Request for removal of mechanism: prevent simultaneous calls to API
 """
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime, timedelta
@@ -12,68 +11,67 @@ import re
 import asyncio
 from collections import defaultdict
 
-# 复用现有缓存系统
+#Reuse existing cache system
 from tradingagents.dataflows.cache import get_cache
 
-# 复用现有数据源提供者
+#Reuse provider of existing data sources
 from tradingagents.dataflows.providers.hk.hk_stock import HKStockProvider
 
 logger = logging.getLogger(__name__)
 
 
 class ForeignStockService:
-    """港股和美股数据服务（复用统一数据源管理器，按数据库优先级调用）"""
+    """Port and U.S. data services (re-use unified data source manager, dialed to database priorities)"""
 
-    # 缓存时间配置（秒）
+    #Cache Time Configuration (sec)
     CACHE_TTL = {
         "HK": {
-            "quote": 600,        # 10分钟（实时行情）
-            "info": 86400,       # 1天（基础信息）
-            "kline": 7200,       # 2小时（K线数据）
+            "quote": 600,        #10 minutes (real time)
+            "info": 86400,       #1 day (basic information)
+            "kline": 7200,       #2 hours (K-line data)
         },
         "US": {
-            "quote": 600,        # 10分钟
-            "info": 86400,       # 1天
-            "kline": 7200,       # 2小时
+            "quote": 600,        #Ten minutes.
+            "info": 86400,       #1 day
+            "kline": 7200,       #Two hours.
         }
     }
 
     def __init__(self, db=None):
-        # 使用统一缓存系统（自动选择 MongoDB/Redis/File）
+        #Use unified cache system (auto-selection MongoDB/Redis/File)
         self.cache = get_cache()
 
-        # 初始化港股数据源提供者
+        #Source of data for initialized port units
         self.hk_provider = HKStockProvider()
 
-        # 保存数据库连接（用于查询数据源优先级）
+        #Save database connection (for querying data source priorities)
         self.db = db
 
-        # 🔥 请求去重：为每个 (market, code, data_type) 创建独立的锁
+        #Request weight: Create a separate lock for each (market, code, data type)
         self._request_locks = defaultdict(asyncio.Lock)
 
-        # 🔥 正在进行的请求缓存（用于共享结果）
+        #Ongoing request cache (for sharing of results)
         self._pending_requests = {}
 
-        logger.info("✅ ForeignStockService 初始化完成（已启用请求去重）")
+        logger.info("InitialStockService has been initialised (enabled to remove request)")
     
     async def get_quote(self, market: str, code: str, force_refresh: bool = False) -> Dict:
-        """
-        获取实时行情
-        
-        Args:
-            market: 市场类型 (HK/US)
-            code: 股票代码
-            force_refresh: 是否强制刷新（跳过缓存）
-        
-        Returns:
-            实时行情数据
-        
-        流程：
-        1. 检查是否强制刷新
-        2. 从缓存获取（Redis → MongoDB → File）
-        3. 缓存未命中 → 调用数据源API（按优先级）
-        4. 保存到缓存
-        """
+        """Get Real Time Lines
+
+Args:
+market: Market type (HK/US)
+code: stock code
+source refresh: whether to force refresh (jump cache)
+
+Returns:
+Real-time line data
+
+Process:
+1. Check for compulsory refreshing
+2. Access from cache (Redis → MongoDB → File)
+3. Cache outstanding data source API (priority)
+4. Save to cache
+"""
         if market == 'HK':
             return await self._get_hk_quote(code, force_refresh)
         elif market == 'US':
@@ -82,17 +80,16 @@ class ForeignStockService:
             raise ValueError(f"不支持的市场类型: {market}")
     
     async def get_basic_info(self, market: str, code: str, force_refresh: bool = False) -> Dict:
-        """
-        获取基础信息
-        
-        Args:
-            market: 市场类型 (HK/US)
-            code: 股票代码
-            force_refresh: 是否强制刷新
-        
-        Returns:
-            基础信息数据
-        """
+        """Access to basic information
+
+Args:
+market: Market type (HK/US)
+code: stock code
+source refresh: whether to forcibly refresh
+
+Returns:
+Basic information data
+"""
         if market == 'HK':
             return await self._get_hk_info(code, force_refresh)
         elif market == 'US':
@@ -102,19 +99,18 @@ class ForeignStockService:
     
     async def get_kline(self, market: str, code: str, period: str = 'day', 
                        limit: int = 120, force_refresh: bool = False) -> List[Dict]:
-        """
-        获取K线数据
-        
-        Args:
-            market: 市场类型 (HK/US)
-            code: 股票代码
-            period: 周期 (day/week/month)
-            limit: 数据条数
-            force_refresh: 是否强制刷新
-        
-        Returns:
-            K线数据列表
-        """
+        """Get K-line data
+
+Args:
+market: Market type (HK/US)
+code: stock code
+period: Cycle (day/week/month)
+number of data bars
+source refresh: whether to forcibly refresh
+
+Returns:
+K-line Data List
+"""
         if market == 'HK':
             return await self._get_hk_kline(code, period, limit, force_refresh)
         elif market == 'US':
@@ -123,12 +119,11 @@ class ForeignStockService:
             raise ValueError(f"不支持的市场类型: {market}")
     
     async def _get_hk_quote(self, code: str, force_refresh: bool = False) -> Dict:
-        """
-        获取港股实时行情（带请求去重）
-        🔥 按照数据库配置的数据源优先级调用API
-        🔥 防止并发请求重复调用API
-        """
-        # 1. 检查缓存（除非强制刷新）
+        """Access to real-time accommodation (with heavy requests)
+ Call API according to the data source priorities configured in the database
+To prevent simultaneous calls to API
+"""
+        #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
                 symbol=code,
@@ -138,16 +133,16 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ 从缓存获取港股行情: {code}")
+                    logger.info(f"Get Port Stock from Cache:{code}")
                     return self._parse_cached_data(cached_data, 'HK', code)
 
-        # 2. 🔥 请求去重：使用锁确保同一股票同时只有一个API调用
+        #2. Requests for weight: use the lock to ensure that only one API is called at the same time
         request_key = f"HK_quote_{code}_{force_refresh}"
         lock = self._request_locks[request_key]
 
         async with lock:
-            # 🔥 再次检查缓存（可能在等待锁的过程中，其他请求已经完成并缓存了数据）
-            # 即使 force_refresh=True，也要检查是否有其他并发请求刚刚完成
+            #Check the cache again (probably other requests were completed and data cached while waiting for lock)
+            #Even if force refresh=True, check if any other simultaneous requests have just been completed
             cache_key = self.cache.find_cached_stock_data(
                 symbol=code,
                 data_source="hk_realtime_quote"
@@ -155,92 +150,91 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    # 检查缓存时间，如果是最近1秒内的，说明是并发请求刚刚缓存的
+                    #Check the cache time, if it's within the last second, indicating that the request has just been cached
                     try:
                         data_dict = json.loads(cached_data) if isinstance(cached_data, str) else cached_data
                         updated_at = data_dict.get('updated_at', '')
                         if updated_at:
                             cache_time = datetime.fromisoformat(updated_at)
                             time_diff = (datetime.now() - cache_time).total_seconds()
-                            if time_diff < 1:  # 1秒内的缓存，说明是并发请求刚刚完成的
-                                logger.info(f"⚡ [去重] 使用并发请求的结果: {code} (缓存时间: {time_diff:.2f}秒前)")
+                            if time_diff < 1:  #Cache in 1 second.
+                                logger.info(f"Use and request results:{code}(Cache time:{time_diff:.2f}Seconds ago)")
                                 return self._parse_cached_data(cached_data, 'HK', code)
                     except Exception as e:
-                        logger.debug(f"检查缓存时间失败: {e}")
+                        logger.debug(f"Can not open message{e}")
 
-                    # 如果不是强制刷新，使用缓存
+                    #Use cache if not mandatory
                     if not force_refresh:
-                        logger.info(f"⚡ [去重后] 从缓存获取港股行情: {code}")
+                        logger.info(f"[moJI 0] [Drives] Get Hong Kong stock from the cache:{code}")
                         return self._parse_cached_data(cached_data, 'HK', code)
 
-            logger.info(f"🔄 开始获取港股行情: {code} (force_refresh={force_refresh})")
+            logger.info(f"Here we go.{code} (force_refresh={force_refresh})")
 
-            # 3. 从数据库获取数据源优先级（使用统一方法）
+            #3. Data source priorities from databases (using harmonized methods)
             source_priority = await self._get_source_priority('HK')
 
-            # 4. 按优先级尝试各个数据源
+            #4. Piloting data sources in priority terms
             quote_data = None
             data_source = None
 
-            # 数据源名称映射（数据库名称 → 处理函数）
-            # 🔥 只有这些是有效的数据源名称
+            #Data source name map (database name processing function)
+            #Only these are valid data source names.
             source_handlers = {
                 'yahoo_finance': ('yfinance', self._get_hk_quote_from_yfinance),
                 'akshare': ('akshare', self._get_hk_quote_from_akshare),
             }
 
-            # 过滤有效数据源并去重
+            #Filter Effective Data Sources and Heavy
             valid_priority = []
             seen = set()
             for source_name in source_priority:
                 source_key = source_name.lower()
-                # 只保留有效的数据源
+                #Keep only valid data sources
                 if source_key in source_handlers and source_key not in seen:
                     seen.add(source_key)
                     valid_priority.append(source_name)
 
             if not valid_priority:
-                logger.warning(f"⚠️ 数据库中没有配置有效的港股数据源，使用默认顺序")
+                logger.warning(f"⚠️ database does not have a valid port stock data source, using default order")
                 valid_priority = ['yahoo_finance', 'akshare']
 
-            logger.info(f"📊 [HK有效数据源] {valid_priority} (股票: {code})")
+            logger.info(f"[HK active data source]{valid_priority}(Equities:{code})")
 
             for source_name in valid_priority:
                 source_key = source_name.lower()
                 handler_name, handler_func = source_handlers[source_key]
                 try:
-                    # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                    #Use asyncio.to thread to avoid blocking event cycles
                     quote_data = await asyncio.to_thread(handler_func, code)
                     data_source = handler_name
 
                     if quote_data:
-                        logger.info(f"✅ {data_source}获取港股行情成功: {code}")
+                        logger.info(f"✅ {data_source}Successful access to Hong Kong stock:{code}")
                         break
                 except Exception as e:
-                    logger.warning(f"⚠️ {source_name}获取失败 ({code}): {e}")
+                    logger.warning(f"⚠️ {source_name}Failed to get (%1){code}): {e}")
                     continue
 
             if not quote_data:
                 raise Exception(f"无法获取港股{code}的行情数据：所有数据源均失败")
 
-            # 5. 格式化数据
+            #Formatting data
             formatted_data = self._format_hk_quote(quote_data, code, data_source)
 
-            # 6. 保存到缓存
+            #Save to cache
             self.cache.save_stock_data(
                 symbol=code,
                 data=json.dumps(formatted_data, ensure_ascii=False),
                 data_source="hk_realtime_quote"
             )
-            logger.info(f"💾 港股行情已缓存: {code}")
+            logger.info(f"The Hong Kong stock position has been compromised:{code}")
 
             return formatted_data
 
     async def _get_source_priority(self, market: str) -> List[str]:
-        """
-        从数据库获取数据源优先级（统一方法）
-        🔥 复用 UnifiedStockService 的实现
-        """
+        """Data source priorities from databases (harmonized methodology)
+Re-enactment of Unified StockService
+"""
         market_category_map = {
             "CN": "a_shares",
             "HK": "hk_stocks",
@@ -250,7 +244,7 @@ class ForeignStockService:
         market_category_id = market_category_map.get(market)
 
         try:
-            # 从 datasource_groupings 集合查询
+            #Query from data groupings
             groupings = await self.db.datasource_groupings.find({
                 "market_category_id": market_category_id,
                 "enabled": True
@@ -258,48 +252,47 @@ class ForeignStockService:
 
             if groupings:
                 priority_list = [g["data_source_name"] for g in groupings]
-                logger.info(f"📊 [{market}数据源优先级] 从数据库读取: {priority_list}")
+                logger.info(f"📊 [{market}Data source priority] Read from database:{priority_list}")
                 return priority_list
         except Exception as e:
-            logger.warning(f"⚠️ [{market}数据源优先级] 从数据库读取失败: {e}，使用默认顺序")
+            logger.warning(f"⚠️ [{market}Could not close temporary folder: %s{e}, using default order")
 
-        # 默认优先级
+        #Default Priority
         default_priority = {
             "CN": ["tushare", "akshare", "baostock"],
             "HK": ["yfinance", "akshare"],
             "US": ["yfinance", "alpha_vantage", "finnhub"]
         }
         priority_list = default_priority.get(market, [])
-        logger.info(f"📊 [{market}数据源优先级] 使用默认: {priority_list}")
+        logger.info(f"📊 [{market}Data source priority] With default:{priority_list}")
         return priority_list
 
     def _get_hk_quote_from_yfinance(self, code: str) -> Dict:
-        """从yfinance获取港股行情"""
+        """Get Hong Kong Stock Exchange from yfinance"""
         quote_data = self.hk_provider.get_real_time_price(code)
         if not quote_data:
             raise Exception("无数据")
         return quote_data
 
     def _get_hk_quote_from_akshare(self, code: str) -> Dict:
-        """从AKShare获取港股行情"""
+        """Collecting Hong Kong stock from Akshare"""
         from tradingagents.dataflows.providers.hk.improved_hk import get_hk_stock_info_akshare
         info = get_hk_stock_info_akshare(code)
         if not info or 'error' in info:
             raise Exception("无数据")
 
-        # 检查是否有价格数据
+        #Check for price data.
         if not info.get('price'):
             raise Exception("无价格数据")
 
         return info
     
     async def _get_us_quote(self, code: str, force_refresh: bool = False) -> Dict:
-        """
-        获取美股实时行情（带请求去重）
-        🔥 按照数据库配置的数据源优先级调用API
-        🔥 防止并发请求重复调用API
-        """
-        # 1. 检查缓存（除非强制刷新）
+        """Get U.S. stock in real time.
+ Call API according to the data source priorities configured in the database
+To prevent simultaneous calls to API
+"""
+        #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
                 symbol=code,
@@ -309,15 +302,15 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ 从缓存获取美股行情: {code}")
+                    logger.info(f"⚡to get U.S. stock from the cache:{code}")
                     return self._parse_cached_data(cached_data, 'US', code)
 
-        # 2. 🔥 请求去重：使用锁确保同一股票同时只有一个API调用
+        #2. Requests for weight: use the lock to ensure that only one API is called at the same time
         request_key = f"US_quote_{code}_{force_refresh}"
         lock = self._request_locks[request_key]
 
         async with lock:
-            # 🔥 再次检查缓存（可能在等待锁的过程中，其他请求已经完成并缓存了数据）
+            #Check the cache again (probably other requests were completed and data cached while waiting for lock)
             cache_key = self.cache.find_cached_stock_data(
                 symbol=code,
                 data_source="us_realtime_quote"
@@ -325,76 +318,76 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    # 检查缓存时间，如果是最近1秒内的，说明是并发请求刚刚缓存的
+                    #Check the cache time, if it's within the last second, indicating that the request has just been cached
                     try:
                         data_dict = json.loads(cached_data) if isinstance(cached_data, str) else cached_data
                         updated_at = data_dict.get('updated_at', '')
                         if updated_at:
                             cache_time = datetime.fromisoformat(updated_at)
                             time_diff = (datetime.now() - cache_time).total_seconds()
-                            if time_diff < 1:  # 1秒内的缓存，说明是并发请求刚刚完成的
-                                logger.info(f"⚡ [去重] 使用并发请求的结果: {code} (缓存时间: {time_diff:.2f}秒前)")
+                            if time_diff < 1:  #Cache in 1 second.
+                                logger.info(f"Use and request results:{code}(Cache time:{time_diff:.2f}Seconds ago)")
                                 return self._parse_cached_data(cached_data, 'US', code)
                     except Exception as e:
-                        logger.debug(f"检查缓存时间失败: {e}")
+                        logger.debug(f"Can not open message{e}")
 
-                    # 如果不是强制刷新，使用缓存
+                    #Use cache if not mandatory
                     if not force_refresh:
-                        logger.info(f"⚡ [去重后] 从缓存获取美股行情: {code}")
+                        logger.info(f"♪ ⚡ ♪{code}")
                         return self._parse_cached_data(cached_data, 'US', code)
 
-            logger.info(f"🔄 开始获取美股行情: {code} (force_refresh={force_refresh})")
+            logger.info(f"Here we go.{code} (force_refresh={force_refresh})")
 
-            # 3. 从数据库获取数据源优先级（使用统一方法）
+            #3. Data source priorities from databases (using harmonized methods)
             source_priority = await self._get_source_priority('US')
 
-            # 4. 按优先级尝试各个数据源
+            #4. Piloting data sources in priority terms
             quote_data = None
             data_source = None
 
-            # 数据源名称映射（数据库名称 → 处理函数）
-            # 🔥 只有这些是有效的数据源名称：alpha_vantage, yahoo_finance, finnhub
+            #Data source name map (database name processing function)
+            #Only these are valid data source names: alpha vantage, yahoo finance, Finnishhub
             source_handlers = {
                 'alpha_vantage': ('alpha_vantage', self._get_us_quote_from_alpha_vantage),
                 'yahoo_finance': ('yfinance', self._get_us_quote_from_yfinance),
                 'finnhub': ('finnhub', self._get_us_quote_from_finnhub),
             }
 
-            # 过滤有效数据源并去重
+            #Filter Effective Data Sources and Heavy
             valid_priority = []
             seen = set()
             for source_name in source_priority:
                 source_key = source_name.lower()
-                # 只保留有效的数据源
+                #Keep only valid data sources
                 if source_key in source_handlers and source_key not in seen:
                     seen.add(source_key)
                     valid_priority.append(source_name)
 
             if not valid_priority:
-                logger.warning("⚠️ 数据库中没有配置有效的美股数据源，使用默认顺序")
+                logger.warning("⚠️ database does not have a valid US share data source configured, using default order")
                 valid_priority = ['yahoo_finance', 'alpha_vantage', 'finnhub']
 
-            logger.info(f"📊 [US有效数据源] {valid_priority} (股票: {code})")
+            logger.info(f"[US active data source]{valid_priority}(Equities:{code})")
 
             for source_name in valid_priority:
                 source_key = source_name.lower()
                 handler_name, handler_func = source_handlers[source_key]
                 try:
-                    # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                    #Use asyncio.to thread to avoid blocking event cycles
                     quote_data = await asyncio.to_thread(handler_func, code)
                     data_source = handler_name
 
                     if quote_data:
-                        logger.info(f"✅ {data_source}获取美股行情成功: {code}")
+                        logger.info(f"✅ {data_source}Acquiring America's Equity Success:{code}")
                         break
                 except Exception as e:
-                    logger.warning(f"⚠️ {source_name}获取失败 ({code}): {e}")
+                    logger.warning(f"⚠️ {source_name}Failed to get (%1){code}): {e}")
                     continue
 
             if not quote_data:
                 raise Exception(f"无法获取美股{code}的行情数据：所有数据源均失败")
 
-            # 5. 格式化数据
+            #Formatting data
             formatted_data = {
                 'code': code,
                 'name': quote_data.get('name', f'美股{code}'),
@@ -411,18 +404,18 @@ class ForeignStockService:
                 'updated_at': datetime.now().isoformat()
             }
 
-            # 6. 保存到缓存
+            #Save to cache
             self.cache.save_stock_data(
                 symbol=code,
                 data=json.dumps(formatted_data, ensure_ascii=False),
                 data_source="us_realtime_quote"
             )
-            logger.info(f"💾 美股行情已缓存: {code}")
+            logger.info(f"The United States share has been saved:{code}")
 
             return formatted_data
 
     def _get_us_quote_from_yfinance(self, code: str) -> Dict:
-        """从yfinance获取美股行情"""
+        """Get the American stock from yfinance."""
         import yfinance as yf
 
         ticker = yf.Ticker(code)
@@ -447,16 +440,16 @@ class ForeignStockService:
         }
 
     def _get_us_quote_from_alpha_vantage(self, code: str) -> Dict:
-        """从Alpha Vantage获取美股行情"""
+        """Get US stock from Alpha Vantage"""
         try:
             from tradingagents.dataflows.providers.us.alpha_vantage_common import get_api_key, _make_api_request
 
-            # 获取 API Key
+            #Get API Key
             api_key = get_api_key()
             if not api_key:
                 raise Exception("Alpha Vantage API Key 未配置")
 
-            # 调用 GLOBAL_QUOTE API
+            #Call GLOBAL QUOTE API
             params = {
                 "symbol": code.upper(),
             }
@@ -471,7 +464,7 @@ class ForeignStockService:
             if not quote:
                 raise Exception("无数据")
 
-            # 解析数据
+            #Parsing data
             return {
                 'symbol': quote.get('01. symbol', code),
                 'price': float(quote.get('05. price', 0)),
@@ -486,30 +479,30 @@ class ForeignStockService:
             }
 
         except Exception as e:
-            logger.error(f"❌ Alpha Vantage获取美股行情失败: {e}")
+            logger.error(f"Alpha Vantage failed to access American equity:{e}")
             raise
 
     def _get_us_quote_from_finnhub(self, code: str) -> Dict:
-        """从Finnhub获取美股行情"""
+        """Get the American stock from Finnhub."""
         try:
             import finnhub
             import os
 
-            # 获取 API Key
+            #Get API Key
             api_key = os.getenv('FINNHUB_API_KEY')
             if not api_key:
                 raise Exception("Finnhub API Key 未配置")
 
-            # 创建客户端
+            #Create Client
             client = finnhub.Client(api_key=api_key)
 
-            # 获取实时报价
+            #Get live quotes
             quote = client.quote(code.upper())
 
             if not quote or 'c' not in quote:
                 raise Exception("无数据")
 
-            # 解析数据
+            #Parsing data
             return {
                 'symbol': code.upper(),
                 'price': quote.get('c', 0),  # current price
@@ -523,15 +516,14 @@ class ForeignStockService:
             }
 
         except Exception as e:
-            logger.error(f"❌ Finnhub获取美股行情失败: {e}")
+            logger.error(f"Finnhub failed to access American equity:{e}")
             raise
     
     async def _get_hk_info(self, code: str, force_refresh: bool = False) -> Dict:
-        """
-        获取港股基础信息
-        🔥 按照数据库配置的数据源优先级调用API
-        """
-        # 1. 检查缓存（除非强制刷新）
+        """Access to basic information on port units
+ Call API according to the data source priorities configured in the database
+"""
+        #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
                 symbol=code,
@@ -541,24 +533,24 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ 从缓存获取港股基础信息: {code}")
+                    logger.info(f"⚡to obtain basic information on the port unit from the cache:{code}")
                     return self._parse_cached_data(cached_data, 'HK', code)
 
-        # 2. 从数据库获取数据源优先级
+        #2. Data source priorities from databases
         source_priority = await self._get_source_priority('HK')
 
-        # 3. 按优先级尝试各个数据源
+        #3. Piloting of data sources by priority
         info_data = None
         data_source = None
 
-        # 数据源名称映射
+        #Data Source Name Map
         source_handlers = {
             'akshare': ('akshare', self._get_hk_info_from_akshare),
             'yahoo_finance': ('yfinance', self._get_hk_info_from_yfinance),
             'finnhub': ('finnhub', self._get_hk_info_from_finnhub),
         }
 
-        # 过滤有效数据源并去重
+        #Filter Effective Data Sources and Heavy
         valid_priority = []
         seen = set()
         for source_name in source_priority:
@@ -568,49 +560,48 @@ class ForeignStockService:
                 valid_priority.append(source_name)
 
         if not valid_priority:
-            logger.warning("⚠️ 数据库中没有配置有效的港股基础信息数据源，使用默认顺序")
+            logger.warning("⚠️ database does not have a valid port unit basic information source, using default order")
             valid_priority = ['akshare', 'yahoo_finance', 'finnhub']
 
-        logger.info(f"📊 [HK基础信息有效数据源] {valid_priority}")
+        logger.info(f"[HK Basic Information Effective Data Source]{valid_priority}")
 
         for source_name in valid_priority:
             source_key = source_name.lower()
             handler_name, handler_func = source_handlers[source_key]
             try:
-                # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                #Use asyncio.to thread to avoid blocking event cycles
                 import asyncio
                 info_data = await asyncio.to_thread(handler_func, code)
                 data_source = handler_name
 
                 if info_data:
-                    logger.info(f"✅ {data_source}获取港股基础信息成功: {code}")
+                    logger.info(f"✅ {data_source}Successful access to basic information on the Port Unit:{code}")
                     break
             except Exception as e:
-                logger.warning(f"⚠️ {source_name}获取基础信息失败: {e}")
+                logger.warning(f"⚠️ {source_name}Could not close temporary folder: %s{e}")
                 continue
 
         if not info_data:
             raise Exception(f"无法获取港股{code}的基础信息：所有数据源均失败")
 
-        # 4. 格式化数据
+        #4. Formatting data
         formatted_data = self._format_hk_info(info_data, code, data_source)
 
-        # 5. 保存到缓存
+        #Save to cache
         self.cache.save_stock_data(
             symbol=code,
             data=json.dumps(formatted_data, ensure_ascii=False),
             data_source="hk_basic_info"
         )
-        logger.info(f"💾 港股基础信息已缓存: {code}")
+        logger.info(f"Basic information on the Port Unit is on hold:{code}")
 
         return formatted_data
 
     async def _get_us_info(self, code: str, force_refresh: bool = False) -> Dict:
-        """
-        获取美股基础信息
-        🔥 按照数据库配置的数据源优先级调用API
-        """
-        # 1. 检查缓存（除非强制刷新）
+        """Access to basic United States information
+ Call API according to the data source priorities configured in the database
+"""
+        #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
                 symbol=code,
@@ -620,24 +611,24 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ 从缓存获取美股基础信息: {code}")
+                    logger.info(f"⚡ for US stock base information from the cache:{code}")
                     return self._parse_cached_data(cached_data, 'US', code)
 
-        # 2. 从数据库获取数据源优先级
+        #2. Data source priorities from databases
         source_priority = await self._get_source_priority('US')
 
-        # 3. 按优先级尝试各个数据源
+        #3. Piloting of data sources by priority
         info_data = None
         data_source = None
 
-        # 数据源名称映射
+        #Data Source Name Map
         source_handlers = {
             'alpha_vantage': ('alpha_vantage', self._get_us_info_from_alpha_vantage),
             'yahoo_finance': ('yfinance', self._get_us_info_from_yfinance),
             'finnhub': ('finnhub', self._get_us_info_from_finnhub),
         }
 
-        # 过滤有效数据源并去重
+        #Filter Effective Data Sources and Heavy
         valid_priority = []
         seen = set()
         for source_name in source_priority:
@@ -647,31 +638,31 @@ class ForeignStockService:
                 valid_priority.append(source_name)
 
         if not valid_priority:
-            logger.warning("⚠️ 数据库中没有配置有效的美股数据源，使用默认顺序")
+            logger.warning("⚠️ database does not have a valid US share data source configured, using default order")
             valid_priority = ['yahoo_finance', 'alpha_vantage', 'finnhub']
 
-        logger.info(f"📊 [US基础信息有效数据源] {valid_priority}")
+        logger.info(f"[US Basic Information Effective Data Source]{valid_priority}")
 
         for source_name in valid_priority:
             source_key = source_name.lower()
             handler_name, handler_func = source_handlers[source_key]
             try:
-                # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                #Use asyncio.to thread to avoid blocking event cycles
                 import asyncio
                 info_data = await asyncio.to_thread(handler_func, code)
                 data_source = handler_name
 
                 if info_data:
-                    logger.info(f"✅ {data_source}获取美股基础信息成功: {code}")
+                    logger.info(f"✅ {data_source}Acquiring US stock base information successfully:{code}")
                     break
             except Exception as e:
-                logger.warning(f"⚠️ {source_name}获取基础信息失败: {e}")
+                logger.warning(f"⚠️ {source_name}Could not close temporary folder: %s{e}")
                 continue
 
         if not info_data:
             raise Exception(f"无法获取美股{code}的基础信息：所有数据源均失败")
 
-        # 4. 格式化数据（匹配前端期望的字段名）
+        #Formatting data (field names matching the expectations of the front end)
         market_cap = info_data.get('market_cap')
         formatted_data = {
             'code': code,
@@ -679,17 +670,17 @@ class ForeignStockService:
             'market': 'US',
             'industry': info_data.get('industry'),
             'sector': info_data.get('sector'),
-            # 前端期望 total_mv（单位：亿元）
+            #Front-end expectation total mv (in billions of yuan)
             'total_mv': market_cap / 1e8 if market_cap else None,
-            # 前端期望 pe_ttm 或 pe
+            #Front-end expectation
             'pe_ttm': info_data.get('pe_ratio'),
             'pe': info_data.get('pe_ratio'),
-            # 前端期望 pb
+            #Front-end expectation pb
             'pb': info_data.get('pb_ratio'),
-            # 前端期望 ps（暂无数据）
+            #Front-end expectation ps (data not available)
             'ps': None,
             'ps_ttm': None,
-            # 前端期望 roe 和 debt_ratio（暂无数据）
+            #Front-end expectations roe and debt ratio (no data available)
             'roe': None,
             'debt_ratio': None,
             'dividend_yield': info_data.get('dividend_yield'),
@@ -698,22 +689,21 @@ class ForeignStockService:
             'updated_at': datetime.now().isoformat()
         }
 
-        # 5. 保存到缓存
+        #Save to cache
         self.cache.save_stock_data(
             symbol=code,
             data=json.dumps(formatted_data, ensure_ascii=False),
             data_source="us_basic_info"
         )
-        logger.info(f"💾 美股基础信息已缓存: {code}")
+        logger.info(f"The U.S. share base information is cached:{code}")
 
         return formatted_data
 
     async def _get_hk_kline(self, code: str, period: str, limit: int, force_refresh: bool = False) -> List[Dict]:
-        """
-        获取港股K线数据
-        🔥 按照数据库配置的数据源优先级调用API
-        """
-        # 1. 检查缓存（除非强制刷新）
+        """Access to K-line data
+ Call API according to the data source priorities configured in the database
+"""
+        #1. Check the cache (unless mandatory updating)
         cache_key_str = f"hk_kline_{period}_{limit}"
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
@@ -724,24 +714,24 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ 从缓存获取港股K线: {code}")
+                    logger.info(f"From the cache.{code}")
                     return self._parse_cached_kline(cached_data)
 
-        # 2. 从数据库获取数据源优先级
+        #2. Data source priorities from databases
         source_priority = await self._get_source_priority('HK')
 
-        # 3. 按优先级尝试各个数据源
+        #3. Piloting of data sources by priority
         kline_data = None
         data_source = None
 
-        # 数据源名称映射
+        #Data Source Name Map
         source_handlers = {
             'akshare': ('akshare', self._get_hk_kline_from_akshare),
             'yahoo_finance': ('yfinance', self._get_hk_kline_from_yfinance),
             'finnhub': ('finnhub', self._get_hk_kline_from_finnhub),
         }
 
-        # 过滤有效数据源并去重
+        #Filter Effective Data Sources and Heavy
         valid_priority = []
         seen = set()
         for source_name in source_priority:
@@ -751,46 +741,45 @@ class ForeignStockService:
                 valid_priority.append(source_name)
 
         if not valid_priority:
-            logger.warning("⚠️ 数据库中没有配置有效的港股K线数据源，使用默认顺序")
+            logger.warning("⚠️ database does not contain a valid K-line source, using default order")
             valid_priority = ['akshare', 'yahoo_finance', 'finnhub']
 
-        logger.info(f"📊 [HK K线有效数据源] {valid_priority}")
+        logger.info(f"[HK K-line active data source]{valid_priority}")
 
         for source_name in valid_priority:
             source_key = source_name.lower()
             handler_name, handler_func = source_handlers[source_key]
             try:
-                # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                #Use asyncio.to thread to avoid blocking event cycles
                 import asyncio
                 kline_data = await asyncio.to_thread(handler_func, code, period, limit)
                 data_source = handler_name
 
                 if kline_data:
-                    logger.info(f"✅ {data_source}获取港股K线成功: {code}")
+                    logger.info(f"✅ {data_source}K-line success:{code}")
                     break
             except Exception as e:
-                logger.warning(f"⚠️ {source_name}获取K线失败: {e}")
+                logger.warning(f"⚠️ {source_name}Could not close temporary folder: %s{e}")
                 continue
 
         if not kline_data:
             raise Exception(f"无法获取港股{code}的K线数据：所有数据源均失败")
 
-        # 4. 保存到缓存
+        #4. Save to cache
         self.cache.save_stock_data(
             symbol=code,
             data=json.dumps(kline_data, ensure_ascii=False),
             data_source=cache_key_str
         )
-        logger.info(f"💾 港股K线已缓存: {code}")
+        logger.info(f"Port K-line has been cached:{code}")
 
         return kline_data
 
     async def _get_us_kline(self, code: str, period: str, limit: int, force_refresh: bool = False) -> List[Dict]:
-        """
-        获取美股K线数据
-        🔥 按照数据库配置的数据源优先级调用API
-        """
-        # 1. 检查缓存（除非强制刷新）
+        """Get the K-line data.
+ Call API according to the data source priorities configured in the database
+"""
+        #1. Check the cache (unless mandatory updating)
         cache_key_str = f"us_kline_{period}_{limit}"
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
@@ -801,24 +790,24 @@ class ForeignStockService:
             if cache_key:
                 cached_data = self.cache.load_stock_data(cache_key)
                 if cached_data:
-                    logger.info(f"⚡ 从缓存获取美股K线: {code}")
+                    logger.info(f"From the cache.{code}")
                     return self._parse_cached_kline(cached_data)
 
-        # 2. 从数据库获取数据源优先级
+        #2. Data source priorities from databases
         source_priority = await self._get_source_priority('US')
 
-        # 3. 按优先级尝试各个数据源
+        #3. Piloting of data sources by priority
         kline_data = None
         data_source = None
 
-        # 数据源名称映射
+        #Data Source Name Map
         source_handlers = {
             'alpha_vantage': ('alpha_vantage', self._get_us_kline_from_alpha_vantage),
             'yahoo_finance': ('yfinance', self._get_us_kline_from_yfinance),
             'finnhub': ('finnhub', self._get_us_kline_from_finnhub),
         }
 
-        # 过滤有效数据源并去重
+        #Filter Effective Data Sources and Heavy
         valid_priority = []
         seen = set()
         for source_name in source_priority:
@@ -828,42 +817,42 @@ class ForeignStockService:
                 valid_priority.append(source_name)
 
         if not valid_priority:
-            logger.warning("⚠️ 数据库中没有配置有效的美股数据源，使用默认顺序")
+            logger.warning("⚠️ database does not have a valid US share data source configured, using default order")
             valid_priority = ['yahoo_finance', 'alpha_vantage', 'finnhub']
 
-        logger.info(f"📊 [US K线有效数据源] {valid_priority}")
+        logger.info(f"[US K-line active data source]{valid_priority}")
 
         for source_name in valid_priority:
             source_key = source_name.lower()
             handler_name, handler_func = source_handlers[source_key]
             try:
-                # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                #Use asyncio.to thread to avoid blocking event cycles
                 import asyncio
                 kline_data = await asyncio.to_thread(handler_func, code, period, limit)
                 data_source = handler_name
 
                 if kline_data:
-                    logger.info(f"✅ {data_source}获取美股K线成功: {code}")
+                    logger.info(f"✅ {data_source}Acquiring K-line success:{code}")
                     break
             except Exception as e:
-                logger.warning(f"⚠️ {source_name}获取K线失败: {e}")
+                logger.warning(f"⚠️ {source_name}Could not close temporary folder: %s{e}")
                 continue
 
         if not kline_data:
             raise Exception(f"无法获取美股{code}的K线数据：所有数据源均失败")
 
-        # 4. 保存到缓存
+        #4. Save to cache
         self.cache.save_stock_data(
             symbol=code,
             data=json.dumps(kline_data, ensure_ascii=False),
             data_source=cache_key_str
         )
-        logger.info(f"💾 美股K线已缓存: {code}")
+        logger.info(f"The United States share line has clogged:{code}")
 
         return kline_data
     
     def _format_hk_quote(self, data: Dict, code: str, source: str) -> Dict:
-        """格式化港股行情数据"""
+        """Format Hong Kong Stockline Data"""
         return {
             'code': code,
             'name': data.get('name', f'港股{code}'),
@@ -880,7 +869,7 @@ class ForeignStockService:
         }
 
     def _format_hk_info(self, data: Dict, code: str, source: str) -> Dict:
-        """格式化港股基础信息"""
+        """Formatting Basic Information for the Port Unit"""
         market_cap = data.get('market_cap')
         return {
             'code': code,
@@ -888,17 +877,17 @@ class ForeignStockService:
             'market': 'HK',
             'industry': data.get('industry'),
             'sector': data.get('sector'),
-            # 前端期望 total_mv（单位：亿元）
+            #Front-end expectation total mv (in billions of yuan)
             'total_mv': market_cap / 1e8 if market_cap else None,
-            # 前端期望 pe_ttm 或 pe
+            #Front-end expectation
             'pe_ttm': data.get('pe_ratio'),
             'pe': data.get('pe_ratio'),
-            # 前端期望 pb
+            #Front-end expectation pb
             'pb': data.get('pb_ratio'),
-            # 前端期望 ps
+            #Front-end Expectations ps
             'ps': data.get('ps_ratio'),
             'ps_ttm': data.get('ps_ratio'),
-            # 🔥 从财务指标中获取 roe 和 debt_ratio
+            #Get roe and debt ratio from the financial indicators
             'roe': data.get('roe'),
             'debt_ratio': data.get('debt_ratio'),
             'dividend_yield': data.get('dividend_yield'),
@@ -908,15 +897,15 @@ class ForeignStockService:
         }
 
     def _parse_cached_data(self, cached_data: str, market: str, code: str) -> Dict:
-        """解析缓存的数据"""
+        """Parsing Cache Data"""
         try:
-            # 尝试解析JSON
+            #Try to parse JSON
             if isinstance(cached_data, str):
                 data = json.loads(cached_data)
             else:
                 data = cached_data
 
-            # 确保包含必要字段
+            #Ensure that necessary fields are included
             if isinstance(data, dict):
                 data['market'] = market
                 data['code'] = code
@@ -924,31 +913,31 @@ class ForeignStockService:
             else:
                 raise ValueError("缓存数据格式错误")
         except Exception as e:
-            logger.warning(f"⚠️ 解析缓存数据失败: {e}")
-            # 返回空数据，触发重新获取
+            logger.warning(f"Could not close temporary folder: %s{e}")
+            #Return empty data, trigger recovery
             return None
 
     def _parse_cached_kline(self, cached_data: str) -> List[Dict]:
-        """解析缓存的K线数据"""
+        """Parsing cached Kline data"""
         try:
-            # 尝试解析JSON
+            #Try to parse JSON
             if isinstance(cached_data, str):
                 data = json.loads(cached_data)
             else:
                 data = cached_data
 
-            # 确保是列表
+            #Make sure it's a list.
             if isinstance(data, list):
                 return data
             else:
                 raise ValueError("缓存K线数据格式错误")
         except Exception as e:
-            logger.warning(f"⚠️ 解析缓存K线数据失败: {e}")
-            # 返回空列表，触发重新获取
+            logger.warning(f"Could not close temporary folder: %s{e}")
+            #Return empty list, trigger retrieving
             return []
 
     def _get_us_info_from_yfinance(self, code: str) -> Dict:
-        """从yfinance获取美股基础信息"""
+        """Basic information on American stock from yfinance"""
         import yfinance as yf
 
         ticker = yf.Ticker(code)
@@ -969,7 +958,7 @@ class ForeignStockService:
         }
 
     def _safe_float(self, value, default=None):
-        """安全地转换为浮点数，处理 'None' 字符串和空值"""
+        """Safely convert to floating point numbers, processing the 'None ' string and empty values"""
         if value is None or value == '' or value == 'None' or value == 'N/A':
             return default
         try:
@@ -978,15 +967,15 @@ class ForeignStockService:
             return default
 
     def _get_us_info_from_alpha_vantage(self, code: str) -> Dict:
-        """从Alpha Vantage获取美股基础信息"""
+        """Access to US stock base information from Alpha Vantage"""
         from tradingagents.dataflows.providers.us.alpha_vantage_common import get_api_key, _make_api_request
 
-        # 获取 API Key
+        #Get API Key
         api_key = get_api_key()
         if not api_key:
             raise Exception("Alpha Vantage API Key 未配置")
 
-        # 调用 OVERVIEW API
+        #Call overVIEW API
         params = {"symbol": code.upper()}
         data = _make_api_request("OVERVIEW", params)
 
@@ -1005,19 +994,19 @@ class ForeignStockService:
         }
 
     def _get_us_info_from_finnhub(self, code: str) -> Dict:
-        """从Finnhub获取美股基础信息"""
+        """Get U.S. stock base information from Finnhub"""
         import finnhub
         import os
 
-        # 获取 API Key
+        #Get API Key
         api_key = os.getenv('FINNHUB_API_KEY')
         if not api_key:
             raise Exception("Finnhub API Key 未配置")
 
-        # 创建客户端
+        #Create Client
         client = finnhub.Client(api_key=api_key)
 
-        # 获取公司信息
+        #Access to corporate information
         profile = client.company_profile2(symbol=code.upper())
 
         if not profile:
@@ -1026,21 +1015,21 @@ class ForeignStockService:
         return {
             'name': profile.get('name'),
             'industry': profile.get('finnhubIndustry'),
-            'sector': None,  # Finnhub 不提供 sector
-            'market_cap': profile.get('marketCapitalization') * 1000000 if profile.get('marketCapitalization') else None,  # 转换为美元
-            'pe_ratio': None,  # Finnhub profile 不直接提供 PE
-            'pb_ratio': None,  # Finnhub profile 不直接提供 PB
-            'dividend_yield': None,  # Finnhub profile 不直接提供股息率
+            'sector': None,  #Finnhub does not provide secor
+            'market_cap': profile.get('marketCapitalization') * 1000000 if profile.get('marketCapitalization') else None,  #Convert to United States dollars
+            'pe_ratio': None,  #Finnhub profile does not provide PE directly
+            'pb_ratio': None,  #Finnhub profile does not directly provide PB
+            'dividend_yield': None,  #Finnhub program does not directly provide dividends
             'currency': profile.get('currency', 'USD'),
         }
 
     def _get_us_kline_from_yfinance(self, code: str, period: str, limit: int) -> List[Dict]:
-        """从yfinance获取美股K线数据"""
+        """Get K-line data from yfinance"""
         import yfinance as yf
 
         ticker = yf.Ticker(code)
 
-        # 周期映射
+        #Periodic Map
         period_map = {
             'day': '1d',
             'week': '1wk',
@@ -1057,13 +1046,13 @@ class ForeignStockService:
         if hist.empty:
             raise Exception("无数据")
 
-        # 格式化数据
+        #Formatting Data
         kline_data = []
         for date, row in hist.iterrows():
             date_str = date.strftime('%Y-%m-%d')
             kline_data.append({
                 'date': date_str,
-                'trade_date': date_str,  # 前端需要这个字段
+                'trade_date': date_str,  #The front side needs this field
                 'open': float(row['Open']),
                 'high': float(row['High']),
                 'low': float(row['Low']),
@@ -1074,16 +1063,16 @@ class ForeignStockService:
         return kline_data
 
     def _get_us_kline_from_alpha_vantage(self, code: str, period: str, limit: int) -> List[Dict]:
-        """从Alpha Vantage获取美股K线数据"""
+        """Get K-line data from Alpha Vantage"""
         from tradingagents.dataflows.providers.us.alpha_vantage_common import get_api_key, _make_api_request
         import pandas as pd
 
-        # 获取 API Key
+        #Get API Key
         api_key = get_api_key()
         if not api_key:
             raise Exception("Alpha Vantage API Key 未配置")
 
-        # 根据周期选择API函数
+        #Select API function according to cycle
         if period in ['5m', '15m', '30m', '60m']:
             function = "TIME_SERIES_INTRADAY"
             params = {
@@ -1107,21 +1096,21 @@ class ForeignStockService:
 
         time_series = data[time_series_key]
 
-        # 转换为 DataFrame
+        #Convert to DataFrame
         df = pd.DataFrame.from_dict(time_series, orient='index')
         df.index = pd.to_datetime(df.index)
-        df = df.sort_index(ascending=False)  # 最新的在前
+        df = df.sort_index(ascending=False)  #The latest in front.
 
-        # 限制数量
+        #Limited number
         df = df.head(limit)
 
-        # 格式化数据
+        #Formatting Data
         kline_data = []
         for date, row in df.iterrows():
             date_str = date.strftime('%Y-%m-%d')
             kline_data.append({
                 'date': date_str,
-                'trade_date': date_str,  # 前端需要这个字段
+                'trade_date': date_str,  #The front side needs this field
                 'open': float(row['1. open']),
                 'high': float(row['2. high']),
                 'low': float(row['3. low']),
@@ -1132,23 +1121,23 @@ class ForeignStockService:
         return kline_data
 
     def _get_us_kline_from_finnhub(self, code: str, period: str, limit: int) -> List[Dict]:
-        """从Finnhub获取美股K线数据"""
+        """Get K-line data from Finnhub"""
         import finnhub
         import os
         from datetime import datetime, timedelta
 
-        # 获取 API Key
+        #Get API Key
         api_key = os.getenv('FINNHUB_API_KEY')
         if not api_key:
             raise Exception("Finnhub API Key 未配置")
 
-        # 创建客户端
+        #Create Client
         client = finnhub.Client(api_key=api_key)
 
-        # 计算日期范围
+        #Calculate Date Range
         end_date = datetime.now()
 
-        # 根据周期计算开始日期
+        #Start date based on cycle
         if period == 'day':
             start_date = end_date - timedelta(days=limit)
             resolution = 'D'
@@ -1174,7 +1163,7 @@ class ForeignStockService:
             start_date = end_date - timedelta(days=limit)
             resolution = 'D'
 
-        # 获取K线数据
+        #Get K-line data
         candles = client.stock_candles(
             code.upper(),
             resolution,
@@ -1185,13 +1174,13 @@ class ForeignStockService:
         if not candles or candles.get('s') != 'ok':
             raise Exception("无数据")
 
-        # 格式化数据
+        #Formatting Data
         kline_data = []
         for i in range(len(candles['t'])):
             date_str = datetime.fromtimestamp(candles['t'][i]).strftime('%Y-%m-%d')
             kline_data.append({
                 'date': date_str,
-                'trade_date': date_str,  # 前端需要这个字段
+                'trade_date': date_str,  #The front side needs this field
                 'open': float(candles['o'][i]),
                 'high': float(candles['h'][i]),
                 'low': float(candles['l'][i]),
@@ -1202,22 +1191,21 @@ class ForeignStockService:
         return kline_data
 
     async def get_hk_news(self, code: str, days: int = 2, limit: int = 50) -> Dict:
-        """
-        获取港股新闻
+        """Access to information in the Port Unit
 
-        Args:
-            code: 股票代码
-            days: 回溯天数
-            limit: 返回数量限制
+Args:
+code: stock code
+Days: Backtrace days
+Limited number of returns
 
-        Returns:
-            包含新闻列表和数据源的字典
-        """
+Returns:
+Dictionary containing newslists and data sources
+"""
         from datetime import datetime, timedelta
 
-        logger.info(f"📰 开始获取港股新闻: {code}, days={days}, limit={limit}")
+        logger.info(f"We're starting to get information from the Port Unit:{code}, days={days}, limit={limit}")
 
-        # 1. 尝试从缓存获取
+        #1. Attempt to obtain from the cache
         cache_key_str = f"hk_news_{days}_{limit}"
         cache_key = self.cache.find_cached_stock_data(
             symbol=code,
@@ -1227,23 +1215,23 @@ class ForeignStockService:
         if cache_key:
             cached_data = self.cache.load_stock_data(cache_key)
             if cached_data:
-                logger.info(f"⚡ 从缓存获取港股新闻: {code}")
+                logger.info(f"From the cache to the Port Unit News:{code}")
                 return json.loads(cached_data)
 
-        # 2. 从数据库获取数据源优先级
+        #2. Data source priorities from databases
         source_priority = await self._get_source_priority('HK')
 
-        # 3. 按优先级尝试各个数据源
+        #3. Piloting of data sources by priority
         news_data = None
         data_source = None
 
-        # 数据源名称映射
+        #Data Source Name Map
         source_handlers = {
             'akshare': ('akshare', self._get_hk_news_from_akshare),
             'finnhub': ('finnhub', self._get_hk_news_from_finnhub),
         }
 
-        # 过滤有效数据源并去重
+        #Filter Effective Data Sources and Heavy
         valid_priority = []
         seen = set()
         for source_name in source_priority:
@@ -1253,33 +1241,33 @@ class ForeignStockService:
                 valid_priority.append(source_name)
 
         if not valid_priority:
-            logger.warning("⚠️ 数据库中没有配置有效的港股新闻数据源，使用默认顺序")
+            logger.warning("⚠️ database does not have a valid port information source in default order")
             valid_priority = ['akshare', 'finnhub']
 
-        logger.info(f"📊 [HK新闻有效数据源] {valid_priority}")
+        logger.info(f"[HK News Valid Data Source]{valid_priority}")
 
         for source_name in valid_priority:
             source_key = source_name.lower()
             handler_name, handler_func = source_handlers[source_key]
             try:
-                # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                #Use asyncio.to thread to avoid blocking event cycles
                 import asyncio
                 news_data = await asyncio.to_thread(handler_func, code, days, limit)
                 data_source = handler_name
 
                 if news_data:
-                    logger.info(f"✅ {data_source}获取港股新闻成功: {code}, 返回 {len(news_data)} 条")
+                    logger.info(f"✅ {data_source}Access to information by the Port Unit was successful:{code}Back{len(news_data)}Article")
                     break
             except Exception as e:
-                logger.warning(f"⚠️ {source_name}获取新闻失败: {e}")
+                logger.warning(f"⚠️ {source_name}Access to news failed:{e}")
                 continue
 
         if not news_data:
-            logger.warning(f"⚠️ 无法获取港股{code}的新闻数据：所有数据源均失败")
+            logger.warning(f"Port Unit not available{code}News data: all data sources failed")
             news_data = []
             data_source = 'none'
 
-        # 4. 构建返回数据
+        #4. Build return data
         result = {
             'code': code,
             'days': days,
@@ -1288,7 +1276,7 @@ class ForeignStockService:
             'items': news_data
         }
 
-        # 5. 缓存数据
+        #5. Cache data
         self.cache.save_stock_data(
             symbol=code,
             data=json.dumps(result, ensure_ascii=False),
@@ -1298,22 +1286,21 @@ class ForeignStockService:
         return result
 
     async def get_us_news(self, code: str, days: int = 2, limit: int = 50) -> Dict:
-        """
-        获取美股新闻
+        """Access to American News
 
-        Args:
-            code: 股票代码
-            days: 回溯天数
-            limit: 返回数量限制
+Args:
+code: stock code
+Days: Backtrace days
+Limited number of returns
 
-        Returns:
-            包含新闻列表和数据源的字典
-        """
+Returns:
+Dictionary containing newslists and data sources
+"""
         from datetime import datetime, timedelta
 
-        logger.info(f"📰 开始获取美股新闻: {code}, days={days}, limit={limit}")
+        logger.info(f"Here we go.{code}, days={days}, limit={limit}")
 
-        # 1. 尝试从缓存获取
+        #1. Attempt to obtain from the cache
         cache_key_str = f"us_news_{days}_{limit}"
         cache_key = self.cache.find_cached_stock_data(
             symbol=code,
@@ -1323,23 +1310,23 @@ class ForeignStockService:
         if cache_key:
             cached_data = self.cache.load_stock_data(cache_key)
             if cached_data:
-                logger.info(f"⚡ 从缓存获取美股新闻: {code}")
+                logger.info(f"From the cache to the U.S. News:{code}")
                 return json.loads(cached_data)
 
-        # 2. 从数据库获取数据源优先级
+        #2. Data source priorities from databases
         source_priority = await self._get_source_priority('US')
 
-        # 3. 按优先级尝试各个数据源
+        #3. Piloting of data sources by priority
         news_data = None
         data_source = None
 
-        # 数据源名称映射
+        #Data Source Name Map
         source_handlers = {
             'alpha_vantage': ('alpha_vantage', self._get_us_news_from_alpha_vantage),
             'finnhub': ('finnhub', self._get_us_news_from_finnhub),
         }
 
-        # 过滤有效数据源并去重
+        #Filter Effective Data Sources and Heavy
         valid_priority = []
         seen = set()
         for source_name in source_priority:
@@ -1349,33 +1336,33 @@ class ForeignStockService:
                 valid_priority.append(source_name)
 
         if not valid_priority:
-            logger.warning("⚠️ 数据库中没有配置有效的美股新闻数据源，使用默认顺序")
+            logger.warning("⚠️ database does not have a valid USE information source in default order")
             valid_priority = ['alpha_vantage', 'finnhub']
 
-        logger.info(f"📊 [US新闻有效数据源] {valid_priority}")
+        logger.info(f"[US News Effective Data Source]{valid_priority}")
 
         for source_name in valid_priority:
             source_key = source_name.lower()
             handler_name, handler_func = source_handlers[source_key]
             try:
-                # 🔥 使用 asyncio.to_thread 避免阻塞事件循环
+                #Use asyncio.to thread to avoid blocking event cycles
                 import asyncio
                 news_data = await asyncio.to_thread(handler_func, code, days, limit)
                 data_source = handler_name
 
                 if news_data:
-                    logger.info(f"✅ {data_source}获取美股新闻成功: {code}, 返回 {len(news_data)} 条")
+                    logger.info(f"✅ {data_source}This post is part of our special coverage Global Voices 2011.{code}Back{len(news_data)}Article")
                     break
             except Exception as e:
-                logger.warning(f"⚠️ {source_name}获取新闻失败: {e}")
+                logger.warning(f"⚠️ {source_name}Access to news failed:{e}")
                 continue
 
         if not news_data:
-            logger.warning(f"⚠️ 无法获取美股{code}的新闻数据：所有数据源均失败")
+            logger.warning(f"Can't get a U.S. share.{code}News data: all data sources failed")
             news_data = []
             data_source = 'none'
 
-        # 4. 构建返回数据
+        #4. Build return data
         result = {
             'code': code,
             'days': days,
@@ -1384,7 +1371,7 @@ class ForeignStockService:
             'items': news_data
         }
 
-        # 5. 缓存数据
+        #5. Cache data
         self.cache.save_stock_data(
             symbol=code,
             data=json.dumps(result, ensure_ascii=False),
@@ -1394,20 +1381,20 @@ class ForeignStockService:
         return result
 
     def _get_us_news_from_alpha_vantage(self, code: str, days: int, limit: int) -> List[Dict]:
-        """从Alpha Vantage获取美股新闻"""
+        """Get U.S. News from Alpha Vantage"""
         from tradingagents.dataflows.providers.us.alpha_vantage_common import get_api_key, _make_api_request
         from datetime import datetime, timedelta
 
-        # 获取 API Key
+        #Get API Key
         api_key = get_api_key()
         if not api_key:
             raise Exception("Alpha Vantage API Key 未配置")
 
-        # 计算时间范围
+        #Calculate the time frame
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
-        # 调用 NEWS_SENTIMENT API
+        #NEWS SENTIMENT API
         params = {
             "tickers": code.upper(),
             "time_from": start_date.strftime('%Y%m%dT%H%M'),
@@ -1421,19 +1408,19 @@ class ForeignStockService:
         if not data or 'feed' not in data:
             raise Exception("无数据")
 
-        # 格式化新闻数据
+        #Format News Data
         news_list = []
         for article in data.get('feed', [])[:limit]:
-            # 解析时间
+            #Parsing Time
             time_published = article.get('time_published', '')
             try:
-                # Alpha Vantage 时间格式: 20240101T120000
+                #Alpha Vantage Time Format: 20240101T12000
                 pub_time = datetime.strptime(time_published, '%Y%m%dT%H%M%S')
                 pub_time_str = pub_time.strftime('%Y-%m-%d %H:%M:%S')
             except:
                 pub_time_str = time_published
 
-            # 提取相关股票的情感分数
+            #Take the emotional score of the stock.
             sentiment_score = None
             sentiment_label = article.get('overall_sentiment_label', 'Neutral')
 
@@ -1457,24 +1444,24 @@ class ForeignStockService:
         return news_list
 
     def _get_us_news_from_finnhub(self, code: str, days: int, limit: int) -> List[Dict]:
-        """从Finnhub获取美股新闻"""
+        """From Finnhub to American News"""
         import finnhub
         import os
         from datetime import datetime, timedelta
 
-        # 获取 API Key
+        #Get API Key
         api_key = os.getenv('FINNHUB_API_KEY')
         if not api_key:
             raise Exception("Finnhub API Key 未配置")
 
-        # 创建客户端
+        #Create Client
         client = finnhub.Client(api_key=api_key)
 
-        # 计算时间范围
+        #Calculate the time frame
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
-        # 获取公司新闻
+        #Access to corporate news
         news = client.company_news(
             code.upper(),
             _from=start_date.strftime('%Y-%m-%d'),
@@ -1484,10 +1471,10 @@ class ForeignStockService:
         if not news:
             raise Exception("无数据")
 
-        # 格式化新闻数据
+        #Format News Data
         news_list = []
         for article in news[:limit]:
-            # 解析时间戳
+            #Parsing Timestamps
             timestamp = article.get('datetime', 0)
             pub_time = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -1497,34 +1484,34 @@ class ForeignStockService:
                 'url': article.get('url', ''),
                 'source': article.get('source', ''),
                 'publish_time': pub_time,
-                'sentiment': None,  # Finnhub 不提供情感分析
+                'sentiment': None,  #Finnhub does not provide emotional analysis.
                 'sentiment_score': None,
             })
 
         return news_list
 
     def _get_hk_news_from_finnhub(self, code: str, days: int, limit: int) -> List[Dict]:
-        """从Finnhub获取港股新闻"""
+        """Port Unit News from Finnhub"""
         import finnhub
         import os
         from datetime import datetime, timedelta
 
-        # 获取 API Key
+        #Get API Key
         api_key = os.getenv('FINNHUB_API_KEY')
         if not api_key:
             raise Exception("Finnhub API Key 未配置")
 
-        # 创建客户端
+        #Create Client
         client = finnhub.Client(api_key=api_key)
 
-        # 计算时间范围
+        #Calculate the time frame
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
-        # 港股代码需要添加 .HK 后缀
+        #Port stock code needs to add. HK suffix
         hk_symbol = f"{code}.HK" if not code.endswith('.HK') else code
 
-        # 获取公司新闻
+        #Access to corporate news
         news = client.company_news(
             hk_symbol,
             _from=start_date.strftime('%Y-%m-%d'),
@@ -1534,10 +1521,10 @@ class ForeignStockService:
         if not news:
             raise Exception("无数据")
 
-        # 格式化新闻数据
+        #Format News Data
         news_list = []
         for article in news[:limit]:
-            # 解析时间戳
+            #Parsing Timestamps
             timestamp = article.get('datetime', 0)
             pub_time = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -1547,73 +1534,73 @@ class ForeignStockService:
                 'url': article.get('url', ''),
                 'source': article.get('source', ''),
                 'publish_time': pub_time,
-                'sentiment': None,  # Finnhub 不提供情感分析
+                'sentiment': None,  #Finnhub does not provide emotional analysis.
                 'sentiment_score': None,
             })
 
         return news_list
 
     def _get_hk_info_from_akshare(self, code: str) -> Dict:
-        """从AKShare获取港股基础信息和财务指标"""
+        """Access to basic information and financial indicators for the Port Unit from Akshare"""
         from tradingagents.dataflows.providers.hk.improved_hk import (
             get_hk_stock_info_akshare,
             get_hk_financial_indicators
         )
 
-        # 1. 获取基础信息（包含当前价格）
+        #1. Access to basic information (including current prices)
         info = get_hk_stock_info_akshare(code)
         if not info or 'error' in info:
             raise Exception("无数据")
 
-        # 2. 获取财务指标（EPS、BPS、ROE、负债率等）
+        #2. Access to financial indicators (EPS, BPS, ROE, liability ratio, etc.)
         financial_indicators = {}
         try:
             financial_indicators = get_hk_financial_indicators(code)
-            logger.info(f"✅ 获取港股{code}财务指标成功: {list(financial_indicators.keys())}")
+            logger.info(f"Access Port Unit{code}Success in financial indicators:{list(financial_indicators.keys())}")
         except Exception as e:
-            logger.warning(f"⚠️ 获取港股{code}财务指标失败: {e}")
+            logger.warning(f"Access Port Unit{code}Financial indicators failed:{e}")
 
-        # 3. 计算 PE、PB、PS（参考分析模块的计算方式）
-        current_price = info.get('price')  # 当前价格
+        #3. Calculation of PE, PB, PS (calculation of reference analysis modules)
+        current_price = info.get('price')  #Current price
         pe_ratio = None
         pb_ratio = None
         ps_ratio = None
 
         if current_price and financial_indicators:
-            # 计算 PE = 当前价 / EPS_TTM
+            #Calculate PE = current price/ EPS TTM
             eps_ttm = financial_indicators.get('eps_ttm')
             if eps_ttm and eps_ttm > 0:
                 pe_ratio = current_price / eps_ttm
-                logger.info(f"📊 计算 PE: {current_price} / {eps_ttm} = {pe_ratio:.2f}")
+                logger.info(f"PE:{current_price} / {eps_ttm} = {pe_ratio:.2f}")
 
-            # 计算 PB = 当前价 / BPS
+            #Calculate PB = current / BPS
             bps = financial_indicators.get('bps')
             if bps and bps > 0:
                 pb_ratio = current_price / bps
-                logger.info(f"📊 计算 PB: {current_price} / {bps} = {pb_ratio:.2f}")
+                logger.info(f"♪ 📊 ♪ Calculating PB:{current_price} / {bps} = {pb_ratio:.2f}")
 
-            # 计算 PS = 市值 / 营业收入（需要市值数据，暂时无法计算）
-            # ps_ratio 暂时为 None
+            #Calculation of PS = market value / operating income (market value data required, not available for the time being)
+            #ps ratio provisionally as None
 
-        # 4. 合并数据
+        #4. Consolidation of data
         return {
             'name': info.get('name', f'港股{code}'),
-            'market_cap': None,  # AKShare 基础信息不包含市值
+            'market_cap': None,  #AKShare base information does not contain market value
             'industry': None,
             'sector': None,
-            # 🔥 计算得到的估值指标
+            #🔥 Valuable indicators calculated
             'pe_ratio': pe_ratio,
             'pb_ratio': pb_ratio,
             'ps_ratio': ps_ratio,
             'dividend_yield': None,
             'currency': 'HKD',
-            # 🔥 从财务指标中获取
-            'roe': financial_indicators.get('roe_avg'),  # 平均净资产收益率
-            'debt_ratio': financial_indicators.get('debt_asset_ratio'),  # 资产负债率
+            #🔥 from financial indicators
+            'roe': financial_indicators.get('roe_avg'),  #Average net asset return
+            'debt_ratio': financial_indicators.get('debt_asset_ratio'),  #Assets and liabilities ratio
         }
 
     def _get_hk_info_from_yfinance(self, code: str) -> Dict:
-        """从Yahoo Finance获取港股基础信息"""
+        """Basic information from Yahoo Finance"""
         import yfinance as yf
 
         ticker = yf.Ticker(f"{code}.HK")
@@ -1631,22 +1618,22 @@ class ForeignStockService:
         }
 
     def _get_hk_info_from_finnhub(self, code: str) -> Dict:
-        """从Finnhub获取港股基础信息"""
+        """Basic information from Finnhub"""
         import finnhub
         import os
 
-        # 获取 API Key
+        #Get API Key
         api_key = os.getenv('FINNHUB_API_KEY')
         if not api_key:
             raise Exception("Finnhub API Key 未配置")
 
-        # 创建客户端
+        #Create Client
         client = finnhub.Client(api_key=api_key)
 
-        # 港股代码需要添加 .HK 后缀
+        #Port stock code needs to add. HK suffix
         hk_symbol = f"{code}.HK" if not code.endswith('.HK') else code
 
-        # 获取公司基本信息
+        #Access to basic corporate information
         profile = client.company_profile2(symbol=hk_symbol)
 
         if not profile:
@@ -1654,7 +1641,7 @@ class ForeignStockService:
 
         return {
             'name': profile.get('name', f'港股{code}'),
-            'market_cap': profile.get('marketCapitalization') * 1e6 if profile.get('marketCapitalization') else None,  # Finnhub返回的是百万单位
+            'market_cap': profile.get('marketCapitalization') * 1e6 if profile.get('marketCapitalization') else None,  #Finnhub returns millions of units.
             'industry': profile.get('finnhubIndustry'),
             'sector': None,
             'pe_ratio': None,
@@ -1664,29 +1651,29 @@ class ForeignStockService:
         }
 
     def _get_hk_kline_from_akshare(self, code: str, period: str, limit: int) -> List[Dict]:
-        """从AKShare获取港股K线数据"""
+        """K-line data from Akshare"""
         import akshare as ak
         import pandas as pd
         from datetime import datetime, timedelta
         from tradingagents.dataflows.providers.hk.improved_hk import get_improved_hk_provider
 
-        # 标准化代码
+        #Standardized Code
         provider = get_improved_hk_provider()
         normalized_code = provider._normalize_hk_symbol(code)
 
-        # 直接使用 AKShare API
+        #Directly use AKShare API
         df = ak.stock_hk_daily(symbol=normalized_code, adjust="qfq")
 
         if df is None or df.empty:
             raise Exception("无数据")
 
-        # 过滤最近的数据
+        #Filter Recent Data
         df = df.tail(limit)
 
-        # 格式化数据
+        #Formatting Data
         kline_data = []
         for _, row in df.iterrows():
-            # AKShare 返回的列名：date, open, close, high, low, volume
+            #AKShare returns the list: date, open, close, high, low, volume
             date_str = row['date'].strftime('%Y-%m-%d') if hasattr(row['date'], 'strftime') else str(row['date'])
             kline_data.append({
                 'date': date_str,
@@ -1701,13 +1688,13 @@ class ForeignStockService:
         return kline_data
 
     def _get_hk_kline_from_yfinance(self, code: str, period: str, limit: int) -> List[Dict]:
-        """从Yahoo Finance获取港股K线数据"""
+        """K-line data from Yahoo Finance"""
         import yfinance as yf
         import pandas as pd
 
         ticker = yf.Ticker(f"{code}.HK")
 
-        # 周期映射
+        #Periodic Map
         period_map = {
             'day': '1d',
             'week': '1wk',
@@ -1724,7 +1711,7 @@ class ForeignStockService:
         if hist.empty:
             raise Exception("无数据")
 
-        # 格式化数据
+        #Formatting Data
         kline_data = []
         for date, row in hist.iterrows():
             date_str = date.strftime('%Y-%m-%d')
@@ -1738,26 +1725,26 @@ class ForeignStockService:
                 'volume': int(row['Volume'])
             })
 
-        return kline_data[-limit:]  # 返回最后limit条
+        return kline_data[-limit:]  #Return LastLimit
 
     def _get_hk_kline_from_finnhub(self, code: str, period: str, limit: int) -> List[Dict]:
-        """从Finnhub获取港股K线数据"""
+        """K-line data from Finnhub"""
         import finnhub
         import os
         from datetime import datetime, timedelta
 
-        # 获取 API Key
+        #Get API Key
         api_key = os.getenv('FINNHUB_API_KEY')
         if not api_key:
             raise Exception("Finnhub API Key 未配置")
 
-        # 创建客户端
+        #Create Client
         client = finnhub.Client(api_key=api_key)
 
-        # 港股代码需要添加 .HK 后缀
+        #Port stock code needs to add. HK suffix
         hk_symbol = f"{code}.HK" if not code.endswith('.HK') else code
 
-        # 周期映射
+        #Periodic Map
         resolution_map = {
             'day': 'D',
             'week': 'W',
@@ -1770,17 +1757,17 @@ class ForeignStockService:
 
         resolution = resolution_map.get(period, 'D')
 
-        # 计算时间范围
+        #Calculate the time frame
         end_time = int(datetime.now().timestamp())
         start_time = int((datetime.now() - timedelta(days=limit * 2)).timestamp())
 
-        # 获取K线数据
+        #Get K-line data
         candles = client.stock_candles(hk_symbol, resolution, start_time, end_time)
 
         if not candles or candles.get('s') != 'ok':
             raise Exception("无数据")
 
-        # 格式化数据
+        #Formatting Data
         kline_data = []
         for i in range(len(candles['t'])):
             date_str = datetime.fromtimestamp(candles['t'][i]).strftime('%Y-%m-%d')
@@ -1794,25 +1781,25 @@ class ForeignStockService:
                 'volume': int(candles['v'][i])
             })
 
-        return kline_data[-limit:]  # 返回最后limit条
+        return kline_data[-limit:]  #Return LastLimit
 
     def _get_hk_news_from_akshare(self, code: str, days: int, limit: int) -> List[Dict]:
-        """从AKShare获取港股新闻"""
+        """Port Unit News from Akshare"""
         try:
             import akshare as ak
             from datetime import datetime, timedelta
 
-            # AKShare 的港股新闻接口
-            # 注意：AKShare 可能没有专门的港股新闻接口，这里使用通用新闻接口
-            # 如果没有合适的接口，抛出异常让系统尝试下一个数据源
+            #HKU News Interface for Akshare
+            #Note: AKShare may not have a dedicated port desk news interface, which is used here.
+            #If no suitable interface exists, throw out the anomaly and let the system try the next data. Source
 
-            # 尝试获取港股新闻（使用东方财富港股新闻）
+            #Attempted access to information about the port unit (using information about the East Fortune Port)
             try:
                 df = ak.stock_news_em(symbol=code)
                 if df is None or df.empty:
                     raise Exception("无数据")
 
-                # 格式化新闻数据
+                #Format News Data
                 news_list = []
                 for _, row in df.head(limit).iterrows():
                     pub_time = row['发布时间'] if '发布时间' in row else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1828,10 +1815,10 @@ class ForeignStockService:
 
                 return news_list
             except Exception as e:
-                logger.debug(f"AKShare 东方财富接口失败: {e}")
+                logger.debug(f"AKShare The East Wealth Interface failed:{e}")
                 raise Exception("AKShare 暂不支持港股新闻")
 
         except Exception as e:
-            logger.warning(f"⚠️ AKShare获取港股新闻失败: {e}")
+            logger.warning(f"AKshare has failed to access Hong Kong News:{e}")
             raise
 

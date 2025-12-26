@@ -1,6 +1,5 @@
-"""
-增强新闻过滤器 - 集成本地小模型和规则过滤
-支持多种过滤策略：规则过滤、语义相似度、本地分类模型
+"""Enhancing News Filters - Costed Small Models and Rules Filtering
+Support multiple filtering strategies: rule filtering, semantic similarity, local classification models
 """
 
 import pandas as pd
@@ -10,56 +9,55 @@ from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 import numpy as np
 
-# 导入基础过滤器
+#Import Basic Filter
 from .news_filter import NewsRelevanceFilter, create_news_filter, get_company_name
 
 logger = logging.getLogger(__name__)
 
 class EnhancedNewsFilter(NewsRelevanceFilter):
-    """增强新闻过滤器，集成本地模型和多种过滤策略"""
+    """Enhanced news filters, cost-based models and multiple filtering strategies"""
     
     def __init__(self, stock_code: str, company_name: str, use_semantic: bool = True, use_local_model: bool = False):
-        """
-        初始化增强过滤器
-        
-        Args:
-            stock_code: 股票代码
-            company_name: 公司名称
-            use_semantic: 是否使用语义相似度过滤
-            use_local_model: 是否使用本地分类模型
-        """
+        """Initialize Enhanced Filter
+
+Args:
+Stock code: Stock code
+Company name: Company name
+use semantic: whether semantic similarity is used to filter
+use local model: using local classification models
+"""
         super().__init__(stock_code, company_name)
         self.use_semantic = use_semantic
         self.use_local_model = use_local_model
         
-        # 语义模型相关
+        #Semantic Model Relevant
         self.sentence_model = None
         self.company_embedding = None
         
-        # 本地分类模型相关
+        #Local Classification Model Relevant
         self.classification_model = None
         self.tokenizer = None
         
-        # 初始化模型
+        #Initialization Model
         if use_semantic:
             self._init_semantic_model()
         if use_local_model:
             self._init_classification_model()
     
     def _init_semantic_model(self):
-        """初始化语义相似度模型"""
+        """Initialise semantic similarity model"""
         try:
-            logger.info("[增强过滤器] 正在加载语义相似度模型...")
+            logger.info("[enhanced filter] Loading semantic similarity models...")
             
-            # 尝试使用sentence-transformers
+            #Try using events-transformers
             try:
                 from sentence_transformers import SentenceTransformer
                 
-                # 使用轻量级中文模型
-                model_name = "paraphrase-multilingual-MiniLM-L12-v2"  # 支持中文的轻量级模型
+                #Use lightweight Chinese model
+                model_name = "paraphrase-multilingual-MiniLM-L12-v2"  #Lightweight model supporting Chinese
                 self.sentence_model = SentenceTransformer(model_name)
                 
-                # 预计算公司相关的embedding
+                #Expected company-related embedding
                 company_texts = [
                     self.company_name,
                     f"{self.company_name}股票",
@@ -70,64 +68,63 @@ class EnhancedNewsFilter(NewsRelevanceFilter):
                 ]
                 
                 self.company_embedding = self.sentence_model.encode(company_texts)
-                logger.info(f"[增强过滤器] ✅ 语义模型加载成功: {model_name}")
+                logger.info(f"[enhanced filter] ✅ semantic model loaded successfully:{model_name}")
                 
             except ImportError:
-                logger.warning("[增强过滤器] sentence-transformers未安装，跳过语义过滤")
+                logger.warning("[Enhanced filter] sentence-transformers are not installed, skip semantic filtering")
                 self.use_semantic = False
                 
         except Exception as e:
-            logger.error(f"[增强过滤器] 语义模型初始化失败: {e}")
+            logger.error(f"[Enhanced filter] semantic model initialization failed:{e}")
             self.use_semantic = False
     
     def _init_classification_model(self):
-        """初始化本地分类模型"""
+        """Initialize local classification models"""
         try:
-            logger.info("[增强过滤器] 正在加载本地分类模型...")
+            logger.info("[enhanced filter] Loading local classification models...")
             
-            # 尝试使用transformers库的中文分类模型
+            #Try the Chinese classification model using the Transformers library
             try:
                 from transformers import AutoTokenizer, AutoModelForSequenceClassification
                 import torch
                 
-                # 使用轻量级中文文本分类模型
+                #Use a lightweight Chinese text classification model
                 model_name = "uer/roberta-base-finetuned-chinanews-chinese"
                 
                 self.tokenizer = AutoTokenizer.from_pretrained(model_name)
                 self.classification_model = AutoModelForSequenceClassification.from_pretrained(model_name)
                 
-                logger.info(f"[增强过滤器] ✅ 分类模型加载成功: {model_name}")
+                logger.info(f"[enhanced filter] ✅ classification model loaded successfully:{model_name}")
                 
             except ImportError:
-                logger.warning("[增强过滤器] transformers未安装，跳过本地模型分类")
+                logger.warning("[Enhanced Filter] Transformers are not installed, skip local model categories")
                 self.use_local_model = False
                 
         except Exception as e:
-            logger.error(f"[增强过滤器] 本地分类模型初始化失败: {e}")
+            logger.error(f"[Enhanced filter] Initialization of local classification model failed:{e}")
             self.use_local_model = False
     
     def calculate_semantic_similarity(self, title: str, content: str) -> float:
-        """
-        计算语义相似度评分
-        
-        Args:
-            title: 新闻标题
-            content: 新闻内容
-            
-        Returns:
-            float: 语义相似度评分 (0-100)
-        """
+        """Calculate semantic similarity rating
+
+Args:
+title:
+Content:
+
+Returns:
+float: Semantic Similarity Rating (0-100)
+"""
         if not self.use_semantic or self.sentence_model is None:
             return 0
         
         try:
-            # 组合标题和内容的前200字符
+            #Pre-200 characters for combining titles and contents
             text = f"{title} {content[:200]}"
             
-            # 计算文本embedding
+            #Compute textembeding
             text_embedding = self.sentence_model.encode([text])
             
-            # 计算与公司相关文本的相似度
+            #Compute similarity to company-related text
             similarities = []
             for company_emb in self.company_embedding:
                 similarity = np.dot(text_embedding[0], company_emb) / (
@@ -135,43 +132,42 @@ class EnhancedNewsFilter(NewsRelevanceFilter):
                 )
                 similarities.append(similarity)
             
-            # 取最高相似度
+            #Take Maximum Similarity
             max_similarity = max(similarities)
             
-            # 转换为0-100评分
+            #Convert to 0-100 points
             semantic_score = max(0, min(100, max_similarity * 100))
             
-            logger.debug(f"[增强过滤器] 语义相似度评分: {semantic_score:.1f}")
+            logger.debug(f"[Enhanced filter] Semantic similarity rating:{semantic_score:.1f}")
             return semantic_score
             
         except Exception as e:
-            logger.error(f"[增强过滤器] 语义相似度计算失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return 0
     
     def classify_news_relevance(self, title: str, content: str) -> float:
-        """
-        使用本地模型分类新闻相关性
-        
-        Args:
-            title: 新闻标题
-            content: 新闻内容
-            
-        Returns:
-            float: 分类相关性评分 (0-100)
-        """
+        """Use local models to classify news relevance
+
+Args:
+title:
+Content:
+
+Returns:
+float: classification relevance rating (0-100)
+"""
         if not self.use_local_model or self.classification_model is None:
             return 0
         
         try:
             import torch
             
-            # 构建分类文本
+            #Build classification text
             text = f"{title} {content[:300]}"
             
-            # 添加公司信息作为上下文
+            #Add Corporate Information as Context
             context_text = f"关于{self.company_name}({self.stock_code})的新闻: {text}"
             
-            # 分词和编码
+            #Phrases and coding
             inputs = self.tokenizer(
                 context_text,
                 return_tensors="pt",
@@ -180,64 +176,63 @@ class EnhancedNewsFilter(NewsRelevanceFilter):
                 max_length=512
             )
             
-            # 模型推理
+            #Model reasoning
             with torch.no_grad():
                 outputs = self.classification_model(**inputs)
                 logits = outputs.logits
                 
-                # 使用softmax获取概率分布
+                #Use softmax to get probability distribution
                 probabilities = torch.softmax(logits, dim=-1)
                 
-                # 假设第一个类别是"相关"，第二个是"不相关"
-                # 这里需要根据具体模型调整
-                relevance_prob = probabilities[0][0].item()  # 相关性概率
+                #Assuming the first category is "relevant," the second is "not relevant."
+                #It needs to be adapted to specific models.
+                relevance_prob = probabilities[0][0].item()  #Probability of relevance
                 
-                # 转换为0-100评分
+                #Convert to 0-100 points
                 classification_score = relevance_prob * 100
                 
-                logger.debug(f"[增强过滤器] 分类模型评分: {classification_score:.1f}")
+                logger.debug(f"[Enhanced filter] Classification model rating:{classification_score:.1f}")
                 return classification_score
                 
         except Exception as e:
-            logger.error(f"[增强过滤器] 本地模型分类失败: {e}")
+            logger.error(f"[Enhanced filter] Local model classification failed:{e}")
             return 0
     
     def calculate_enhanced_relevance_score(self, title: str, content: str) -> Dict[str, float]:
-        """
-        计算增强相关性评分（综合多种方法）
-        
-        Args:
-            title: 新闻标题
-            content: 新闻内容
-            
-        Returns:
-            Dict: 包含各种评分的字典
-        """
+        """Calculation of enhanced relevance ratings (integrated multiple methods)
+
+Args:
+title:
+Content:
+
+Returns:
+Dict: Dictionary with various ratings
+"""
         scores = {}
         
-        # 1. 基础规则评分
+        #1. Basic rule scoring
         rule_score = super().calculate_relevance_score(title, content)
         scores['rule_score'] = rule_score
         
-        # 2. 语义相似度评分
+        #Semantic similarity rating
         if self.use_semantic:
             semantic_score = self.calculate_semantic_similarity(title, content)
             scores['semantic_score'] = semantic_score
         else:
             scores['semantic_score'] = 0
         
-        # 3. 本地模型分类评分
+        #Local model classification ratings
         if self.use_local_model:
             classification_score = self.classify_news_relevance(title, content)
             scores['classification_score'] = classification_score
         else:
             scores['classification_score'] = 0
         
-        # 4. 综合评分（加权平均）
+        #4. Comprehensive rating (weighted average)
         weights = {
-            'rule': 0.4,      # 规则过滤权重40%
-            'semantic': 0.35,  # 语义相似度权重35%
-            'classification': 0.25  # 分类模型权重25%
+            'rule': 0.4,      #Rule filter weight 40%
+            'semantic': 0.35,  #Semantic similarity weight 35%
+            'classification': 0.25  #Classification model weight 25%
         }
         
         final_score = (
@@ -248,27 +243,26 @@ class EnhancedNewsFilter(NewsRelevanceFilter):
         
         scores['final_score'] = final_score
         
-        logger.debug(f"[增强过滤器] 综合评分 - 规则:{rule_score:.1f}, 语义:{scores['semantic_score']:.1f}, "
-                    f"分类:{scores['classification_score']:.1f}, 最终:{final_score:.1f}")
+        logger.debug(f"[enhanced filter] Comprehensive scoring - Rules:{rule_score:.1f}, semantic:{scores['semantic_score']:.1f}, "
+                    f"Classification:{scores['classification_score']:.1f}, eventually:{final_score:.1f}")
         
         return scores
     
     def filter_news_enhanced(self, news_df: pd.DataFrame, min_score: float = 40) -> pd.DataFrame:
-        """
-        增强新闻过滤
-        
-        Args:
-            news_df: 原始新闻DataFrame
-            min_score: 最低综合评分阈值
-            
-        Returns:
-            pd.DataFrame: 过滤后的新闻DataFrame，包含详细评分信息
-        """
+        """Enhance news filtering
+
+Args:
+News df: RawDataFrame
+min score: Minimum integrated rating threshold
+
+Returns:
+pd. DataFrame: Filtered NewsDataFrame with detailed rating information
+"""
         if news_df.empty:
-            logger.warning("[增强过滤器] 输入新闻DataFrame为空")
+            logger.warning("[enhanced filter] Enter NewsDataFrame empty")
             return news_df
         
-        logger.info(f"[增强过滤器] 开始增强过滤，原始数量: {len(news_df)}条，最低评分阈值: {min_score}")
+        logger.info(f"[enhanced filter] Start enhancing filter, original number:{len(news_df)}Article, lowest rating threshold:{min_score}")
         
         filtered_news = []
         
@@ -276,53 +270,52 @@ class EnhancedNewsFilter(NewsRelevanceFilter):
             title = row.get('新闻标题', row.get('标题', ''))
             content = row.get('新闻内容', row.get('内容', ''))
             
-            # 计算增强评分
+            #Calculate enhanced rating
             scores = self.calculate_enhanced_relevance_score(title, content)
             
             if scores['final_score'] >= min_score:
                 row_dict = row.to_dict()
-                row_dict.update(scores)  # 添加所有评分信息
+                row_dict.update(scores)  #Add all rating information
                 filtered_news.append(row_dict)
                 
-                logger.debug(f"[增强过滤器] 保留新闻 (综合评分: {scores['final_score']:.1f}): {title[:50]}...")
+                logger.debug(f"[enhanced filter] Keep the news.{scores['final_score']:.1f}): {title[:50]}...")
             else:
-                logger.debug(f"[增强过滤器] 过滤新闻 (综合评分: {scores['final_score']:.1f}): {title[:50]}...")
+                logger.debug(f"[enhanced filter] Filter news.{scores['final_score']:.1f}): {title[:50]}...")
         
-        # 创建过滤后的DataFrame
+        #Create filtered DataFrame
         if filtered_news:
             filtered_df = pd.DataFrame(filtered_news)
-            # 按综合评分排序
+            #Sort by comprehensive rating
             filtered_df = filtered_df.sort_values('final_score', ascending=False)
-            logger.info(f"[增强过滤器] 增强过滤完成，保留 {len(filtered_df)}条 新闻")
+            logger.info(f"[enhanced filter] Enhance filter completion, retain{len(filtered_df)}Public information")
         else:
             filtered_df = pd.DataFrame()
-            logger.warning(f"[增强过滤器] 所有新闻都被过滤，无符合条件的新闻")
+            logger.warning(f"[enhanced filters] All news is filtered, no qualified news.")
             
         return filtered_df
 
 
 def create_enhanced_news_filter(ticker: str, use_semantic: bool = True, use_local_model: bool = False) -> EnhancedNewsFilter:
-    """
-    创建增强新闻过滤器的便捷函数
-    
-    Args:
-        ticker: 股票代码
-        use_semantic: 是否使用语义相似度过滤
-        use_local_model: 是否使用本地分类模型
-        
-    Returns:
-        EnhancedNewsFilter: 配置好的增强过滤器实例
-    """
+    """Create a convenient function to enhance the news filter
+
+Args:
+ticker: Stock code
+use semantic: whether semantic similarity is used to filter
+use local model: using local classification models
+
+Returns:
+Enhanced NewsFilter: configured examples of enhanced filters
+"""
     company_name = get_company_name(ticker)
     return EnhancedNewsFilter(ticker, company_name, use_semantic, use_local_model)
 
 
-# 使用示例
+#Use Example
 if __name__ == "__main__":
-    # 测试增强过滤器
+    #Test Enhancement Filter
     import pandas as pd
     
-    # 模拟新闻数据
+    #Simulation of news data
     test_news = pd.DataFrame([
         {
             '新闻标题': '招商银行发布2024年第三季度业绩报告',
@@ -344,10 +337,10 @@ if __name__ == "__main__":
     
     print("=== 测试增强新闻过滤器 ===")
     
-    # 创建增强过滤器（仅使用规则过滤，避免模型依赖）
+    #Create enhanced filters (only rule filters to avoid model dependence)
     enhanced_filter = create_enhanced_news_filter('600036', use_semantic=False, use_local_model=False)
     
-    # 过滤新闻
+    #Filter News
     filtered_news = enhanced_filter.filter_news_enhanced(test_news, min_score=30)
     
     print(f"原始新闻: {len(test_news)}条")

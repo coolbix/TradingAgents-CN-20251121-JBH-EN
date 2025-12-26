@@ -1,0 +1,583 @@
+TradingAgents v1.0.0-preview Source Code Installation Manual (Revised Version)
+This manual guides you to install TradingAgents v1.0.0-preview version from source, which uses a front-end separation architecture:
+
+Backend
+:FastAPI application, the source code is located in the directoryapp/
+Front end
+:Vue 3 application, the source code is located in the directoryfrontend/
+database
+:MongoDB (data store)
+Caching
+:Redis (session cache and temporary data)
+System requirements:
+Environmental requirements
+Python 3.10+
+Node.js 18+
+MongoDB 4.4+
+Redis 6.0+
+Git
+Recommended configuration
+CPU: 4 cores or higher
+RAM: 8GB or more
+Storage: 50GB free space
+Network: Stable internet connection
+Project structure
+TradingAgentsCN/
+├── app/                    # 后端源码目录
+│   ├── main.py            # FastAPI 主应用
+│   ├── api/               # API 路由
+│   ├── core/              # 核心配置
+│   ├── models/            # 数据模型
+│   ├── services/          # 业务逻辑
+│─── requirements.txt   # Python 依赖
+├── frontend/              # 前端源码目录
+│   ├── package.json       # Node.js 依赖
+│   ├── src/               # Vue 3 源码
+│   └── vite.config.js     # Vite 配置
+├── docker-compose.yml     # Docker 配置
+├── Dockerfile.backend     # 后端 Docker 镜像
+└── Dockerfile.frontend    # 前端 Docker 镜像
+Installation steps:
+1. Clone Project
+git clone https://github.com/hsliuping/TradingAgents-CN.git
+cd TradingAgents-CN
+2. Install the database
+Install MongoDB
+Windows:
+
+# 使用 Chocolatey
+choco install mongodb
+
+# 或使用 MSI 安装包从官网下载
+# 安装后需要创建管理员用户（参考docker-compose.hub.nginx.yml配置）
+# 用户名: admin
+# 密码: tradingagents123
+macOS:
+
+# 使用 Homebrew
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb/brew/mongodb-community
+
+# 创建管理员用户（参考docker-compose.hub.nginx.yml配置）
+mongosh
+> use admin
+> db.createUser({
+    user: "admin",
+    pwd: "tradingagents123",
+    roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]
+})
+Linux (Ubuntu/Debian):
+
+# 导入公钥
+wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc |sudo apt-key add -
+
+# 创建列表文件
+echo"deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse"|sudotee /etc/apt/sources.list.d/mongodb-org-5.0.list
+
+# 更新并安装
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo systemctl start mongod
+sudo systemctl enable mongod
+
+# 创建管理员用户（参考docker-compose.hub.nginx.yml配置）
+mongosh
+> use admin
+> db.createUser({
+    user: "admin",
+    pwd: "tradingagents123",
+    roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]
+})
+Install Redis
+Windows:
+
+# 使用 Chocolatey
+choco install redis-64
+
+# 或使用 MSOpenTech Redis
+# 安装后需要设置密码（参考docker-compose.hub.nginx.yml配置）
+# 密码: tradingagents123
+macOS:
+
+# 使用 Homebrew
+brew install redis
+brew services start redis
+
+# 设置密码（参考docker-compose.hub.nginx.yml配置）
+# 编辑配置文件: /usr/local/etc/redis.conf
+# 添加: requirepass tradingagents123
+brew services restart redis
+Linux (Ubuntu/Debian):
+
+sudo apt-get  update
+sudo apt-get install redis-server
+sudo systemctl start redis
+sudo systemctl enable redis
+
+# 设置密码（参考docker-compose.hub.nginx.yml配置）
+# 编辑配置文件: /etc/redis/redis.conf
+# 添加: requirepass tradingagents123
+sudo systemctl restart redis
+3. Configure the backend environment
+3.1 Create a Python virtual environment
+
+# 创建虚拟环境（确保Python版本在3.10-3.12之间）
+python -m venv venv
+
+# 激活虚拟环境
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+Note: Make sure you are using Python version 3.10-3.12, you can check the version by checking the version. Python 3.10 or 3.11 is recommended for best compatibility. python --version
+
+3.2 Install Python dependencies
+
+# 配置清华镜像
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 验证配置
+pip config list
+
+# 确保在 app 目录下且虚拟环境已激活
+pip install -r requirements.txt 
+3.3 Configure environment variables
+Create a file:.env
+
+cp .env.example .env
+Edit the file to configure the following key parameters:.env
+
+# 数据库配置（参考docker-compose.hub.nginx.yml中的配置）
+MONGODB_URL=mongodb://admin:tradingagents123@localhost:27017/tradingagents?authSource=admin
+REDIS_URL=redis://:tradingagents123@localhost:6379/0
+
+# API 配置
+API_BASE_URL=http://localhost:8000
+CORS_ORIGINS=["http://localhost:3000"]
+
+# LLM 配置（根据需要配置）
+OPENAI_API_KEY=your_openai_key
+DEEPSEEK_API_KEY=your_deepseek_key
+SILICONFLOW_API_KEY=your_siliconflow_key
+
+# 其他配置
+DEBUG=true
+LOG_LEVEL=INFO
+Database account password description:
+
+MongoDB
+: Username, password, database admintradingagents123tradingagents
+Redis
+: Password, no username (empty username).tradingagents123
+These account password configurations are consistent with the configuration indocker-compose.hub.nginx.yml
+⚠️ 重要提示：
+
+In production, be sure to change the default password
+The parameter in the MongoDB connection string represents authentication in the admin databaseauthSource=admin
+The format in the Redis connection string represents an empty username plus a password:tradingagents123
+4. Configure the front-end environment
+4.1 Installing Node.js dependencies
+cd frontend
+
+# 使用 yarn进行安装
+yarn install
+5. Initialize the database
+5.1 Start MongoDB and Redis
+Make sure the database service is running:
+
+# 检查 MongoDB
+sudo systemctl status mongod  # Linux
+brew services list |grep mongodb  # macOS
+
+# 检查 Redis
+sudo systemctl status redis  # Linux
+brew services list |grep redis  # macOS
+5.2 Create database users and indexes
+Create a MongoDB database user:
+
+# 连接MongoDB（使用管理员账户）
+mongosh mongodb://admin:tradingagents123@localhost:27017/admin
+
+# 切换到tradingagents数据库
+use tradingagents
+
+# 创建应用用户（可选，用于更细粒度的权限控制）
+db.createUser({
+  user: "tradingagents_user",
+  pwd: "tradingagents123",
+  roles: [
+{ role: "readWrite", db: "tradingagents"}
+]
+})
+Create a database index:
+
+
+# 导入初始配置并创建默认管理员用户（必须执行）
+python scripts/import_config_and_create_user.py --host
+
+# 如果提示找不到配置文件，可以使用以下命令只创建用户
+# python scripts/import_config_and_create_user.py --create-user-only --host
+⚠️ Important: The script must be executed, note that it is accompanied by the parameter --host, it will:import_config_and_create_user.py 
+
+Import system configuration data into MongoDB
+Create a default admin user (username: admin, password: admin123)
+Initialize basic data such as LLM providers, market classifications, and more
+If you don't follow this step, the system won't function properly and you'll be prompted when you log in that the configuration is missing.
+
+Or use the MongoDB shell to manually create collections and indexes:
+
+mongosh mongodb://admin:tradingagents123@localhost:27017/tradingagents?authSource=admin
+
+# 创建集合和索引
+use tradingagents
+db.createCollection('users')
+db.createCollection('analyses')
+db.createCollection('stock_basic_info')
+6. Launch the app
+6.1 Start the backend service
+
+# 激活虚拟环境（如果未激活）
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+# 确保已执行数据库初始化脚本（重要！）
+python scripts/import_config_and_create_user.py --host
+
+# 启动后端服务
+python -m app
+The backend service will be launched at http://localhost:8000
+
+⚠️ Note: If an error message is missing at startup, run the database initialization script firstpython scripts/import_config_and_create_user.py --host
+
+6.2 Start the front-end service
+cd frontend
+
+# 启动开发服务器
+npm run dev
+
+# 或使用 yarn
+yarn dev
+The front-end service will be launched at http://localhost:3000
+
+7. Verify the installation
+Backend validation:
+
+Visit http://localhost:8000/docs to view the API documentation
+Visit http://localhost:8000/health to check your health
+Front-end verification:
+
+Visit http://localhost:3000 to view the front-end interface
+Check the browser console for errors
+Database validation:
+
+# 连接 MongoDB
+mongosh trading_agents
+
+# 查看集合
+show collections
+
+# 检查数据
+db.users.find().limit(5)
+Backend Service Validation (New):
+
+# 检查后端服务状态
+curl http://localhost:8000/api/health
+
+# 应该返回：{"status":"healthy","timestamp":"..."}
+
+# 检查API文档
+# 访问：http://localhost:8000/docs
+
+# 验证数据库初始化是否成功
+curl http://localhost:8000/api/system/config
+
+# 应该返回系统配置信息，如果返回404或错误，说明数据库初始化未完成
+Advanced configuration
+Install with Docker
+For Docker installation, please refer to the dedicated Docker deployment documentation.
+
+Detailed explanation of environmental variables
+Backend environment variables
+# 数据库（与docker-compose.hub.nginx.yml配置一致）
+MONGODB_URL=mongodb://admin:tradingagents123@localhost:27017/tradingagents?authSource=admin
+REDIS_URL=redis://:tradingagents123@localhost:6379/0
+
+# API 配置
+API_BASE_URL=http://localhost:8000
+CORS_ORIGINS=["http://localhost:3000"]
+
+# LLM 配置
+OPENAI_API_KEY=your_key
+DEEPSEEK_API_KEY=your_key
+SILICONFLOW_API_KEY=your_key
+
+# 缓存配置
+CACHE_TTL=3600
+CACHE_MAX_SIZE=1000
+
+# 日志配置
+LOG_LEVEL=INFO
+LOG_FILE=logs/app.log
+
+# 安全配置（与docker-compose.hub.nginx.yml配置一致）
+SECRET_KEY=docker-jwt-secret-key-change-in-production-2024
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=480
+REFRESH_TOKEN_EXPIRE_DAYS=30
+CSRF_SECRET=docker-csrf-secret-key-change-in-production-2024
+BCRYPT_ROUNDS=12
+Troubleshooting
+FAQs
+1. Backend startup failed
+Problem: Port is occupied
+
+# 查找占用 8000 端口的进程
+netstat -ano | findstr :8000  # Windows
+lsof -i :8000  # macOS/Linux
+
+# 终止进程
+taskkill /PID <pid> /F  # Windows
+kill -9 <pid># macOS/Linux
+Issue: Dependency installation failed
+
+# 升级 pip
+python -m pip install --upgrade pip
+
+# 清理缓存
+pip cache purge
+
+# 重新安装
+pip install -r requirements.txt --force-reinstall
+2. Front-end build failure
+Problem:Node.js Versions are incompatible
+
+# 检查 Node.js 版本
+node --version
+
+# 使用 nvm 切换版本
+nvm use 18
+
+# 清理 node_modules
+rm -rf node_modules package-lock.json
+yarn install
+Problem: Out of memory
+
+# 增加 Node.js 内存限制
+export NODE_OPTIONS="--max-old-space-size=4096"
+
+# 或使用 npm
+npm run dev -- --max-old-space-size=4096
+3. The database connection failed
+Issue: MongoDB connection failed
+
+# 检查 MongoDB 状态
+sudo systemctl status mongod
+
+# 重启 MongoDB
+sudo systemctl restart mongod
+
+# 检查连接字符串
+mongosh "mongodb://localhost:27017/trading_agents"
+Issue: Redis connection failed
+
+# 检查 Redis 状态
+sudo systemctl status redis
+
+# 重启 Redis
+sudo systemctl restart redis
+
+# 测试连接
+redis-cli ping
+Issue: An error was reported when the backend was started, and the connection to MongoDB could not be reached
+
+Solution:
+
+Check if MongoDB is running:
+
+# Windows
+net start MongoDB
+
+# macOS/Linux
+sudo systemctl status mongod
+Check that the connection string is correct
+
+Check if the firewall is blocking port 27017
+
+Issue: Error "System configuration missing" or API returns a 404 error when logging in
+
+Solution:
+
+Perform database initialization scripts (most frequently asked):
+
+# 激活虚拟环境后
+python scripts/import_config_and_create_user.py --host 
+Check if the default profile exists:
+
+ls install/database_export_config_*.json
+If the profile does not exist, only create users:
+
+python scripts/import_config_and_create_user.py --create-user-only --host
+Verify that the initialization was successful:
+
+curl http://localhost:8000/api/system/config
+# 应该返回系统配置信息，而不是404错误
+8.3 API call failed
+Problem: CORS error
+
+# 检查后端 CORS 配置
+grep -r "CORS_ORIGINS" app/
+
+# 检查前端 API URL
+grep -r "VITE_API_BASE_URL" frontend/
+Issue: Authentication failed
+
+# 检查 JWT 配置
+grep -r "SECRET_KEY" app/
+
+# 检查用户权限
+mongosh trading_agents --eval "db.users.find()"
+8.4 Default Users Are Not Logged In
+Issue: Unable to log in using admin/admin123
+
+Solution:
+
+Verify that the database initialization script has been executed:
+
+python scripts/import_config_and_create_user.py --host
+Check if the user has been created:
+
+mongosh   mongodb://admin:tradingagents123@localhost:27017/tradingagents?authSource=admin
+> use tradingagents
+> db.users.find({username: "admin"})
+If the user does not exist, recreate:
+
+python scripts/import_config_and_create_user.py --create-user-only --host
+Check if the password is correct: The default password is admin123
+
+Log viewing
+Backend logs
+# 查看应用日志
+tail -f logs\tradingagents.log
+
+# 查看系统日志
+journalctl -u your-app-service -f
+Front-end logs
+# 查看浏览器控制台（F12）
+# 查看构建日志
+cd frontend &&npm run dev
+Performance optimization
+Backend optimization
+Database index optimization:
+
+# 创建复合索引
+mongosh trading_agents --eval "db.analyses.createIndex({symbol: 1, date: -1})"
+Cache configuration:
+
+CACHE_TTL=7200
+CACHE_MAX_SIZE=2000
+Connection pool configuration:
+
+MONGODB_MAX_POOL_SIZE=100
+REDIS_MAX_CONNECTIONS=50
+Front-end optimization
+Build Optimization:
+
+# 生产构建
+npm run build
+
+# 分析包大小
+npm run build -- --analyze
+Code Splitting:
+
+// 使用动态导入
+const LazyComponent=()=>import('./components/LazyComponent.vue')
+Safety advice
+Change the default password:
+
+# MongoDB
+mongosh --eval "db.createUser({user: 'admin', pwd: 'strong_password', roles: ['root']})"
+
+# Redis
+redis-cli CONFIG SET requirepass "strong_password"
+Configure the firewall:
+
+# 仅允许必要端口
+sudo ufw allow 8000/tcp
+sudo ufw allow 5173/tcp
+sudo ufw enable
+Use HTTPS:
+
+# 生成 SSL 证书
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+Updates and maintenance
+Update code
+# 拉取最新代码
+git pull origin main
+
+# 更新后端依赖
+cd app && pip install -r requirements.txt --upgrade
+
+# 更新前端依赖
+cd frontend &&npm update
+Back up your data
+# 备份 MongoDB
+mongodump --db trading_agents --out ./backup/$(date +%Y%m%d)
+
+# 备份 Redis
+redis-cli SAVE
+cp /var/lib/redis/dump.rdb ./backup/redis-$(date +%Y%m%d).rdb
+Monitoring and alerting
+# 设置监控脚本
+cat> monitor.sh <<'EOF'
+#!/bin/bash
+# 检查服务状态
+if ! curl -f http://localhost:8000/health; then
+    echo "Backend service is down!" | mail -s "Alert" admin@example.com
+fi
+EOF
+
+chmod +x monitor.sh
+# 添加到 crontab
+echo"*/5 * * * * /path/to/monitor.sh"|crontab -
+Get help
+GitHub Issues
+: https://github.com/hsliuping/TradingAgents-CN/issues
+documentation
+: Detailed documentation under the Items directorydocs/
+WeChat public account
+: 搜索"TradingAgents-CN"关注获取最新资讯
+Mail
+: hsliup@163.com
+Important reminder
+🔴 After the installation is complete, you must perform:python scripts/import_config_and_create_user.py  --host 
+
+This is the most common installation problem, and without this step, the system will not function properly.
+
+If you encounter problems during execution, check:
+
+Is MongoDB and Redis working properly?
+Whether the database connection is configured correctly
+Whether the virtual environment is activated
+Whether the Python version is in the 3.10-3.12 range
+Other installation methods
+If you find the source code installation complicated, we also provide an easier way to install it:
+
+🟢 Green Edition installation (recommended for Windows users):
+
+No need to install a Python environment, unzip it and use it
+Detailed tutorial: Green version installation manual
+🟢 Docker version installation (recommended for Linux/Mac users):
+
+One-click deployment, no need to configure the environment
+Detailed tutorial: Docker Edition Installation User Manual
+license
+This project uses a hybrid license:
+
+Apache License 2.0
+(Default): Applies to all files except andapp/frontend/
+Proprietary license
+: Applicable to Directory (FastAPI Backend) and Directory (Vue.js Frontend)
+If you have commercial needs, please contact me, and you can apply it in your commercial needs after obtaining written permission, contact email: hsliup@163.com. app/frontend/

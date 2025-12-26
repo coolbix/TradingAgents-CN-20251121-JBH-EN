@@ -1,8 +1,7 @@
-"""
-数据源提供器配置管理
+"""Data source provider configuration management
 
-从 tradingagents/dataflows/providers_config.py 迁移而来
-统一管理所有数据源提供器的配置
+Moving from TradingAGents/dataflows/providers config.py
+Harmonized management of all data source provider configurations
 """
 import os
 from typing import Dict, Any
@@ -12,15 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 class DataSourceConfig:
-    """数据源配置管理器"""
+    """Data Source Configuration Manager"""
     
     def __init__(self):
         self._configs = {}
         self._load_configs()
     
     def _load_configs(self):
-        """加载所有数据源配置"""
-        # Tushare配置
+        """Load all data sources configurations"""
+        #Tushare Configuration
         self._configs["tushare"] = {
             "enabled": self._get_bool_env("TUSHARE_ENABLED", True),
             "token": os.getenv("TUSHARE_TOKEN", ""),
@@ -31,7 +30,7 @@ class DataSourceConfig:
             "cache_ttl": self._get_int_env("TUSHARE_CACHE_TTL", 3600),
         }
         
-        # AKShare配置
+        #AKShare Configuration
         self._configs["akshare"] = {
             "enabled": self._get_bool_env("AKSHARE_ENABLED", True),
             "timeout": self._get_int_env("AKSHARE_TIMEOUT", 30),
@@ -41,7 +40,7 @@ class DataSourceConfig:
             "cache_ttl": self._get_int_env("AKSHARE_CACHE_TTL", 1800),
         }
         
-        # BaoStock配置
+        #BaoStock Configuration
         self._configs["baostock"] = {
             "enabled": self._get_bool_env("BAOSTOCK_ENABLED", True),
             "timeout": self._get_int_env("BAOSTOCK_TIMEOUT", 30),
@@ -51,7 +50,7 @@ class DataSourceConfig:
             "cache_ttl": self._get_int_env("BAOSTOCK_CACHE_TTL", 1800),
         }
         
-        # Yahoo Finance配置
+        #Yahoo Finance Configuration
         self._configs["yahoo"] = {
             "enabled": self._get_bool_env("YAHOO_ENABLED", False),
             "timeout": self._get_int_env("YAHOO_TIMEOUT", 30),
@@ -61,7 +60,7 @@ class DataSourceConfig:
             "cache_ttl": self._get_int_env("YAHOO_CACHE_TTL", 300),
         }
         
-        # Finnhub配置
+        #Finnhub Configuration
         self._configs["finnhub"] = {
             "enabled": self._get_bool_env("FINNHUB_ENABLED", False),
             "api_key": os.getenv("FINNHUB_API_KEY", ""),
@@ -72,36 +71,35 @@ class DataSourceConfig:
             "cache_ttl": self._get_int_env("FINNHUB_CACHE_TTL", 300),
         }
         
-        # 通达信配置 - 已移除
-        # TDX 数据源已不再支持
+        #Connect Configuration - Removed
+        #TDX data source is no longer supported
         # self._configs["tdx"] = {
         #     "enabled": False,
         # }
 
-        logger.debug("✅ 数据源配置加载完成")
+        logger.debug("Data source configuration loaded")
     
     def get_provider_config(self, provider_name: str) -> Dict[str, Any]:
-        """
-        获取指定提供器的配置
-        
-        Args:
-            provider_name: 提供器名称
-            
-        Returns:
-            配置字典
-        """
+        """Get the configuration of the specified provider
+
+Args:
+program name: Provider name
+
+Returns:
+Configure Dictionary
+"""
         config = self._configs.get(provider_name.lower(), {})
         if not config:
-            logger.warning(f"⚠️ 未找到 {provider_name} 的配置")
+            logger.warning(f"Not found{provider_name}Configure")
         return config
     
     def is_provider_enabled(self, provider_name: str) -> bool:
-        """检查提供器是否启用"""
+        """Check if the provider is enabled"""
         config = self.get_provider_config(provider_name)
         return config.get("enabled", False)
     
     def get_all_enabled_providers(self) -> list:
-        """获取所有启用的提供器名称"""
+        """Fetch all enabled provider names"""
         enabled = []
         for name, config in self._configs.items():
             if config.get("enabled", False):
@@ -109,37 +107,37 @@ class DataSourceConfig:
         return enabled
     
     def _get_bool_env(self, key: str, default: bool) -> bool:
-        """获取布尔型环境变量"""
+        """Get Boolean Environment Variables"""
         value = os.getenv(key, str(default)).lower()
         return value in ("true", "1", "yes", "on")
     
     def _get_int_env(self, key: str, default: int) -> int:
-        """获取整型环境变量"""
+        """Get a whole environment variable"""
         try:
             return int(os.getenv(key, str(default)))
         except ValueError:
             return default
     
     def _get_float_env(self, key: str, default: float) -> float:
-        """获取浮点型环境变量"""
+        """Fetch floating point environment variables"""
         try:
             return float(os.getenv(key, str(default)))
         except ValueError:
             return default
 
 
-# 全局配置实例
+#Global Configuration Example
 _config_instance = None
 
 def get_data_source_config() -> DataSourceConfig:
-    """获取全局数据源配置实例"""
+    """Get global data source configuration examples"""
     global _config_instance
     if _config_instance is None:
         _config_instance = DataSourceConfig()
     return _config_instance
 
 def get_provider_config(provider_name: str) -> Dict[str, Any]:
-    """获取指定提供器配置的便捷函数"""
+    """A simple function to get specified provider configuration"""
     config = get_data_source_config()
     return config.get_provider_config(provider_name)
 

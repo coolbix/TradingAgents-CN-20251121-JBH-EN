@@ -1,8 +1,7 @@
-"""
-与 Tushare 相关的阻塞式工具函数：
-- fetch_stock_basic_df：获取股票列表（确保 Tushare 已连接）
-- find_latest_trade_date：探测最近可用交易日（YYYYMMDD）
-- fetch_daily_basic_mv_map：根据交易日获取日度基础指标映射（市值/估值/交易）
+"""Blocked tool function for Tushare:
+- Fetch stock basic df: get list of shares (ensure that Tushare is connected)
+- find latest trade date: detect the latest available trading day (YYYYMMDD)
+- Fetch daily basic mv map: acquisition of a map of basic indicators of the day of the transaction (market value/value/transaction)
 """
 from __future__ import annotations
 from datetime import datetime, timedelta
@@ -10,12 +9,11 @@ from typing import Dict
 
 
 def fetch_stock_basic_df():
-    """
-    从 Tushare 获取股票基础列表（DataFrame格式），要求已正确配置并连接。
-    依赖环境变量：TUSHARE_ENABLED=true 且 .env 中提供 TUSHARE_TOKEN。
+    """Gets the stock base list (DataFrame format) from Tushare, which requires that it be configured and connected correctly.
+Reliance on environmental variables: TUSHARE ENABLED=tru and .env provides TUSHARE TOKEN.
 
-    注意：这是一个同步函数，会等待 Tushare 连接完成。
-    """
+Note: This is a synchronized function that will wait for the Tushare connection to complete.
+"""
     import time
     import logging
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
@@ -23,10 +21,10 @@ def fetch_stock_basic_df():
 
     logger = logging.getLogger(__name__)
 
-    # 检查 Tushare 是否启用
+    #Check whether Tushare is enabled
     if not settings.TUSHARE_ENABLED:
-        logger.error("❌ Tushare 数据源已禁用 (TUSHARE_ENABLED=false)")
-        logger.error("💡 请在 .env 文件中设置 TUSHARE_ENABLED=true 或使用多数据源同步服务")
+        logger.error("Tushare data source is disabled (TUSHARE ENABLED=false)")
+        logger.error("Please set TUSHARE ENABLED=true in .env file or use multiple data source sync service")
         raise RuntimeError(
             "Tushare is disabled (TUSHARE_ENABLED=false). "
             "Set TUSHARE_ENABLED=true in .env or use MultiSourceBasicsSyncService."
@@ -34,68 +32,67 @@ def fetch_stock_basic_df():
 
     provider = get_tushare_provider()
 
-    # 等待连接完成（最多等待 5 秒）
+    #Waiting for connection complete (up to 5 seconds)
     max_wait_seconds = 5
     wait_interval = 0.1
     elapsed = 0.0
 
-    logger.info(f"⏳ 等待 Tushare 连接...")
+    logger.info(f"Waiting for Tushare to connect...")
     while not getattr(provider, "connected", False) and elapsed < max_wait_seconds:
         time.sleep(wait_interval)
         elapsed += wait_interval
 
-    # 检查连接状态和API可用性
+    #Check connectivity and API availability
     if not getattr(provider, "connected", False) or provider.api is None:
-        logger.error(f"❌ Tushare 连接失败（等待 {max_wait_seconds}s 后超时）")
-        logger.error(f"💡 请检查：")
-        logger.error(f"   1. .env 文件中配置了有效的 TUSHARE_TOKEN")
-        logger.error(f"   2. Tushare Token 未过期且有足够的积分")
-        logger.error(f"   3. 网络连接正常")
+        logger.error(f"Tushare connection failed (waiting){max_wait_seconds}S behind timeout)")
+        logger.error(f"Please check:")
+        logger.error(f"1. A valid TUSHARE TOKEN is configured in .env files")
+        logger.error(f"Tushare Token has not expired and has sufficient points")
+        logger.error(f"3. Network connectivity is normal")
         raise RuntimeError(
             f"Tushare not connected after waiting {max_wait_seconds}s. "
             "Check TUSHARE_TOKEN in .env and ensure it's valid."
         )
 
-    logger.info(f"✅ Tushare 已连接，开始获取股票列表...")
+    logger.info(f"Tushare is connected, starting to get the list of shares...")
 
-    # 直接调用 Tushare API 获取 DataFrame
+    #Directly call Tushare API to DataFrame
     try:
         df = provider.api.stock_basic(
             list_status='L',
             fields='ts_code,symbol,name,area,industry,market,exchange,list_date,is_hs'
         )
 
-        # 🔧 增强错误诊断
+        #Enhanced false diagnosis
         if df is None:
-            logger.error(f"❌ Tushare API 返回 None")
-            logger.error(f"💡 可能原因：")
-            logger.error(f"   1. Tushare Token 无效或过期")
-            logger.error(f"   2. API 积分不足")
-            logger.error(f"   3. 网络连接问题")
+            logger.error(f"Tushare API returns None")
+            logger.error(f"Possible causes:")
+            logger.error(f"Tushare Token is invalid or expired")
+            logger.error(f"2. API deficit")
+            logger.error(f"3. Network connectivity issues")
             raise RuntimeError("Tushare API returned None. Check token validity and API credits.")
 
         if hasattr(df, 'empty') and df.empty:
-            logger.error(f"❌ Tushare API 返回空 DataFrame")
-            logger.error(f"💡 可能原因：")
-            logger.error(f"   1. list_status='L' 参数可能不正确")
-            logger.error(f"   2. Tushare 数据源暂时不可用")
-            logger.error(f"   3. API 调用限制（请检查积分和调用频率）")
+            logger.error(f"Tushare API returns empty DataFrame")
+            logger.error(f"Possible causes:")
+            logger.error(f"List status='L'parameters may not be correct")
+            logger.error(f"2. Tushare data sources are temporarily unavailable")
+            logger.error(f"3. API call limits (check points and call frequency)")
             raise RuntimeError("Tushare API returned empty DataFrame. Check API parameters and data availability.")
 
-        logger.info(f"✅ 成功获取 {len(df)} 条股票数据")
+        logger.info(f"Successfully accessed{len(df)}Stock data")
         return df
 
     except Exception as e:
-        logger.error(f"❌ 调用 Tushare API 失败: {e}")
+        logger.error(f"Call to Tushare API failed:{e}")
         raise RuntimeError(f"Failed to fetch stock basic DataFrame: {e}")
 
 
 def find_latest_trade_date() -> str:
-    """
-    探测最近可用的交易日（YYYYMMDD）。
-    - 从今天起回溯最多 5 天；
-    - 如都不可用，回退为昨天日期。
-    """
+    """Detection of the latest available trading day (YYYYMMDD).
+- A maximum of five days from today;
+- If not, back to yesterday's date.
+"""
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
 
     provider = get_tushare_provider()
@@ -116,10 +113,9 @@ def find_latest_trade_date() -> str:
 
 
 def fetch_daily_basic_mv_map(trade_date: str) -> Dict[str, Dict[str, float]]:
-    """
-    根据交易日获取日度基础指标映射。
-    覆盖字段：total_mv/circ_mv/pe/pb/ps/turnover_rate/volume_ratio/pe_ttm/pb_mrq/ps_ttm
-    """
+    """Maps the basic daily indicators according to the date of transaction.
+Overwrite field: Total mv/circ mv/pe/pb/ps/turnover rate/volume ratio/pe ttm/pb mrq/ps ttm
+"""
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
 
     provider = get_tushare_provider()
@@ -127,7 +123,7 @@ def fetch_daily_basic_mv_map(trade_date: str) -> Dict[str, Dict[str, float]]:
     if api is None:
         raise RuntimeError("Tushare API unavailable")
 
-    # 🔥 新增：添加 ps、ps_ttm、total_share、float_share 字段
+    #Add: ps, ps ttm, total share, float share field
     fields = "ts_code,total_mv,circ_mv,pe,pb,ps,turnover_rate,volume_ratio,pe_ttm,pb_mrq,ps_ttm,total_share,float_share"
     db = api.daily_basic(trade_date=trade_date, fields=fields)
 
@@ -138,7 +134,7 @@ def fetch_daily_basic_mv_map(trade_date: str) -> Dict[str, Dict[str, float]]:
             if ts_code is not None:
                 try:
                     metrics = {}
-                    # 🔥 新增：添加 ps、ps_ttm、total_share、float_share 到字段列表
+                    #Add: ps, ps ttm, total share, float share to field list
                     for field in [
                         "total_mv",
                         "circ_mv",
@@ -166,10 +162,9 @@ def fetch_daily_basic_mv_map(trade_date: str) -> Dict[str, Dict[str, float]]:
 
 
 def fetch_latest_roe_map() -> Dict[str, Dict[str, float]]:
-    """
-    获取最近一个可用财报期的 ROE 映射（ts_code -> {"roe": float}）。
-    优先按最近季度的 end_date 逆序探测，找到第一期非空数据。
-    """
+    """Gets the RoE map (ts code-> FMT 0   ) of the latest available financial period.
+Priority is given to finding the first non-empty data in reverse sequence for the latest quarter.
+"""
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
     from datetime import datetime
 
@@ -178,7 +173,7 @@ def fetch_latest_roe_map() -> Dict[str, Dict[str, float]]:
     if api is None:
         raise RuntimeError("Tushare API unavailable")
 
-    # 生成最近若干个财政季度的期末日期，格式 YYYYMMDD
+    #Generate end-of-cycle dates for the most recent financial quarters, format YYYMMDD
     def quarter_ends(now: datetime):
         y = now.year
         q_dates = [
@@ -187,7 +182,7 @@ def fetch_latest_roe_map() -> Dict[str, Dict[str, float]]:
             f"{y}0930",
             f"{y}1231",
         ]
-        # 包含上一年，增加成功概率
+        #Include the previous year, increase the probability of success
         py = y - 1
         q_dates_prev = [
             f"{py}1231",
@@ -195,7 +190,7 @@ def fetch_latest_roe_map() -> Dict[str, Dict[str, float]]:
             f"{py}0630",
             f"{py}0331",
         ]
-        # 近6期即可
+        #Almost six.
         return q_dates_prev + q_dates
 
     candidates = quarter_ends(datetime.now())
@@ -216,7 +211,7 @@ def fetch_latest_roe_map() -> Dict[str, Dict[str, float]]:
                         continue
                     data_map[str(ts_code)] = {"roe": v}
                 if data_map:
-                    break  # 找到最近一期即可
+                    break  #Just find the last issue.
         except Exception:
             continue
 

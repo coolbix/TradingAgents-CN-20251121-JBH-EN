@@ -1,28 +1,27 @@
-"""
-缓存管理模块
+"""Cache Management Module
 
-支持多种缓存策略：
-- 文件缓存（默认）- 简单稳定，不依赖外部服务
-- 数据库缓存（可选）- MongoDB + Redis，性能更好
-- 自适应缓存（推荐）- 自动选择最佳后端
+Supporting a variety of cache strategies:
+- File cache (default) - simple and stable, not dependent on external services
+- Database cache (optional) - MongoDB + Redis, better performance
+- Self-adapted Cache (Recommended) - Automatically select the best backend
 
-使用方法：
-    from tradingagents.dataflows.cache import get_cache
-    cache = get_cache()  # 自动选择最佳缓存策略
+Methods of use:
+You know, from traffickingagents. dataworks.
+Cache = get cache()# Automatically select the best cache policy
 
-配置缓存策略：
-    export TA_CACHE_STRATEGY=integrated  # 启用集成缓存（MongoDB/Redis）
-    export TA_CACHE_STRATEGY=file        # 使用文件缓存（默认）
+Configure cache policy:
+Export TA CACHE STRATEGY=integrated# Enable Integrated Cache (MongoDB/Redis)
+Report TA CACHE STRATEGY=file# Use file cache (default)
 """
 
 import os
 from typing import Union
 
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
-# 导入文件缓存
+#Import File Cache
 try:
     from .file_cache import StockDataCache
     FILE_CACHE_AVAILABLE = True
@@ -30,7 +29,7 @@ except ImportError:
     StockDataCache = None
     FILE_CACHE_AVAILABLE = False
 
-# 导入数据库缓存
+#Import Database Cache
 try:
     from .db_cache import DatabaseCacheManager
     DB_CACHE_AVAILABLE = True
@@ -38,7 +37,7 @@ except ImportError:
     DatabaseCacheManager = None
     DB_CACHE_AVAILABLE = False
 
-# 导入自适应缓存
+#Import adapted to cache
 try:
     from .adaptive import AdaptiveCacheSystem
     ADAPTIVE_CACHE_AVAILABLE = True
@@ -46,7 +45,7 @@ except ImportError:
     AdaptiveCacheSystem = None
     ADAPTIVE_CACHE_AVAILABLE = False
 
-# 导入集成缓存
+#Import Integration Cache
 try:
     from .integrated import IntegratedCacheManager
     INTEGRATED_CACHE_AVAILABLE = True
@@ -54,7 +53,7 @@ except ImportError:
     IntegratedCacheManager = None
     INTEGRATED_CACHE_AVAILABLE = False
 
-# 导入应用缓存适配器（函数，非类）
+#Import application cache adapter (function, non-class)
 try:
     from .app_adapter import get_basics_from_cache, get_market_quote_dataframe
     APP_CACHE_AVAILABLE = True
@@ -63,7 +62,7 @@ except ImportError:
     get_market_quote_dataframe = None
     APP_CACHE_AVAILABLE = False
 
-# 导入 MongoDB 缓存适配器
+#Import MongoDB cache adapter
 try:
     from .mongodb_cache_adapter import MongoDBCacheAdapter
     MONGODB_CACHE_ADAPTER_AVAILABLE = True
@@ -71,28 +70,27 @@ except ImportError:
     MongoDBCacheAdapter = None
     MONGODB_CACHE_ADAPTER_AVAILABLE = False
 
-# 全局缓存实例
+#Global Cache instance
 _cache_instance = None
 
-# 默认缓存策略（改为 integrated，优先使用 MongoDB/Redis 缓存）
+#Default Cache Policy (replaced as integrad, prioritize MongoDB/Redis Cache)
 DEFAULT_CACHE_STRATEGY = os.getenv("TA_CACHE_STRATEGY", "integrated")
 
 def get_cache() -> Union[StockDataCache, IntegratedCacheManager]:
-    """
-    获取缓存实例（统一入口）
+    """Get Cache Examples (Unified Access)
 
-    根据环境变量 TA_CACHE_STRATEGY 选择缓存策略：
-    - "file" (默认): 使用文件缓存
-    - "integrated": 使用集成缓存（自动选择 MongoDB/Redis/File）
-    - "adaptive": 使用自适应缓存（同 integrated）
+Select the cache policy based on the environment variable TA Cache STRATEGY:
+- "file" (default): use file cache
+- "integraded": use integrated cache (auto-selection MongoDB/Redis/File)
+- "adaptive": use self-adapted caches
 
-    环境变量设置：
-        export TA_CACHE_STRATEGY=integrated  # Linux/Mac
-        set TA_CACHE_STRATEGY=integrated     # Windows
+Environment variable settings:
+#Linux/Mac
+# Windows
 
-    返回：
-        StockDataCache 或 IntegratedCacheManager 实例
-    """
+Return:
+StockDataCache or IntegradCacheManager
+"""
     global _cache_instance
 
     if _cache_instance is None:
@@ -100,41 +98,41 @@ def get_cache() -> Union[StockDataCache, IntegratedCacheManager]:
             if INTEGRATED_CACHE_AVAILABLE:
                 try:
                     _cache_instance = IntegratedCacheManager()
-                    logger.info("✅ 使用集成缓存系统（支持 MongoDB/Redis/File 自动选择）")
+                    logger.info("✅ Use an integrated cache system (supports MongoDB/Redis/File automatic selection)")
                 except Exception as e:
-                    logger.warning(f"⚠️ 集成缓存初始化失败，降级到文件缓存: {e}")
+                    logger.warning(f"Initialization of integrated cache failed, down to file cache:{e}")
                     _cache_instance = StockDataCache()
             else:
-                logger.warning("⚠️ 集成缓存不可用，使用文件缓存")
+                logger.warning("Integrated cache is not available, using file cache")
                 _cache_instance = StockDataCache()
         else:
             _cache_instance = StockDataCache()
-            logger.info("✅ 使用文件缓存系统")
+            logger.info("Use file cache system")
 
     return _cache_instance
 
 __all__ = [
-    # 统一入口（推荐使用）
+    #Unified entrance (recommended)
     'get_cache',
 
-    # 缓存类（供高级用户直接使用）
+    #Cache class (for direct use by advanced users)
     'StockDataCache',
     'IntegratedCacheManager',
     'DatabaseCacheManager',
     'AdaptiveCacheSystem',
 
-    # 可用性标志
+    #Signs for usability
     'FILE_CACHE_AVAILABLE',
     'DB_CACHE_AVAILABLE',
     'ADAPTIVE_CACHE_AVAILABLE',
     'INTEGRATED_CACHE_AVAILABLE',
 
-    # 应用缓存适配器
+    #Apply cache adapter
     'get_basics_from_cache',
     'get_market_quote_dataframe',
     'APP_CACHE_AVAILABLE',
 
-    # MongoDB 缓存适配器
+    #MongoDB cache adapter
     'MongoDBCacheAdapter',
     'MONGODB_CACHE_ADAPTER_AVAILABLE',
 ]

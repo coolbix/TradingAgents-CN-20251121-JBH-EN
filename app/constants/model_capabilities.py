@@ -1,13 +1,12 @@
-"""
-模型能力分级系统
+"""Model capability hierarchy
 
-定义模型的能力等级、适用角色、特性标签等元数据，
-用于智能匹配分析深度和模型选择。
+The definition of the capabilities level of the model, the applicable role, the feature label, etc.
+For intelligent matching depth analysis and model selection.
 
-🆕 聚合渠道支持：
-- 支持 302.AI、OpenRouter、One API 等聚合渠道
-- 聚合渠道的模型名称格式：{provider}/{model}（如 openai/gpt-4）
-- 系统会自动映射到原厂模型的能力配置
+Convergence channels support:
+- Support for the 302.AI, OpenRouter, One API, etc.
+- Model name format for polymer channels:   FT 0 / FT 1  (e.g. openai/gpt-4)
+- The system will automatically map the capability configuration of the original plant model.
 """
 
 from enum import IntEnum, Enum
@@ -15,32 +14,32 @@ from typing import Dict, List, Any, Tuple
 
 
 class ModelCapabilityLevel(IntEnum):
-    """模型能力等级（1-5级）"""
-    BASIC = 1          # 基础：适合1-2级分析，轻量快速
-    STANDARD = 2       # 标准：适合1-3级分析，日常使用
-    ADVANCED = 3       # 高级：适合1-4级分析，复杂推理
-    PROFESSIONAL = 4   # 专业：适合1-5级分析，专业级分析
-    FLAGSHIP = 5       # 旗舰：适合所有级别，最强能力
+    """Model capabilities level (1-5)"""
+    BASIC = 1          #Base: appropriate for level 1-2 analysis, light speed
+    STANDARD = 2       #Standard: appropriate for level 1-3 analysis, daily use
+    ADVANCED = 3       #Advanced: suitable for level 1-4 analysis, complex reasoning
+    PROFESSIONAL = 4   #Professional: appropriate for Level 1-5 analysis, Professional level analysis
+    FLAGSHIP = 5       #Flagships: fit for all levels, most powerful
 
 
 class ModelRole(str, Enum):
-    """模型角色类型"""
-    QUICK_ANALYSIS = "quick_analysis"  # 快速分析（数据收集、工具调用）
-    DEEP_ANALYSIS = "deep_analysis"    # 深度分析（推理、决策）
-    BOTH = "both"                      # 两者都适合
+    """Model Role Type"""
+    QUICK_ANALYSIS = "quick_analysis"  #Rapid analysis (data collection, tool call)
+    DEEP_ANALYSIS = "deep_analysis"    #In-depth analysis (adjection, decision-making)
+    BOTH = "both"                      #Both fit.
 
 
 class ModelFeature(str, Enum):
-    """模型特性标签"""
-    TOOL_CALLING = "tool_calling"      # 支持工具调用（必需）
-    LONG_CONTEXT = "long_context"      # 支持长上下文
-    REASONING = "reasoning"            # 强推理能力
-    VISION = "vision"                  # 支持视觉输入
-    FAST_RESPONSE = "fast_response"    # 快速响应
-    COST_EFFECTIVE = "cost_effective"  # 成本效益高
+    """Model characterization label"""
+    TOOL_CALLING = "tool_calling"      #Support tool call (required)
+    LONG_CONTEXT = "long_context"      #Support context
+    REASONING = "reasoning"            #Strong reasoning.
+    VISION = "vision"                  #Support visual input
+    FAST_RESPONSE = "fast_response"    #Quick Response
+    COST_EFFECTIVE = "cost_effective"  #Cost-effective
 
 
-# 能力等级描述
+#Capability Level Description
 CAPABILITY_DESCRIPTIONS = {
     1: "基础模型 - 适合快速分析和简单任务，响应快速，成本低",
     2: "标准模型 - 适合日常分析和常规任务，平衡性能和成本",
@@ -50,7 +49,7 @@ CAPABILITY_DESCRIPTIONS = {
 }
 
 
-# 分析深度要求的最低能力等级
+#Minimum level of capability required to analyse depth
 ANALYSIS_DEPTH_REQUIREMENTS = {
     "快速": {
         "min_capability": 1,
@@ -90,9 +89,9 @@ ANALYSIS_DEPTH_REQUIREMENTS = {
 }
 
 
-# 常见模型的默认能力配置（用于初始化和参考）
+#Default capability configuration of common models (for initialization and reference)
 DEFAULT_MODEL_CAPABILITIES: Dict[str, Dict[str, Any]] = {
-    # ==================== 阿里百炼 (DashScope) ====================
+    #== sync, corrected by elderman == @elder man
     "qwen-turbo": {
         "capability_level": 1,
         "suitable_roles": [ModelRole.QUICK_ANALYSIS],
@@ -194,7 +193,7 @@ DEFAULT_MODEL_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "description": "DeepSeek Chat，性价比高"
     },
     
-    # ==================== 百度文心 (Qianfan) ====================
+    #== sync, corrected by elderman == @elder man
     "ernie-3.5": {
         "capability_level": 2,
         "suitable_roles": [ModelRole.BOTH],
@@ -220,7 +219,7 @@ DEFAULT_MODEL_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "description": "文心一言4.0 Turbo，旗舰版本"
     },
     
-    # ==================== 智谱AI (GLM) ====================
+    #== sync, corrected by elderman == @elder man
     "glm-3-turbo": {
         "capability_level": 1,
         "suitable_roles": [ModelRole.QUICK_ANALYSIS],
@@ -322,7 +321,7 @@ DEFAULT_MODEL_CAPABILITIES: Dict[str, Dict[str, Any]] = {
         "description": "Gemini 2.5 Flash Lite，轻量预览版"
     },
 
-    # ==================== 月之暗面 (Moonshot) ====================
+    #== sync, corrected by elderman == @elder man
     "moonshot-v1-8k": {
         "capability_level": 2,
         "suitable_roles": [ModelRole.BOTH],
@@ -351,7 +350,7 @@ DEFAULT_MODEL_CAPABILITIES: Dict[str, Dict[str, Any]] = {
 
 
 def get_model_capability_badge(level: int) -> Dict[str, str]:
-    """获取能力等级徽章样式"""
+    """Capability Level Emblem Style"""
     badges = {
         1: {"text": "基础", "color": "#909399", "icon": "⚡"},
         2: {"text": "标准", "color": "#409EFF", "icon": "📊"},
@@ -363,7 +362,7 @@ def get_model_capability_badge(level: int) -> Dict[str, str]:
 
 
 def get_role_badge(role: ModelRole) -> Dict[str, str]:
-    """获取角色徽章样式"""
+    """Get Role Emblem Styles"""
     badges = {
         ModelRole.QUICK_ANALYSIS: {"text": "快速分析", "color": "success", "icon": "⚡"},
         ModelRole.DEEP_ANALYSIS: {"text": "深度推理", "color": "warning", "icon": "🧠"},
@@ -373,7 +372,7 @@ def get_role_badge(role: ModelRole) -> Dict[str, str]:
 
 
 def get_feature_badge(feature: ModelFeature) -> Dict[str, str]:
-    """获取特性徽章样式"""
+    """Fetch feature badge style"""
     badges = {
         ModelFeature.TOOL_CALLING: {"text": "工具调用", "color": "info", "icon": "🔧"},
         ModelFeature.LONG_CONTEXT: {"text": "长上下文", "color": "success", "icon": "📚"},
@@ -385,9 +384,9 @@ def get_feature_badge(feature: ModelFeature) -> Dict[str, str]:
     return badges.get(feature, {"text": str(feature), "color": "info", "icon": "✨"})
 
 
-# ==================== 聚合渠道配置 ====================
+#== sync, corrected by elderman == @elder man
 
-# 聚合渠道的默认配置
+#Default configuration of the polymer channel
 AGGREGATOR_PROVIDERS = {
     "302ai": {
         "display_name": "302.AI",
@@ -395,7 +394,7 @@ AGGREGATOR_PROVIDERS = {
         "website": "https://302.ai",
         "api_doc_url": "https://doc.302.ai",
         "default_base_url": "https://api.302.ai/v1",
-        "model_name_format": "{provider}/{model}",  # 如: openai/gpt-4
+        "model_name_format": "{provider}/{model}",  #Example: openai/gpt-4
         "supported_providers": ["openai", "anthropic", "google", "deepseek", "qwen"]
     },
     "openrouter": {
@@ -412,8 +411,8 @@ AGGREGATOR_PROVIDERS = {
         "description": "One API 开源聚合平台",
         "website": "https://github.com/songquanpeng/one-api",
         "api_doc_url": "https://github.com/songquanpeng/one-api",
-        "default_base_url": "http://localhost:3000/v1",  # 需要用户自行部署
-        "model_name_format": "{model}",  # One API 通常不需要前缀
+        "default_base_url": "http://localhost:3000/v1",  #Users are required to deploy themselves
+        "model_name_format": "{model}",  #One API usually doesn't need a prefix.
         "supported_providers": ["openai", "anthropic", "google", "azure", "claude"]
     },
     "newapi": {
@@ -429,28 +428,26 @@ AGGREGATOR_PROVIDERS = {
 
 
 def is_aggregator_model(model_name: str) -> bool:
-    """
-    判断是否为聚合渠道模型名称
+    """Determines if it's a polymer channel model name
 
-    Args:
-        model_name: 模型名称
+Args:
+Model name: Model name
 
-    Returns:
-        是否为聚合渠道模型
-    """
+Returns:
+Whether it's a polymer channel model
+"""
     return "/" in model_name
 
 
 def parse_aggregator_model(model_name: str) -> Tuple[str, str]:
-    """
-    解析聚合渠道模型名称
+    """Parsing polymer channel model names
 
-    Args:
-        model_name: 模型名称（如 openai/gpt-4）
+Args:
+Model name: Model name (e. g. openai/gpt-4)
 
-    Returns:
-        (provider, model) 元组
-    """
+Returns:
+(provider, model)
+"""
     if "/" in model_name:
         parts = model_name.split("/", 1)
         return parts[0], parts[1]

@@ -360,7 +360,7 @@ response = llm_with_tools.invoke([
 
 ## 相关链接
 
-- [阿里百炼官网](https://dashscope.aliyun.com/)
+- [阿里百炼官网](https://dashscope-int.aliyun.com/)
 - [百炼控制台](https://dashscope.console.aliyun.com/)
 - [API文档](https://help.aliyun.com/zh/dashscope/)
 - [价格说明](https://help.aliyun.com/zh/dashscope/product-overview/billing-overview)

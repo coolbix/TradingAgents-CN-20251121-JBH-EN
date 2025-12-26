@@ -1,6 +1,5 @@
-"""
-新闻过滤集成模块
-将新闻过滤器集成到现有的新闻获取流程中
+"""News filter integration module
+Integration of news filters into existing news acquisition processes
 """
 
 import pandas as pd
@@ -11,202 +10,196 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 def integrate_news_filtering(original_get_stock_news_em):
-    """
-    装饰器：为get_stock_news_em函数添加新闻过滤功能
-    
-    Args:
-        original_get_stock_news_em: 原始的get_stock_news_em函数
-        
-    Returns:
-        包装后的函数，具有新闻过滤功能
-    """
+    """Decorators: Add news filter to the Get stock news em function
+
+Args:
+Original get stock news em: original Get stock news em function
+
+Returns:
+Packed Functions with News Filters
+"""
     def filtered_get_stock_news_em(symbol: str, enable_filter: bool = True, min_score: float = 30, 
                                   use_semantic: bool = False, use_local_model: bool = False) -> pd.DataFrame:
-        """
-        增强版get_stock_news_em，集成新闻过滤功能
+        """Enhanced set stock news em, integrated news filtering
+
+Args:
+symbol: stock code
+enabled file: Enable news filters
+min score: Minimum relevance rating threshold
+use semantic: whether semantic similarity is used to filter
+use local model: using local classification models
+
+Returns:
+DataFrame: Filtered News Data
+"""
+        logger.info(f"[news filter integration] Start getting{symbol}News, filter switch:{enable_filter}")
         
-        Args:
-            symbol: 股票代码
-            enable_filter: 是否启用新闻过滤
-            min_score: 最低相关性评分阈值
-            use_semantic: 是否使用语义相似度过滤
-            use_local_model: 是否使用本地分类模型
-            
-        Returns:
-            pd.DataFrame: 过滤后的新闻数据
-        """
-        logger.info(f"[新闻过滤集成] 开始获取 {symbol} 的新闻，过滤开关: {enable_filter}")
-        
-        # 调用原始函数获取新闻
+        #Call original to get news
         start_time = datetime.now()
         try:
             news_df = original_get_stock_news_em(symbol)
             fetch_time = (datetime.now() - start_time).total_seconds()
             
             if news_df.empty:
-                logger.warning(f"[新闻过滤集成] 原始函数未获取到 {symbol} 的新闻数据")
+                logger.warning(f"[New filter integration] Original function not accessed{symbol}Public information data")
                 return news_df
             
-            logger.info(f"[新闻过滤集成] 原始新闻获取成功: {len(news_df)}条，耗时: {fetch_time:.2f}秒")
+            logger.info(f"[news filter integration] Original news access success:{len(news_df)}Article, time-consuming:{fetch_time:.2f}sec")
             
-            # 如果不启用过滤，直接返回原始数据
+            #If filters are not enabled, return the original data directly
             if not enable_filter:
-                logger.info(f"[新闻过滤集成] 过滤功能已禁用，返回原始新闻数据")
+                logger.info(f"[new filter integration] Filter is disabled and returned to raw news data")
                 return news_df
             
-            # 启用新闻过滤
+            #Enable news filtering
             filter_start_time = datetime.now()
             
             try:
-                # 导入过滤器
+                #Import Filter
                 from tradingagents.utils.enhanced_news_filter import create_enhanced_news_filter
                 
-                # 创建过滤器
+                #Create Filter
                 news_filter = create_enhanced_news_filter(
                     symbol, 
                     use_semantic=use_semantic, 
                     use_local_model=use_local_model
                 )
                 
-                # 执行过滤
+                #Execute Filter
                 filtered_df = news_filter.filter_news_enhanced(news_df, min_score=min_score)
                 
                 filter_time = (datetime.now() - filter_start_time).total_seconds()
                 
-                # 记录过滤统计
+                #Record filter statistics
                 original_count = len(news_df)
                 filtered_count = len(filtered_df)
                 filter_rate = (original_count - filtered_count) / original_count * 100 if original_count > 0 else 0
                 
-                logger.info(f"[新闻过滤集成] 新闻过滤完成:")
-                logger.info(f"  - 原始新闻: {original_count}条")
-                logger.info(f"  - 过滤后新闻: {filtered_count}条")
-                logger.info(f"  - 过滤率: {filter_rate:.1f}%")
-                logger.info(f"  - 过滤耗时: {filter_time:.2f}秒")
+                logger.info(f"[news filter integration] News filter completed:")
+                logger.info(f"- Raw news:{original_count}Article")
+                logger.info(f"- Post-filter news:{filtered_count}Article")
+                logger.info(f"- Filter rate:{filter_rate:.1f}%")
+                logger.info(f"- Time-consuming filtering:{filter_time:.2f}sec")
                 
                 if not filtered_df.empty:
                     avg_score = filtered_df['final_score'].mean()
                     max_score = filtered_df['final_score'].max()
-                    logger.info(f"  - 平均评分: {avg_score:.1f}")
-                    logger.info(f"  - 最高评分: {max_score:.1f}")
+                    logger.info(f"- Average rating:{avg_score:.1f}")
+                    logger.info(f"- Top rating:{max_score:.1f}")
                 
                 return filtered_df
                 
             except Exception as filter_error:
-                logger.error(f"[新闻过滤集成] 新闻过滤失败: {filter_error}")
-                logger.error(f"[新闻过滤集成] 返回原始新闻数据作为备用")
+                logger.error(f"[news filter integration] News filter failed:{filter_error}")
+                logger.error(f"[news filter integration] Return raw news data as backup")
                 return news_df
                 
         except Exception as fetch_error:
-            logger.error(f"[新闻过滤集成] 原始新闻获取失败: {fetch_error}")
-            return pd.DataFrame()  # 返回空DataFrame
+            logger.error(f"[news filter integration] Original news access failed:{fetch_error}")
+            return pd.DataFrame()  #Return empty DataFrame
     
     return filtered_get_stock_news_em
 
 
 def patch_akshare_utils():
-    """
-    为akshare_utils模块的get_stock_news_em函数添加过滤功能
+    """Add filter function for the Get stock news em function of the kshare utils module
 
-    ⚠️ 已废弃：akshare_utils 模块已被移除，此函数保留仅为向后兼容
-    """
-    logger.warning("[新闻过滤集成] ⚠️ patch_akshare_utils 已废弃：akshare_utils 模块已被移除")
+ Abandoned: akshare utils module has been removed and this function is reserved for backward compatibility only
+"""
+    logger.warning("[newsfiltration integration]  Patch akshare utils > Wasted: akshare utils module has been removed")
 
 
 def create_filtered_realtime_news_function():
-    """
-    创建增强版的实时新闻获取函数
-    """
+    """Create an enhanced real-time news acquisition function
+"""
     def get_filtered_realtime_stock_news(ticker: str, curr_date: str, hours_back: int = 6, 
                                        enable_filter: bool = True, min_score: float = 30) -> str:
-        """
-        增强版实时新闻获取函数，集成新闻过滤
-        
-        Args:
-            ticker: 股票代码
-            curr_date: 当前日期
-            hours_back: 回溯小时数
-            enable_filter: 是否启用新闻过滤
-            min_score: 最低相关性评分阈值
-            
-        Returns:
-            str: 格式化的新闻报告
-        """
-        logger.info(f"[增强实时新闻] 开始获取 {ticker} 的过滤新闻")
+        """Enhanced real-time news acquisition function, integrated news filter
+
+Args:
+ticker: Stock code
+Curr date: Current date
+Hours back: backtrace hours
+enabled file: Enable news filters
+min score: Minimum relevance rating threshold
+
+Returns:
+str: Formatted news reports
+"""
+        logger.info(f"[enhanced real-time news]{ticker}Other Organiser")
         
         try:
-            # 导入原始函数
+            #Import Original Functions
             from tradingagents.dataflows.news.realtime_news import get_realtime_stock_news
 
-            # 调用原始函数获取新闻
+            #Call original to get news
             original_report = get_realtime_stock_news(ticker, curr_date, hours_back)
             
             if not enable_filter:
-                logger.info(f"[增强实时新闻] 过滤功能已禁用，返回原始报告")
+                logger.info(f"[Enhanced Real Time News] Filter disabled, returns original report")
                 return original_report
             
-            # 如果启用过滤且是A股，尝试重新获取并过滤
+            #Try retrieving and filtering if filtering and unit A is enabled
             if any(suffix in ticker for suffix in ['.SH', '.SZ', '.SS', '.XSHE', '.XSHG']) or \
                (not '.' in ticker and ticker.isdigit()):
                 
-                logger.info(f"[增强实时新闻] 检测到A股代码，尝试使用过滤版东方财富新闻")
+                logger.info(f"[enhanced real-time news]")
                 
                 try:
-                    # 注意：akshare_utils 已废弃，使用 AKShareProvider 替代
+                    #Note: kshare utils is abandoned, replaced with AKshareProvider
                     from tradingagents.dataflows.providers.china.akshare import get_akshare_provider
 
-                    # 清理股票代码
+                    #Clear stock code
                     clean_ticker = ticker.replace('.SH', '').replace('.SZ', '').replace('.SS', '')\
                                     .replace('.XSHE', '').replace('.XSHG', '')
 
-                    # 使用 AKShareProvider 获取新闻（如果有相应方法）
+                    #Access to news using AKShareProvider (if available)
                     provider = get_akshare_provider()
-                    # TODO: 需要实现 get_stock_news 方法
+                    #TODO: Need to get stock news method
                     # original_news_df = provider.get_stock_news(clean_ticker)
-                    # 暂时跳过，返回原始报告
-                    logger.warning(f"[增强实时新闻] AKShare新闻功能暂未实现，返回原始报告")
+                    #Skip temporarily, return original report
+                    logger.warning(f"[Enhanced real-time news] AKShare news functionality is not in place, returning to original report")
                     return original_report
                         
                 except Exception as filter_error:
-                    logger.error(f"[增强实时新闻] 新闻过滤失败: {filter_error}")
+                    logger.error(f"News filtering failed:{filter_error}")
                     return original_report
             else:
-                logger.info(f"[增强实时新闻] 非A股代码，返回原始报告")
+                logger.info(f"[Enhanced real-time news] Non-A unit code, return original report")
                 return original_report
                 
         except Exception as e:
-            logger.error(f"[增强实时新闻] 增强新闻获取失败: {e}")
+            logger.error(f"[Enhanced real-time news]{e}")
             return f"❌ 新闻获取失败: {str(e)}"
     
     return get_filtered_realtime_stock_news
 
 
-# 自动应用补丁
+#Automatically apply patches
 def apply_news_filtering_patches():
-    """
-    自动应用新闻过滤补丁
-    """
-    logger.info("[新闻过滤集成] 开始应用新闻过滤补丁...")
+    """Automatically apply news filter patches
+"""
+    logger.info("[news filter integration] Start applying news filter patches...")
     
-    # 1. 增强akshare_utils
+    #1. Enhancement of kshare utils
     patch_akshare_utils()
     
-    # 2. 创建增强版实时新闻函数
+    #2. Create enhanced real-time news functions
     enhanced_function = create_filtered_realtime_news_function()
     
-    logger.info("[新闻过滤集成] ✅ 新闻过滤补丁应用完成")
+    logger.info("[new filter integration] ✅ news filter patch complete")
     
     return enhanced_function
 
 
 if __name__ == "__main__":
-    # 测试集成功能
+    #Test set successful.
     print("=== 测试新闻过滤集成 ===")
     
-    # 应用补丁
+    #Apply Patch
     enhanced_news_function = apply_news_filtering_patches()
     
-    # 测试增强版函数
+    #Test Enhancement Functions
     test_result = enhanced_news_function(
         ticker="600036",
         curr_date="2024-07-28",

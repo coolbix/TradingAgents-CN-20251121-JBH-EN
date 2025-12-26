@@ -6,7 +6,7 @@ from tradingagents.agents import *
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import END, StateGraph, START, MessagesState
 
-# 导入统一日志系统
+#Import Unified Log System
 from tradingagents.utils.logging_init import get_logger
 logger = get_logger("default")
 
@@ -65,7 +65,7 @@ class AgentState(MessagesState):
     ]
     fundamentals_report: Annotated[str, "Report from the Fundamentals Researcher"]
 
-    # 🔧 死循环修复: 工具调用计数器
+    #🔧 Dead circulation repair: tool call counter
     market_tool_call_count: Annotated[int, "Market analyst tool call counter"]
     news_tool_call_count: Annotated[int, "News analyst tool call counter"]
     sentiment_tool_call_count: Annotated[int, "Social media analyst tool call counter"]

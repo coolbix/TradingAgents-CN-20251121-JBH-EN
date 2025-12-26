@@ -1,5 +1,4 @@
-"""
-使用统计 API 路由
+"""Use statistical API route
 """
 
 import logging
@@ -25,13 +24,13 @@ async def get_usage_records(
     limit: int = Query(100, ge=1, le=1000, description="返回记录数"),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """获取使用记录"""
+    """Access to usage records"""
     try:
-        # 解析日期
+        #Parsing Date
         start_dt = datetime.fromisoformat(start_date) if start_date else None
         end_dt = datetime.fromisoformat(end_date) if end_date else None
 
-        # 获取记录
+        #Access to records
         records = await usage_statistics_service.get_usage_records(
             provider=provider,
             model_name=model_name,
@@ -49,7 +48,7 @@ async def get_usage_records(
             }
         }
     except Exception as e:
-        logger.error(f"获取使用记录失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -60,7 +59,7 @@ async def get_usage_statistics(
     model_name: Optional[str] = Query(None, description="模型名称"),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """获取使用统计"""
+    """Access to usage statistics"""
     try:
         stats = await usage_statistics_service.get_usage_statistics(
             days=days,
@@ -74,7 +73,7 @@ async def get_usage_statistics(
             "data": stats.model_dump()
         }
     except Exception as e:
-        logger.error(f"获取使用统计失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -83,7 +82,7 @@ async def get_cost_by_provider(
     days: int = Query(7, ge=1, le=365, description="统计天数"),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """按供应商统计成本"""
+    """Cost by supplier"""
     try:
         cost_data = await usage_statistics_service.get_cost_by_provider(days=days)
 
@@ -93,7 +92,7 @@ async def get_cost_by_provider(
             "data": cost_data
         }
     except Exception as e:
-        logger.error(f"获取成本统计失败: {e}")
+        logger.error(f"Failed to obtain cost statistics:{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -102,7 +101,7 @@ async def get_cost_by_model(
     days: int = Query(7, ge=1, le=365, description="统计天数"),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """按模型统计成本"""
+    """Cost by model"""
     try:
         cost_data = await usage_statistics_service.get_cost_by_model(days=days)
 
@@ -112,7 +111,7 @@ async def get_cost_by_model(
             "data": cost_data
         }
     except Exception as e:
-        logger.error(f"获取成本统计失败: {e}")
+        logger.error(f"Failed to obtain cost statistics:{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -121,7 +120,7 @@ async def get_daily_cost(
     days: int = Query(7, ge=1, le=365, description="统计天数"),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """每日成本统计"""
+    """Daily cost statistics"""
     try:
         cost_data = await usage_statistics_service.get_daily_cost(days=days)
 
@@ -131,7 +130,7 @@ async def get_daily_cost(
             "data": cost_data
         }
     except Exception as e:
-        logger.error(f"获取每日成本失败: {e}")
+        logger.error(f"Obtaining daily costs failed:{e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -140,7 +139,7 @@ async def delete_old_records(
     days: int = Query(90, ge=30, le=365, description="保留天数"),
     current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """删除旧记录"""
+    """Remove old record"""
     try:
         deleted_count = await usage_statistics_service.delete_old_records(days=days)
 
@@ -150,6 +149,6 @@ async def delete_old_records(
             "data": {"deleted_count": deleted_count}
         }
     except Exception as e:
-        logger.error(f"删除旧记录失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=str(e))
 

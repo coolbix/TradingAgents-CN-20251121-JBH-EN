@@ -1,6 +1,5 @@
-"""
-增强的股票筛选服务
-结合数据库优化和传统筛选方式，提供高效的股票筛选功能
+"""Enhanced stock screening services
+Provide efficient stock screening in conjunction with database optimization and traditional selection methods
 """
 
 import logging
@@ -22,13 +21,13 @@ from app.core.database import get_mongo_db
 
 
 class EnhancedScreeningService:
-    """增强的股票筛选服务"""
+    """Enhanced stock screening services"""
 
     def __init__(self):
         self.db_service = get_database_screening_service()
         self.traditional_service = ScreeningService()
 
-        # 支持数据库优化的字段
+        #Fields supporting database optimization
         self.db_supported_fields = set(BASIC_FIELDS_INFO.keys())
 
     async def screen_stocks(
@@ -42,34 +41,33 @@ class EnhancedScreeningService:
         order_by: Optional[List[Dict[str, str]]] = None,
         use_database_optimization: bool = True
     ) -> Dict[str, Any]:
-        """
-        智能股票筛选
+        """Smart stock filter
 
-        Args:
-            conditions: 筛选条件列表
-            market: 市场
-            date: 交易日期
-            adj: 复权方式
-            limit: 返回数量限制
-            offset: 偏移量
-            order_by: 排序条件
-            use_database_optimization: 是否使用数据库优化
+Args:
+Conditions: Filter Condition List
+Market:
+date: transaction date
+Adj: By way of reinstatement
+Limited number of returns
+offset: offset
+order by: Sort Conditions
+use database optimisation: using database optimization
 
-        Returns:
-            Dict: 筛选结果
-        """
+Returns:
+Dict: Filter Results
+"""
         start_time = time.time()
 
         try:
-            # 分析筛选条件
+            #Analyse filter conditions
             analysis = self._analyze_conditions(conditions)
 
-            # 决定使用哪种筛选方式
+            #Decision on which selection method to use
             if (use_database_optimization and
                 analysis["can_use_database"] and
                 not analysis["needs_technical_indicators"]):
 
-                # 使用数据库优化筛选
+                #Use database optimization filter
                 result = await self._screen_with_database(
                     conditions, limit, offset, order_by
                 )
@@ -77,18 +75,18 @@ class EnhancedScreeningService:
                 source = "mongodb"
 
             else:
-                # 使用传统筛选方式
+                #Use traditional selection methods
                 result = await self._screen_with_traditional_method(
                     conditions, market, date, adj, limit, offset, order_by
                 )
                 optimization_used = "traditional"
                 source = "api"
 
-            # 提取 items/total
+            #extract
             items = result[0] if isinstance(result, tuple) else result.get("items", [])
             total = result[1] if isinstance(result, tuple) else result.get("total", 0)
 
-            # 若使用数据库优化路径，则从数据库行情表进行富集（避免请求时外部调用）
+            #If you use the database to optimize the path, enrich from the database profile (avoid external calls when requested)
             if source == "mongodb" and items:
                 try:
                     db = get_mongo_db()
@@ -113,19 +111,19 @@ class EnhancedScreeningService:
                             if q.get("amount") is not None:
                                 it["amount"] = q.get("amount")
                 except Exception as enrich_err:
-                    logger.warning(f"实时行情富集失败（已忽略）: {enrich_err}")
+                    logger.warning(f"Real-time venture wealth failed (neglected):{enrich_err}")
 
-            # 为筛选结果添加实时PE/PB
+            #Add real time PE/PB to filter results
             if items:
                 try:
                     items = await self._enrich_results_with_realtime_metrics(items)
                 except Exception as enrich_err:
-                    logger.warning(f"实时PE/PB富集失败（已忽略）: {enrich_err}")
+                    logger.warning(f"Real-time PE/PB enrichment failed (neglected):{enrich_err}")
 
-            # 计算耗时
+            #Time-consuming calculation
             took_ms = int((time.time() - start_time) * 1000)
 
-            # 返回结果
+            #Return Result
             return {
                 "total": total,
                 "items": items,
@@ -136,7 +134,7 @@ class EnhancedScreeningService:
             }
 
         except Exception as e:
-            logger.error(f"❌ 股票筛选失败: {e}")
+            logger.error(f"The selection failed:{e}")
             took_ms = int((time.time() - start_time) * 1000)
 
             return {
@@ -151,7 +149,7 @@ class EnhancedScreeningService:
     def _analyze_conditions(self, conditions: List[ScreeningCondition]) -> Dict[str, Any]:
         """Delegate condition analysis to utils."""
         analysis = _analyze_conditions_util(conditions)
-        logger.info(f"📊 筛选条件分析: {analysis}")
+        logger.info(f"Screening condition analysis:{analysis}")
         return analysis
 
     async def _screen_with_database(
@@ -161,8 +159,8 @@ class EnhancedScreeningService:
         offset: int,
         order_by: Optional[List[Dict[str, str]]]
     ) -> Tuple[List[Dict[str, Any]], int]:
-        """使用数据库优化筛选"""
-        logger.info("🚀 使用数据库优化筛选")
+        """Use database optimization filter"""
+        logger.info("🚀 Use database optimization filter")
 
         return await self.db_service.screen_stocks(
             conditions=conditions,
@@ -181,13 +179,13 @@ class EnhancedScreeningService:
         offset: int,
         order_by: Optional[List[Dict[str, str]]]
     ) -> Dict[str, Any]:
-        """使用传统筛选方法"""
-        logger.info("🔄 使用传统筛选方法")
+        """Use of traditional screening methods"""
+        logger.info("Using traditional screening methods")
 
-        # 转换条件格式为传统服务支持的格式
+        #Convert conditional format to traditional service support format
         traditional_conditions = self._convert_conditions_to_traditional_format(conditions)
 
-        # 创建筛选参数
+        #Create filter parameters
         params = ScreeningParams(
             market=market,
             date=date,
@@ -197,7 +195,7 @@ class EnhancedScreeningService:
             order_by=order_by
         )
 
-        # 执行传统筛选
+        #Implement traditional filtering
         result = self.traditional_service.run(traditional_conditions, params)
 
         return result
@@ -210,43 +208,41 @@ class EnhancedScreeningService:
         return _convert_to_traditional_util(conditions)
 
     async def _enrich_results_with_realtime_metrics(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        为筛选结果添加PE/PB（使用静态数据，避免性能问题）
+        """Add PE/PB to filter results (use static data to avoid performance problems)
 
-        Args:
-            items: 筛选结果列表
+Args:
+Organisation
 
-        Returns:
-            List[Dict]: 富集后的结果列表
-        """
-        # 🔥 股票筛选场景：直接使用 stock_basic_info 中的静态 PE/PB
-        # 原因：批量计算动态 PE 会导致严重的性能问题（每个股票都要查询多个集合）
-        # 静态 PE 基于最近一个交易日的收盘价，对于筛选场景已经足够准确
+Returns:
+List [Dict]: List of results after enrichment
+"""
+        # Stock screening scene: Directly using static PE/PB in stock basic info
+        #Reason: Bulk calculation dynamics PE can cause serious performance problems (each stock is asked for multiple pools)
+        #Static PE based on the closing price of the last trading date, is accurate enough for the screening scene.
 
-        logger.info(f"📊 [筛选结果富集] 使用静态PE/PB（避免性能问题），共 {len(items)} 只股票")
+        logger.info(f" [Screen Results Enrichment] Using Static PE/PB (avoiding performance problems),{len(items)}Only stocks")
 
-        # 注意：items 中的 PE/PB 已经来自 stock_basic_info，这里不需要额外处理
-        # 如果未来需要实时 PE，可以在单个股票详情页面单独计算
+        #Note: PE/PB of the items has come from stock basic info, which does not require additional processing
+        #If real-time PE is needed in the future, it can be calculated separately on the individual stock details page
 
         return items
 
     async def get_field_info(self, field: str) -> Optional[Dict[str, Any]]:
-        """
-        获取字段信息
+        """Get Field Information
 
-        Args:
-            field: 字段名
+Args:
+Field: First Name
 
-        Returns:
-            Dict: 字段信息
-        """
+Returns:
+Dict: Field Information
+"""
         if field in BASIC_FIELDS_INFO:
             field_info = BASIC_FIELDS_INFO[field]
 
-            # 获取统计信息
+            #Access to statistical information
             stats = await self.db_service.get_field_statistics(field)
 
-            # 获取可选值（对于枚举类型字段）
+            #Get an optional value (for an itemized type field)
             available_values = None
             if field_info.data_type == "string":
                 available_values = await self.db_service.get_available_values(field)
@@ -266,7 +262,7 @@ class EnhancedScreeningService:
         return None
 
     async def get_all_supported_fields(self) -> List[Dict[str, Any]]:
-        """获取所有支持的字段信息"""
+        """Get all supported field information"""
         fields = []
 
         for field_name in BASIC_FIELDS_INFO.keys():
@@ -277,15 +273,14 @@ class EnhancedScreeningService:
         return fields
 
     async def validate_conditions(self, conditions: List[ScreeningCondition]) -> Dict[str, Any]:
-        """
-        验证筛选条件
+        """Verify Filter Conditions
 
-        Args:
-            conditions: 筛选条件列表
+Args:
+Conditions: Filter Condition List
 
-        Returns:
-            Dict: 验证结果
-        """
+Returns:
+Dict: Verify Results
+"""
         validation_result = {
             "valid": True,
             "errors": [],
@@ -297,7 +292,7 @@ class EnhancedScreeningService:
             operator = condition.operator
             value = condition.value
 
-            # 检查字段是否支持
+            #Checks if fields support
             if field not in BASIC_FIELDS_INFO:
                 validation_result["errors"].append(
                     f"条件 {i+1}: 不支持的字段 '{field}'"
@@ -307,14 +302,14 @@ class EnhancedScreeningService:
 
             field_info = BASIC_FIELDS_INFO[field]
 
-            # 检查操作符是否支持
+            #Check if operator supports
             if operator not in [op.value for op in field_info.supported_operators]:
                 validation_result["errors"].append(
                     f"条件 {i+1}: 字段 '{field}' 不支持操作符 '{operator}'"
                 )
                 validation_result["valid"] = False
 
-            # 检查值的类型和范围
+            #Type and range of checked values
             if field_info.data_type == "number":
                 if operator == "between":
                     if not isinstance(value, list) or len(value) != 2:
@@ -336,12 +331,12 @@ class EnhancedScreeningService:
         return validation_result
 
 
-# 全局服务实例
+#Examples of global services
 _enhanced_screening_service: Optional[EnhancedScreeningService] = None
 
 
 def get_enhanced_screening_service() -> EnhancedScreeningService:
-    """获取增强筛选服务实例"""
+    """Example of accessing enhanced screening services"""
     global _enhanced_screening_service
     if _enhanced_screening_service is None:
         _enhanced_screening_service = EnhancedScreeningService()

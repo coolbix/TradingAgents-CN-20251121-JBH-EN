@@ -1,6 +1,5 @@
-"""
-ChromaDB 统一配置模块
-支持 Windows 10/11 和其他操作系统的自动适配
+"""ChromaDB Unified Configuration Module
+Support automatic adaptation of Windows 10/11 and other operating systems
 """
 import os
 import platform
@@ -9,23 +8,22 @@ from chromadb.config import Settings
 
 
 def is_windows_11() -> bool:
-    """
-    检测是否为 Windows 11
-    
-    Returns:
-        bool: 如果是 Windows 11 返回 True，否则返回 False
-    """
+    """Test for Windows 11
+
+Returns:
+Bool: If Windows 11 returns True, otherwise returns False
+"""
     if platform.system() != "Windows":
         return False
     
-    # Windows 11 的版本号通常是 10.0.22000 或更高
+    #Windows 11's version number is usually 10.22,000 or higher.
     version = platform.version()
     try:
-        # 提取版本号，格式通常是 "10.0.26100"
+        #Ripping version number, usually in "10.0.26100."
         version_parts = version.split('.')
         if len(version_parts) >= 3:
             build_number = int(version_parts[2])
-            # Windows 11 的构建号从 22000 开始
+            #Windows 11 build code from 22000
             return build_number >= 22000
     except (ValueError, IndexError):
         pass
@@ -34,20 +32,19 @@ def is_windows_11() -> bool:
 
 
 def get_win10_chromadb_client():
-    """
-    获取 Windows 10 兼容的 ChromaDB 客户端
-    
-    Returns:
-        chromadb.Client: ChromaDB 客户端实例
-    """
+    """Get Windows 10 compatible ChromaDB client
+
+Returns:
+chromadb. Clinic: ChromaDB client example
+"""
     settings = Settings(
         allow_reset=True,
         anonymized_telemetry=False,
         is_persistent=False,
-        # Windows 10 特定配置
+        #Windows 10 Specific Configuration
         chroma_db_impl="duckdb+parquet",
         chroma_api_impl="chromadb.api.segment.SegmentAPI",
-        # 使用临时目录避免权限问题
+        #Use a temporary directory to avoid privileges
         persist_directory=None
     )
     
@@ -55,7 +52,7 @@ def get_win10_chromadb_client():
         client = chromadb.Client(settings)
         return client
     except Exception as e:
-        # 降级到最基本配置
+        #Down to Minimum Configuration
         basic_settings = Settings(
             allow_reset=True,
             is_persistent=False
@@ -64,55 +61,53 @@ def get_win10_chromadb_client():
 
 
 def get_win11_chromadb_client():
-    """
-    获取 Windows 11 优化的 ChromaDB 客户端
-    
-    Returns:
-        chromadb.Client: ChromaDB 客户端实例
-    """
-    # Windows 11 对 ChromaDB 支持更好，可以使用更现代的配置
+    """Get Windows 11 Optimized ChromaDB Client
+
+Returns:
+chromadb. Clinic: ChromaDB client example
+"""
+    #Windows 11 Better support for ChromaDB, using a more modern configuration
     settings = Settings(
         allow_reset=True,
-        anonymized_telemetry=False,  # 禁用遥测避免 posthog 错误
+        anonymized_telemetry=False,  #Disable telemetry to avoid posthog error
         is_persistent=False,
-        # Windows 11 可以使用默认实现，性能更好
+        #Windows 11 can be achieved by default and performance is better
         chroma_db_impl="duckdb+parquet",
         chroma_api_impl="chromadb.api.segment.SegmentAPI"
-        # 移除 persist_directory=None，让它使用默认值
+        #Remove paper directory=None to use the default value
     )
     
     try:
         client = chromadb.Client(settings)
         return client
     except Exception as e:
-        # 如果还有问题，使用最简配置
+        #If there's any problem, use the simplest configuration.
         minimal_settings = Settings(
             allow_reset=True,
-            anonymized_telemetry=False,  # 关键：禁用遥测
+            anonymized_telemetry=False,  #Critical: Disable telemetry
             is_persistent=False
         )
         return chromadb.Client(minimal_settings)
 
 
 def get_optimal_chromadb_client():
-    """
-    根据操作系统自动选择最优 ChromaDB 配置
-    
-    Returns:
-        chromadb.Client: ChromaDB 客户端实例
-    """
+    """Automatically select the preferred ChromaDB configuration from the operating system
+
+Returns:
+chromadb. Clinic: ChromaDB client example
+"""
     system = platform.system()
     
     if system == "Windows":
-        # 使用更准确的 Windows 11 检测
+        #Use more accurate Windows 11 testing
         if is_windows_11():
-            # Windows 11 或更新版本
+            #Windows 11 or update
             return get_win11_chromadb_client()
         else:
-            # Windows 10 或更老版本，使用兼容配置
+            #Windows 10 or older, use compatible configuration
             return get_win10_chromadb_client()
     else:
-        # 非 Windows 系统，使用标准配置
+        #Non Windows, using standard configuration
         settings = Settings(
             allow_reset=True,
             anonymized_telemetry=False,
@@ -121,7 +116,7 @@ def get_optimal_chromadb_client():
         return chromadb.Client(settings)
 
 
-# 导出配置
+#Export Configuration
 __all__ = [
     'get_optimal_chromadb_client',
     'get_win10_chromadb_client',

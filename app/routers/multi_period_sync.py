@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-多周期数据同步API
-提供日线、周线、月线数据的同步管理接口
+"""Multi-cycle Data Sync API
+Synchronized management interface for dayline, weekline, moonline data
 """
 import logging
 from datetime import datetime
@@ -17,7 +16,7 @@ router = APIRouter(prefix="/api/multi-period-sync", tags=["多周期同步"])
 
 
 class MultiPeriodSyncRequest(BaseModel):
-    """多周期同步请求"""
+    """Multi-cycle synchronization requests"""
     symbols: Optional[List[str]] = Field(None, description="股票代码列表，None表示所有股票")
     periods: Optional[List[str]] = Field(["daily"], description="周期列表 (daily/weekly/monthly)")
     data_sources: Optional[List[str]] = Field(["tushare", "akshare", "baostock"], description="数据源列表")
@@ -27,7 +26,7 @@ class MultiPeriodSyncRequest(BaseModel):
 
 
 class MultiPeriodSyncResponse(BaseModel):
-    """多周期同步响应"""
+    """Multi-cycle simultaneous response"""
     success: bool
     message: str
     data: Optional[Dict[str, Any]] = None
@@ -38,13 +37,12 @@ async def start_multi_period_sync(
     request: MultiPeriodSyncRequest,
     background_tasks: BackgroundTasks
 ):
-    """
-    启动多周期数据同步
-    """
+    """Start multi-cycle data sync
+"""
     try:
         service = await get_multi_period_sync_service()
         
-        # 后台任务执行同步
+        #Synchronise Action
         background_tasks.add_task(
             service.sync_multi_period_data,
             symbols=request.symbols,
@@ -65,7 +63,7 @@ async def start_multi_period_sync(
         )
         
     except Exception as e:
-        logger.error(f"启动多周期同步失败: {e}")
+        logger.error(f"Failed to start multi-cycle sync:{e}")
         raise HTTPException(status_code=500, detail=f"启动同步失败: {e}")
 
 
@@ -75,7 +73,7 @@ async def start_daily_sync(
     symbols: Optional[List[str]] = None,
     data_sources: Optional[List[str]] = None
 ):
-    """启动日线数据同步"""
+    """Start SunSync"""
     try:
         service = await get_multi_period_sync_service()
         
@@ -96,7 +94,7 @@ async def start_daily_sync(
         )
         
     except Exception as e:
-        logger.error(f"启动日线同步失败: {e}")
+        logger.error(f"Synchronising {e}")
         raise HTTPException(status_code=500, detail=f"启动日线同步失败: {e}")
 
 
@@ -106,7 +104,7 @@ async def start_weekly_sync(
     symbols: Optional[List[str]] = None,
     data_sources: Optional[List[str]] = None
 ):
-    """启动周线数据同步"""
+    """Start weekline data sync"""
     try:
         service = await get_multi_period_sync_service()
         
@@ -127,7 +125,7 @@ async def start_weekly_sync(
         )
         
     except Exception as e:
-        logger.error(f"启动周线同步失败: {e}")
+        logger.error(f"Synchronising {e}")
         raise HTTPException(status_code=500, detail=f"启动周线同步失败: {e}")
 
 
@@ -137,7 +135,7 @@ async def start_monthly_sync(
     symbols: Optional[List[str]] = None,
     data_sources: Optional[List[str]] = None
 ):
-    """启动月线数据同步"""
+    """Start Moonline Data Sync"""
     try:
         service = await get_multi_period_sync_service()
 
@@ -158,7 +156,7 @@ async def start_monthly_sync(
         )
 
     except Exception as e:
-        logger.error(f"启动月线同步失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"启动月线同步失败: {e}")
 
 
@@ -169,7 +167,7 @@ async def start_all_history_sync(
     periods: Optional[List[str]] = None,
     data_sources: Optional[List[str]] = None
 ):
-    """启动全历史数据同步（从1990年开始）"""
+    """Commencing historical data synchronization (starting in 1990)"""
     try:
         service = await get_multi_period_sync_service()
 
@@ -195,7 +193,7 @@ async def start_all_history_sync(
         )
 
     except Exception as e:
-        logger.error(f"启动全历史同步失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"启动全历史同步失败: {e}")
 
 
@@ -207,13 +205,13 @@ async def start_incremental_sync(
     data_sources: Optional[List[str]] = None,
     days_back: Optional[int] = 30
 ):
-    """启动增量数据同步（最近N天）"""
+    """Commencing incremental data sync (latest N-day)"""
     try:
         from datetime import datetime, timedelta
 
         service = await get_multi_period_sync_service()
 
-        # 计算增量同步的日期范围
+        #Date range for calculating incremental synchronization
         end_date = datetime.now().strftime('%Y-%m-%d')
         start_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y-%m-%d')
 
@@ -240,13 +238,13 @@ async def start_incremental_sync(
         )
 
     except Exception as e:
-        logger.error(f"启动增量同步失败: {e}")
+        logger.error(f"Starting incremental sync failed:{e}")
         raise HTTPException(status_code=500, detail=f"启动增量同步失败: {e}")
 
 
 @router.get("/statistics")
 async def get_sync_statistics():
-    """获取多周期同步统计信息"""
+    """Get multi-cycle synchronized statistical information"""
     try:
         service = await get_multi_period_sync_service()
         stats = await service.get_sync_statistics()
@@ -258,7 +256,7 @@ async def get_sync_statistics():
         }
         
     except Exception as e:
-        logger.error(f"获取同步统计失败: {e}")
+        logger.error(f"Could not close temporary folder: %s{e}")
         raise HTTPException(status_code=500, detail=f"获取统计信息失败: {e}")
 
 
@@ -268,9 +266,8 @@ async def compare_period_data(
     trade_date: str,
     data_source: str = "tushare"
 ):
-    """
-    对比同一股票不同周期的数据
-    """
+    """Comparison of data for different cycles of the same stock
+"""
     try:
         from app.services.historical_data_service import get_historical_data_service
         service = await get_historical_data_service()
@@ -306,13 +303,13 @@ async def compare_period_data(
         }
         
     except Exception as e:
-        logger.error(f"周期数据对比失败 {symbol}: {e}")
+        logger.error(f"Periodic data comparison failed{symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"周期数据对比失败: {e}")
 
 
 @router.get("/supported-periods")
 async def get_supported_periods():
-    """获取支持的数据周期"""
+    """Data cycle for accessing support"""
     return {
         "success": True,
         "data": {
@@ -363,7 +360,7 @@ async def get_supported_periods():
 
 @router.get("/health")
 async def health_check():
-    """健康检查"""
+    """Health screening"""
     try:
         service = await get_multi_period_sync_service()
         stats = await service.get_sync_statistics()
@@ -380,7 +377,7 @@ async def health_check():
         }
         
     except Exception as e:
-        logger.error(f"健康检查失败: {e}")
+        logger.error(f"Health check failed:{e}")
         return {
             "success": False,
             "data": {

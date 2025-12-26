@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-股票数据缓存管理器
-支持本地缓存股票数据，减少API调用，提高响应速度
+"""Stock Data Cache Manager
+Support local cache stock data, reduce API calls and increase response speed
 """
 
 import os
@@ -13,30 +12,29 @@ from pathlib import Path
 from typing import Optional, Dict, Any, Union, List
 import hashlib
 
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
 
 class StockDataCache:
-    """股票数据缓存管理器 - 支持美股和A股数据缓存优化"""
+    """Stock Data Cache Manager - support U.S. and A.S. data cache optimization"""
 
     def __init__(self, cache_dir: str = None):
-        """
-        初始化缓存管理器
+        """Initialise Cache Manager
 
-        Args:
-            cache_dir: 缓存目录路径，默认为 tradingagents/dataflows/data_cache
-        """
+Args:
+Cache dir: Cache Directory Path, default to trapats/dataflows/data cache
+"""
         if cache_dir is None:
-            # 获取当前文件所在目录
+            #Can not open message
             current_dir = Path(__file__).parent
             cache_dir = current_dir / "data_cache"
 
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(exist_ok=True)
 
-        # 创建子目录 - 按市场分类
+        #Create subdirectories - by market
         self.us_stock_dir = self.cache_dir / "us_stocks"
         self.china_stock_dir = self.cache_dir / "china_stocks"
         self.us_news_dir = self.cache_dir / "us_news"
@@ -45,90 +43,90 @@ class StockDataCache:
         self.china_fundamentals_dir = self.cache_dir / "china_fundamentals"
         self.metadata_dir = self.cache_dir / "metadata"
 
-        # 创建所有目录
+        #Create all directories
         for dir_path in [self.us_stock_dir, self.china_stock_dir, self.us_news_dir,
                         self.china_news_dir, self.us_fundamentals_dir,
                         self.china_fundamentals_dir, self.metadata_dir]:
             dir_path.mkdir(exist_ok=True)
 
-        # 缓存配置 - 针对不同市场设置不同的TTL
+        #Cache Configuration - Different TTL for different markets
         self.cache_config = {
             'us_stock_data': {
-                'ttl_hours': 2,  # 美股数据缓存2小时（考虑到API限制）
+                'ttl_hours': 2,  #US stock data cache 2 hours (taking into account API limitations)
                 'max_files': 1000,
                 'description': '美股历史数据'
             },
             'china_stock_data': {
-                'ttl_hours': 1,  # A股数据缓存1小时（实时性要求高）
+                'ttl_hours': 1,  #Unit A data cache 1 hour (high real-time requirement)
                 'max_files': 1000,
                 'description': 'A股历史数据'
             },
             'us_news': {
-                'ttl_hours': 6,  # 美股新闻缓存6小时
+                'ttl_hours': 6,  #Six hours in the News of America.
                 'max_files': 500,
                 'description': '美股新闻数据'
             },
             'china_news': {
-                'ttl_hours': 4,  # A股新闻缓存4小时
+                'ttl_hours': 4,  #4 hours news cache for Unit A
                 'max_files': 500,
                 'description': 'A股新闻数据'
             },
             'us_fundamentals': {
-                'ttl_hours': 24,  # 美股基本面数据缓存24小时
+                'ttl_hours': 24,  #US stock base data cache 24 hours
                 'max_files': 200,
                 'description': '美股基本面数据'
             },
             'china_fundamentals': {
-                'ttl_hours': 12,  # A股基本面数据缓存12小时
+                'ttl_hours': 12,  #Basic A data cache for 12 hours
                 'max_files': 200,
                 'description': 'A股基本面数据'
             }
         }
 
-        # 内容长度限制配置（文件缓存默认不限制）
+        #Content Length Limit Configuration (file cache default unlimited)
         self.content_length_config = {
-            'max_content_length': int(os.getenv('MAX_CACHE_CONTENT_LENGTH', '50000')),  # 50K字符
-            'long_text_providers': ['dashscope', 'openai', 'google'],  # 支持长文本的提供商
-            'enable_length_check': os.getenv('ENABLE_CACHE_LENGTH_CHECK', 'false').lower() == 'true'  # 文件缓存默认不限制
+            'max_content_length': int(os.getenv('MAX_CACHE_CONTENT_LENGTH', '50000')),  #50K characters
+            'long_text_providers': ['dashscope', 'openai', 'google'],  #Provider in support of long text
+            'enable_length_check': os.getenv('ENABLE_CACHE_LENGTH_CHECK', 'false').lower() == 'true'  #File cache default unlimited
         }
 
-        logger.info(f"📁 缓存管理器初始化完成，缓存目录: {self.cache_dir}")
-        logger.info(f"🗄️ 数据库缓存管理器初始化完成")
-        logger.info(f"   美股数据: ✅ 已配置")
-        logger.info(f"   A股数据: ✅ 已配置")
+        logger.info(f"Initialization of cache manager, cache catalogue:{self.cache_dir}")
+        logger.info(f"Initialization of database cache manager completed")
+        logger.info(f"US share data: ✅ configured")
+        logger.info(f"Unit A data: ✅ configured")
 
     def _determine_market_type(self, symbol: str) -> str:
-        """根据股票代码确定市场类型"""
+        """Market type determined by stock code"""
         import re
 
-        # 判断是否为中国A股（6位数字）
+        #Whether or not to judge China A shares (6 figures)
         if re.match(r'^\d{6}$', str(symbol)):
             return 'china'
         else:
             return 'us'
 
     def _check_provider_availability(self) -> List[str]:
-        """检查可用的LLM提供商"""
+        """Check available LLM providers"""
         available_providers = []
         
-        # 检查DashScope
+        #Check DashScope
         dashscope_key = os.getenv("DASHSCOPE_API_KEY")
         if dashscope_key and dashscope_key.strip():
             available_providers.append('dashscope')
         
-        # 检查OpenAI
+        #Check OpenAI
         openai_key = os.getenv("OPENAI_API_KEY")
         if openai_key and openai_key.strip():
-            # 简单的格式检查
+            #Simple format check
             if openai_key.startswith('sk-') and len(openai_key) >= 40:
                 available_providers.append('openai')
         
-        # 检查Google AI
+        #Check Google AI
         google_key = os.getenv("GOOGLE_API_KEY")
         if google_key and google_key.strip():
             available_providers.append('google')
         
-        # 检查Anthropic
+        #Check Anthropic
         anthropic_key = os.getenv("ANTHROPIC_API_KEY")
         if anthropic_key and anthropic_key.strip():
             available_providers.append('anthropic')
@@ -136,63 +134,62 @@ class StockDataCache:
         return available_providers
 
     def should_skip_cache_for_content(self, content: str, data_type: str = "unknown") -> bool:
-        """
-        判断是否因为内容超长而跳过缓存
-        
-        Args:
-            content: 要缓存的内容
-            data_type: 数据类型（用于日志）
-        
-        Returns:
-            bool: 是否应该跳过缓存
-        """
-        # 如果未启用长度检查，直接返回False
+        """Whether or not to skip the cache because the content is too long
+
+Args:
+Content to cache
+Data type: Data type (for logs)
+
+Returns:
+Bool: Should Skip Cache
+"""
+        #If the length check is not enabled, go straight back to False
         if not self.content_length_config['enable_length_check']:
             return False
         
-        # 检查内容长度
+        #Check content length
         content_length = len(content)
         max_length = self.content_length_config['max_content_length']
         
         if content_length <= max_length:
             return False
         
-        # 内容超长，检查是否有可用的长文本处理提供商
+        #It's too long to check if long text processing is available Business
         available_providers = self._check_provider_availability()
         long_text_providers = self.content_length_config['long_text_providers']
         
-        # 找到可用的长文本提供商
+        #Found available long text providers
         available_long_providers = [p for p in available_providers if p in long_text_providers]
         
         if not available_long_providers:
-            logger.warning(f"⚠️ 内容过长({content_length:,}字符 > {max_length:,}字符)且无可用长文本提供商，跳过{data_type}缓存")
-            logger.info(f"💡 可用提供商: {available_providers}")
-            logger.info(f"💡 长文本提供商: {long_text_providers}")
+            logger.warning(f"It's too long.{content_length:,}Character >{max_length:,}character) and no long text provider available, skip{data_type}Cache")
+            logger.info(f"Available providers:{available_providers}")
+            logger.info(f"Long text providers:{long_text_providers}")
             return True
         else:
-            logger.info(f"✅ 内容较长({content_length:,}字符)但有可用长文本提供商({available_long_providers})，继续缓存")
+            logger.info(f"Longer content (✅){content_length:,}Character) but long text providers available ({available_long_providers}Continue Cache")
             return False
     
     def _generate_cache_key(self, data_type: str, symbol: str, **kwargs) -> str:
-        """生成缓存键"""
-        # 创建一个包含所有参数的字符串
+        """Generate Cache Keys"""
+        #Create a string with all parameters
         params_str = f"{data_type}_{symbol}"
         for key, value in sorted(kwargs.items()):
             params_str += f"_{key}_{value}"
         
-        # 使用MD5生成短的唯一标识
+        #Use MD5 to generate the only short identifier
         cache_key = hashlib.md5(params_str.encode()).hexdigest()[:12]
         return f"{symbol}_{data_type}_{cache_key}"
     
     def _get_cache_path(self, data_type: str, cache_key: str, file_format: str = "json", symbol: str = None) -> Path:
-        """获取缓存文件路径 - 支持市场分类"""
+        """Acquire cache file paths - support market classification"""
         if symbol:
             market_type = self._determine_market_type(symbol)
         else:
-            # 从缓存键中尝试提取市场类型
+            #Try extract market type from the cache key
             market_type = 'us' if not cache_key.startswith(('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) else 'china'
 
-        # 根据数据类型和市场类型选择目录
+        #Select directories by data type and market type
         if data_type == "stock_data":
             base_dir = self.china_stock_dir if market_type == 'china' else self.us_stock_dir
         elif data_type == "news":
@@ -205,20 +202,20 @@ class StockDataCache:
         return base_dir / f"{cache_key}.{file_format}"
     
     def _get_metadata_path(self, cache_key: str) -> Path:
-        """获取元数据文件路径"""
+        """Path to getting metadata files"""
         return self.metadata_dir / f"{cache_key}_meta.json"
     
     def _save_metadata(self, cache_key: str, metadata: Dict[str, Any]):
-        """保存元数据"""
+        """Save metadata"""
         metadata_path = self._get_metadata_path(cache_key)
-        metadata_path.parent.mkdir(parents=True, exist_ok=True)  # 确保目录存在
+        metadata_path.parent.mkdir(parents=True, exist_ok=True)  #Ensure directory exists
         metadata['cached_at'] = datetime.now().isoformat()
         
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
     
     def _load_metadata(self, cache_key: str) -> Optional[Dict[str, Any]]:
-        """加载元数据"""
+        """Loading metadata"""
         metadata_path = self._get_metadata_path(cache_key)
         if not metadata_path.exists():
             return None
@@ -227,23 +224,23 @@ class StockDataCache:
             with open(metadata_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            logger.error(f"⚠️ 加载元数据失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     def is_cache_valid(self, cache_key: str, max_age_hours: int = None, symbol: str = None, data_type: str = None) -> bool:
-        """检查缓存是否有效 - 支持智能TTL配置"""
+        """Check Cache Effectiveness - Support Smart TTL Configuration"""
         metadata = self._load_metadata(cache_key)
         if not metadata:
             return False
 
-        # 如果没有指定TTL，根据数据类型和市场自动确定
+        #If no TTL is specified, automatically determine according to data type and market
         if max_age_hours is None:
             if symbol and data_type:
                 market_type = self._determine_market_type(symbol)
                 cache_type = f"{market_type}_{data_type}"
                 max_age_hours = self.cache_config.get(cache_type, {}).get('ttl_hours', 24)
             else:
-                # 从元数据中获取信息
+                #Get information from metadata
                 symbol = metadata.get('symbol', '')
                 data_type = metadata.get('data_type', 'stock_data')
                 market_type = self._determine_market_type(symbol)
@@ -259,30 +256,29 @@ class StockDataCache:
             market_type = self._determine_market_type(metadata.get('symbol', ''))
             cache_type = f"{market_type}_{metadata.get('data_type', 'stock_data')}"
             desc = self.cache_config.get(cache_type, {}).get('description', '数据')
-            logger.info(f"✅ 缓存有效: {desc} - {metadata.get('symbol')} (剩余 {max_age_hours - age.total_seconds()/3600:.1f}h)")
+            logger.info(f"Cache is active:{desc} - {metadata.get('symbol')}Remaining{max_age_hours - age.total_seconds()/3600:.1f}h)")
 
         return is_valid
     
     def save_stock_data(self, symbol: str, data: Union[pd.DataFrame, str],
                        start_date: str = None, end_date: str = None,
                        data_source: str = "unknown") -> str:
-        """
-        保存股票数据到缓存 - 支持美股和A股分类存储
+        """Store stock data to cache - Support U.S. and U.S.A. Catalogue Storage
 
-        Args:
-            symbol: 股票代码
-            data: 股票数据（DataFrame或字符串）
-            start_date: 开始日期
-            end_date: 结束日期
-            data_source: 数据源（如 "tdx", "yfinance", "finnhub"）
+Args:
+symbol: stock code
+Data: Stock data (DataFrame or string)
+Start date: Start date
+End date: End date
+Data source: Data sources (e.g. "tdx", "yfinance", "finnhub")
 
-        Returns:
-            cache_key: 缓存键
-        """
-        # 检查内容长度是否需要跳过缓存
+Returns:
+Cache key: Cache keys
+"""
+        #Check if content length needs to skip cache
         content_to_check = str(data)
         if self.should_skip_cache_for_content(content_to_check, "股票数据"):
-            # 生成一个虚拟的缓存键，但不实际保存
+            #Generates a virtual cache key but does not actually save
             market_type = self._determine_market_type(symbol)
             cache_key = self._generate_cache_key("stock_data", symbol,
                                                start_date=start_date,
@@ -290,7 +286,7 @@ class StockDataCache:
                                                source=data_source,
                                                market=market_type,
                                                skipped=True)
-            logger.info(f"🚫 股票数据因内容过长被跳过缓存: {symbol} -> {cache_key}")
+            logger.info(f"🚫 Stock data skips the cache due to excessive content:{symbol} -> {cache_key}")
             return cache_key
 
         market_type = self._determine_market_type(symbol)
@@ -300,18 +296,18 @@ class StockDataCache:
                                            source=data_source,
                                            market=market_type)
 
-        # 保存数据
+        #Save Data
         if isinstance(data, pd.DataFrame):
             cache_path = self._get_cache_path("stock_data", cache_key, "csv", symbol)
-            cache_path.parent.mkdir(parents=True, exist_ok=True)  # 确保目录存在
+            cache_path.parent.mkdir(parents=True, exist_ok=True)  #Ensure directory exists
             data.to_csv(cache_path, index=True)
         else:
             cache_path = self._get_cache_path("stock_data", cache_key, "txt", symbol)
-            cache_path.parent.mkdir(parents=True, exist_ok=True)  # 确保目录存在
+            cache_path.parent.mkdir(parents=True, exist_ok=True)  #Ensure directory exists
             with open(cache_path, 'w', encoding='utf-8') as f:
                 f.write(str(data))
 
-        # 保存元数据
+        #Save metadata
         metadata = {
             'symbol': symbol,
             'data_type': 'stock_data',
@@ -325,14 +321,14 @@ class StockDataCache:
         }
         self._save_metadata(cache_key, metadata)
 
-        # 获取描述信息
+        #Fetch description information
         cache_type = f"{market_type}_stock_data"
         desc = self.cache_config.get(cache_type, {}).get('description', '股票数据')
-        logger.info(f"💾 {desc}已缓存: {symbol} ({data_source}) -> {cache_key}")
+        logger.info(f"💾 {desc}Cache:{symbol} ({data_source}) -> {cache_key}")
         return cache_key
     
     def load_stock_data(self, cache_key: str) -> Optional[Union[pd.DataFrame, str]]:
-        """从缓存加载股票数据"""
+        """Loading stock data from cache"""
         metadata = self._load_metadata(cache_key)
         if not metadata:
             return None
@@ -348,46 +344,45 @@ class StockDataCache:
                 with open(cache_path, 'r', encoding='utf-8') as f:
                     return f.read()
         except Exception as e:
-            logger.error(f"⚠️ 加载缓存数据失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     def find_cached_stock_data(self, symbol: str, start_date: str = None,
                               end_date: str = None, data_source: str = None,
                               max_age_hours: int = None) -> Optional[str]:
-        """
-        查找匹配的缓存数据 - 支持智能市场分类查找
+        """Find matching cache data - support smart market classification search
 
-        Args:
-            symbol: 股票代码
-            start_date: 开始日期
-            end_date: 结束日期
-            data_source: 数据源
-            max_age_hours: 最大缓存时间（小时），None时使用智能配置
+Args:
+symbol: stock code
+Start date: Start date
+End date: End date
+data source: data source
+max age hours: maximum cache time (hours), use smart configuration for None
 
-        Returns:
-            cache_key: 如果找到有效缓存则返回缓存键，否则返回None
-        """
+Returns:
+Cache key: return the cache key if a valid cache is found, otherwise return the None
+"""
         market_type = self._determine_market_type(symbol)
 
-        # 如果没有指定TTL，使用智能配置
+        #Use smart configuration if no TTL is specified
         if max_age_hours is None:
             cache_type = f"{market_type}_stock_data"
             max_age_hours = self.cache_config.get(cache_type, {}).get('ttl_hours', 24)
 
-        # 生成查找键
+        #Generate Search Keys
         search_key = self._generate_cache_key("stock_data", symbol,
                                             start_date=start_date,
                                             end_date=end_date,
                                             source=data_source,
                                             market=market_type)
 
-        # 检查精确匹配
+        #Check for exact match
         if self.is_cache_valid(search_key, max_age_hours, symbol, 'stock_data'):
             desc = self.cache_config.get(f"{market_type}_stock_data", {}).get('description', '数据')
-            logger.info(f"🎯 找到精确匹配的{desc}: {symbol} -> {search_key}")
+            logger.info(f"I found the exact match.{desc}: {symbol} -> {search_key}")
             return search_key
 
-        # 如果没有精确匹配，查找部分匹配（相同股票代码的其他缓存）
+        #If no exact match, find partial match (other caches of the same stock code)
         for metadata_file in self.metadata_dir.glob(f"*_meta.json"):
             try:
                 with open(metadata_file, 'r', encoding='utf-8') as f:
@@ -401,28 +396,28 @@ class StockDataCache:
                     cache_key = metadata_file.stem.replace('_meta', '')
                     if self.is_cache_valid(cache_key, max_age_hours, symbol, 'stock_data'):
                         desc = self.cache_config.get(f"{market_type}_stock_data", {}).get('description', '数据')
-                        logger.info(f"📋 找到部分匹配的{desc}: {symbol} -> {cache_key}")
+                        logger.info(f"I found a partial match.{desc}: {symbol} -> {cache_key}")
                         return cache_key
             except Exception:
                 continue
 
         desc = self.cache_config.get(f"{market_type}_stock_data", {}).get('description', '数据')
-        logger.error(f"❌ 未找到有效的{desc}缓存: {symbol}")
+        logger.error(f"It's not working.{desc}Cache:{symbol}")
         return None
     
     def save_news_data(self, symbol: str, news_data: str, 
                       start_date: str = None, end_date: str = None,
                       data_source: str = "unknown") -> str:
-        """保存新闻数据到缓存"""
-        # 检查内容长度是否需要跳过缓存
+        """Save news data to cache"""
+        #Check if content length needs to skip cache
         if self.should_skip_cache_for_content(news_data, "新闻数据"):
-            # 生成一个虚拟的缓存键，但不实际保存
+            #Generates a virtual cache key but does not actually save
             cache_key = self._generate_cache_key("news", symbol,
                                                start_date=start_date,
                                                end_date=end_date,
                                                source=data_source,
                                                skipped=True)
-            logger.info(f"🚫 新闻数据因内容过长被跳过缓存: {symbol} -> {cache_key}")
+            logger.info(f"News data jumped over cache due to excessive content:{symbol} -> {cache_key}")
             return cache_key
 
         cache_key = self._generate_cache_key("news", symbol,
@@ -431,7 +426,7 @@ class StockDataCache:
                                            source=data_source)
         
         cache_path = self._get_cache_path("news", cache_key, "txt")
-        cache_path.parent.mkdir(parents=True, exist_ok=True)  # 确保目录存在
+        cache_path.parent.mkdir(parents=True, exist_ok=True)  #Ensure directory exists
         with open(cache_path, 'w', encoding='utf-8') as f:
             f.write(news_data)
         
@@ -447,22 +442,22 @@ class StockDataCache:
         }
         self._save_metadata(cache_key, metadata)
         
-        logger.info(f"📰 新闻数据已缓存: {symbol} ({data_source}) -> {cache_key}")
+        logger.info(f"News data cache:{symbol} ({data_source}) -> {cache_key}")
         return cache_key
     
     def save_fundamentals_data(self, symbol: str, fundamentals_data: str,
                               data_source: str = "unknown") -> str:
-        """保存基本面数据到缓存"""
-        # 检查内容长度是否需要跳过缓存
+        """Save base face data to cache"""
+        #Check if content length needs to skip cache
         if self.should_skip_cache_for_content(fundamentals_data, "基本面数据"):
-            # 生成一个虚拟的缓存键，但不实际保存
+            #Generates a virtual cache key but does not actually save
             market_type = self._determine_market_type(symbol)
             cache_key = self._generate_cache_key("fundamentals", symbol,
                                                source=data_source,
                                                market=market_type,
                                                date=datetime.now().strftime("%Y-%m-%d"),
                                                skipped=True)
-            logger.info(f"🚫 基本面数据因内容过长被跳过缓存: {symbol} -> {cache_key}")
+            logger.info(f"Basic data jumped over cache due to excessive content:{symbol} -> {cache_key}")
             return cache_key
 
         market_type = self._determine_market_type(symbol)
@@ -472,7 +467,7 @@ class StockDataCache:
                                            date=datetime.now().strftime("%Y-%m-%d"))
         
         cache_path = self._get_cache_path("fundamentals", cache_key, "txt", symbol)
-        cache_path.parent.mkdir(parents=True, exist_ok=True)  # 确保目录存在
+        cache_path.parent.mkdir(parents=True, exist_ok=True)  #Ensure directory exists
         with open(cache_path, 'w', encoding='utf-8') as f:
             f.write(fundamentals_data)
         
@@ -488,11 +483,11 @@ class StockDataCache:
         self._save_metadata(cache_key, metadata)
         
         desc = self.cache_config.get(f"{market_type}_fundamentals", {}).get('description', '基本面数据')
-        logger.info(f"💼 {desc}已缓存: {symbol} ({data_source}) -> {cache_key}")
+        logger.info(f"💼 {desc}Cache:{symbol} ({data_source}) -> {cache_key}")
         return cache_key
     
     def load_fundamentals_data(self, cache_key: str) -> Optional[str]:
-        """从缓存加载基本面数据"""
+        """Load basic face data from cache"""
         metadata = self._load_metadata(cache_key)
         if not metadata:
             return None
@@ -505,30 +500,29 @@ class StockDataCache:
             with open(cache_path, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
-            logger.error(f"⚠️ 加载基本面缓存数据失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
             return None
     
     def find_cached_fundamentals_data(self, symbol: str, data_source: str = None,
                                     max_age_hours: int = None) -> Optional[str]:
-        """
-        查找匹配的基本面缓存数据
-        
-        Args:
-            symbol: 股票代码
-            data_source: 数据源（如 "openai", "finnhub"）
-            max_age_hours: 最大缓存时间（小时），None时使用智能配置
-        
-        Returns:
-            cache_key: 如果找到有效缓存则返回缓存键，否则返回None
-        """
+        """Find matching base cache data
+
+Args:
+symbol: stock code
+Data source: Data sources (e.g. "openai", "finnhub")
+max age hours: maximum cache time (hours), use smart configuration for None
+
+Returns:
+Cache key: return the cache key if a valid cache is found, otherwise return the None
+"""
         market_type = self._determine_market_type(symbol)
         
-        # 如果没有指定TTL，使用智能配置
+        #Use smart configuration if no TTL is specified
         if max_age_hours is None:
             cache_type = f"{market_type}_fundamentals"
             max_age_hours = self.cache_config.get(cache_type, {}).get('ttl_hours', 24)
         
-        # 查找匹配的缓存
+        #Find matching caches
         for metadata_file in self.metadata_dir.glob(f"*_meta.json"):
             try:
                 with open(metadata_file, 'r', encoding='utf-8') as f:
@@ -542,17 +536,17 @@ class StockDataCache:
                     cache_key = metadata_file.stem.replace('_meta', '')
                     if self.is_cache_valid(cache_key, max_age_hours, symbol, 'fundamentals'):
                         desc = self.cache_config.get(f"{market_type}_fundamentals", {}).get('description', '基本面数据')
-                        logger.info(f"🎯 找到匹配的{desc}缓存: {symbol} ({data_source}) -> {cache_key}")
+                        logger.info(f"I found a match.{desc}Cache:{symbol} ({data_source}) -> {cache_key}")
                         return cache_key
             except Exception:
                 continue
         
         desc = self.cache_config.get(f"{market_type}_fundamentals", {}).get('description', '基本面数据')
-        logger.error(f"❌ 未找到有效的{desc}缓存: {symbol} ({data_source})")
+        logger.error(f"It's not working.{desc}Cache:{symbol} ({data_source})")
         return None
     
     def clear_old_cache(self, max_age_days: int = 7):
-        """清理过期缓存"""
+        """Clear Expired Cache"""
         cutoff_time = datetime.now() - timedelta(days=max_age_days)
         cleared_count = 0
         
@@ -563,35 +557,35 @@ class StockDataCache:
                 
                 cached_at = datetime.fromisoformat(metadata['cached_at'])
                 if cached_at < cutoff_time:
-                    # 删除数据文件
+                    #Delete Data File
                     data_file = Path(metadata['file_path'])
                     if data_file.exists():
                         data_file.unlink()
                     
-                    # 删除元数据文件
+                    #Remove Metadata File
                     metadata_file.unlink()
                     cleared_count += 1
                     
             except Exception as e:
-                logger.warning(f"⚠️ 清理缓存时出错: {e}")
+                logger.warning(f"Error cleaning cache:{e}")
         
-        logger.info(f"🧹 已清理 {cleared_count} 个过期缓存文件")
+        logger.info(f"Cleared{cleared_count}An expired cache file")
     
     def get_cache_stats(self) -> Dict[str, Any]:
-        """获取缓存统计信息"""
+        """Get cache statistical information"""
         stats = {
             'total_files': 0,
             'stock_data_count': 0,
             'news_count': 0,
             'fundamentals_count': 0,
-            'total_size': 0,  # 字节
-            'total_size_mb': 0,  # MB（保留用于兼容性）
-            'skipped_count': 0  # 新增：跳过的缓存数量
+            'total_size': 0,  #Bytes
+            'total_size_mb': 0,  #MB (Reservations for compatibility)
+            'skipped_count': 0  #Add: Number of Caches Skipped
         }
 
         total_size_bytes = 0
 
-        # 统计有元数据的缓存文件
+        #Cache file for statistical metadata
         metadata_files_count = 0
         for metadata_file in self.metadata_dir.glob("*_meta.json"):
             try:
@@ -606,12 +600,12 @@ class StockDataCache:
                 elif data_type == 'fundamentals':
                     stats['fundamentals_count'] += 1
 
-                # 检查是否为跳过的缓存（没有实际文件）
+                #Check if skipped cache (no actual file)
                 data_file = Path(metadata.get('file_path', ''))
                 if not data_file.exists():
                     stats['skipped_count'] += 1
                 else:
-                    # 计算文件大小（字节）
+                    #Calculate file size (bytes)
                     file_size = data_file.stat().st_size
                     total_size_bytes += file_size
 
@@ -621,11 +615,11 @@ class StockDataCache:
             except Exception:
                 continue
 
-        # 如果没有元数据文件，则直接统计缓存目录中的文件（兼容旧缓存）
+        #If no metadata file is available, directly count the files in the cache directory (compatible with the old cache)
         if metadata_files_count == 0:
-            logger.info("📊 未找到元数据文件，直接统计缓存目录中的文件")
+            logger.info("📊 was not found for metadata files, directly in the statistical cache directory")
 
-            # 统计各个目录中的文件
+            #Documents in statistical directories
             for stock_dir, data_type in [
                 (self.us_stock_dir, 'us_stock'),
                 (self.china_stock_dir, 'china_stock'),
@@ -642,7 +636,7 @@ class StockDataCache:
                                 total_size_bytes += file_size
                                 stats['total_files'] += 1
 
-                                # 按类型分类
+                                #By type
                                 if 'stock' in data_type:
                                     stats['stock_data_count'] += 1
                                 elif 'news' in data_type:
@@ -652,12 +646,12 @@ class StockDataCache:
                             except Exception:
                                 continue
 
-        stats['total_size'] = total_size_bytes  # 字节
+        stats['total_size'] = total_size_bytes  #Bytes
         stats['total_size_mb'] = round(total_size_bytes / (1024 * 1024), 2)  # MB
         return stats
 
     def get_content_length_config_status(self) -> Dict[str, Any]:
-        """获取内容长度配置状态"""
+        """Get Content Length Configuration State"""
         available_providers = self._check_provider_availability()
         long_text_providers = self.content_length_config['long_text_providers']
         available_long_providers = [p for p in available_providers if p in long_text_providers]
@@ -674,11 +668,11 @@ class StockDataCache:
         }
 
 
-# 全局缓存实例
+#Global Cache instance
 _cache_instance = None
 
 def get_cache() -> StockDataCache:
-    """获取全局缓存实例"""
+    """Fetch global cache instance"""
     global _cache_instance
     if _cache_instance is None:
         _cache_instance = StockDataCache()

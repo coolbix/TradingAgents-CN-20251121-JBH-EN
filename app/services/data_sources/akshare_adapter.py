@@ -12,20 +12,20 @@ logger = logging.getLogger(__name__)
 
 
 class AKShareAdapter(DataSourceAdapter):
-    """AKShare数据源适配器"""
+    """AKShare Data Source Adaptor"""
 
     def __init__(self):
-        super().__init__()  # 调用父类初始化
+        super().__init__()  #Call Parent Initialization
 
     @property
     def name(self) -> str:
         return "akshare"
 
     def _get_default_priority(self) -> int:
-        return 2  # 数字越大优先级越高
+        return 2  #The bigger the number, the higher the priority.
 
     def is_available(self) -> bool:
-        """检查AKShare是否可用"""
+        """Check if AK Share is available."""
         try:
             import akshare as ak  # noqa: F401
             return True
@@ -33,22 +33,22 @@ class AKShareAdapter(DataSourceAdapter):
             return False
 
     def get_stock_list(self) -> Optional[pd.DataFrame]:
-        """获取股票列表（使用 AKShare 的 stock_info_a_code_name 接口获取真实股票名称）"""
+        """Get a list of shares (use the AKShare stop info a code name interface for real stock names)"""
         if not self.is_available():
             return None
         try:
             import akshare as ak
             logger.info("AKShare: Fetching stock list with real names from stock_info_a_code_name()...")
 
-            # 使用 AKShare 的 stock_info_a_code_name 接口获取股票代码和名称
+            #Fetch stock code and name using the AKShare stop info a code name interface
             df = ak.stock_info_a_code_name()
 
             if df is None or df.empty:
                 logger.warning("AKShare: stock_info_a_code_name() returned empty data")
                 return None
 
-            # 标准化列名（AKShare 返回的列名可能是中文）
-            # 通常返回的列：code（代码）、name（名称）
+            #Standardized listing (AKShare returned listing may be in Chinese)
+            #Usually returned columns: code, name (name)
             df = df.rename(columns={
                 'code': 'symbol',
                 '代码': 'symbol',
@@ -56,14 +56,14 @@ class AKShareAdapter(DataSourceAdapter):
                 '名称': 'name'
             })
 
-            # 确保有必需的列
+            #Ensure necessary columns
             if 'symbol' not in df.columns or 'name' not in df.columns:
                 logger.error(f"AKShare: Unexpected column names: {df.columns.tolist()}")
                 return None
 
-            # 生成 ts_code 和其他字段
+            #Generate ts code and other fields
             def generate_ts_code(code: str) -> str:
-                """根据股票代码生成 ts_code"""
+                """Generate by stock code"""
                 if not code:
                     return ""
                 code = str(code).zfill(6)
@@ -74,10 +74,10 @@ class AKShareAdapter(DataSourceAdapter):
                 elif code.startswith(('8', '4')):
                     return f"{code}.BJ"
                 else:
-                    return f"{code}.SZ"  # 默认深圳
+                    return f"{code}.SZ"  #Default Shenzhen
 
             def get_market(code: str) -> str:
-                """根据股票代码判断市场"""
+                """The market is judged by stock code."""
                 if not code:
                     return ""
                 code = str(code).zfill(6)
@@ -98,7 +98,7 @@ class AKShareAdapter(DataSourceAdapter):
                 else:
                     return '未知'
 
-            # 添加 ts_code 和 market 字段
+            #Add ts code and market fields
             df['ts_code'] = df['symbol'].apply(generate_ts_code)
             df['market'] = df['symbol'].apply(get_market)
             df['area'] = ''
@@ -113,7 +113,7 @@ class AKShareAdapter(DataSourceAdapter):
             return None
 
     def get_daily_basic(self, trade_date: str) -> Optional[pd.DataFrame]:
-        """获取每日基础财务数据（快速版）"""
+        """Access to daily basic financial data (quick version)"""
         if not self.is_available():
             return None
         try:
@@ -152,15 +152,15 @@ class AKShareAdapter(DataSourceAdapter):
                             value = row.get('value', '')
                             info_dict[item] = value
                         latest_price = self._safe_float(info_dict.get('最新', 0))
-                        # 🔥 AKShare 的"总市值"单位是万元，需要转换为亿元（与 Tushare 一致）
-                        total_mv_wan = self._safe_float(info_dict.get('总市值', 0))  # 万元
-                        total_mv_yi = total_mv_wan / 10000 if total_mv_wan else None  # 转换为亿元
+                        #AKShare's "total market value" unit is a million dollars and needs to be converted to a billion dollars (consistent with Tushare)
+                        total_mv_wan = self._safe_float(info_dict.get('总市值', 0))  #Ten thousand dollars.
+                        total_mv_yi = total_mv_wan / 10000 if total_mv_wan else None  #Convert to Billion Dollars
                         basic_data.append({
                             'ts_code': ts_code,
                             'trade_date': trade_date,
                             'name': name,
                             'close': latest_price,
-                            'total_mv': total_mv_yi,  # 亿元（与 Tushare 一致）
+                            'total_mv': total_mv_yi,  #Billions (consistent with Tushare)
                             'turnover_rate': None,
                             'pe': None,
                             'pb': None,
@@ -193,34 +193,33 @@ class AKShareAdapter(DataSourceAdapter):
 
 
     def get_realtime_quotes(self, source: str = "eastmoney"):
-        """
-        获取全市场实时快照，返回以6位代码为键的字典
+        """Get a market-wide real-time snapshot and return a six-digit dictionary
 
-        Args:
-            source: 数据源选择，"eastmoney"（东方财富）或 "sina"（新浪财经）
+Args:
+Source selection, "east money" or "sina"
 
-        Returns:
-            Dict[str, Dict]: {code: {close, pct_chg, amount, ...}}
-        """
+Returns:
+Dict [str, Dict]:
+"""
         if not self.is_available():
             return None
 
         try:
             import akshare as ak  # type: ignore
 
-            # 根据 source 参数选择接口
+            #Select interface based on source parameters
             if source == "sina":
-                df = ak.stock_zh_a_spot()  # 新浪财经接口
-                logger.info("使用 AKShare 新浪财经接口获取实时行情")
-            else:  # 默认使用东方财富
-                df = ak.stock_zh_a_spot_em()  # 东方财富接口
-                logger.info("使用 AKShare 东方财富接口获取实时行情")
+                df = ak.stock_zh_a_spot()  #New Wave Financial Interface
+                logger.info("Get real time with the AKShare New Wave interface")
+            else:  #Default use of Eastern wealth
+                df = ak.stock_zh_a_spot_em()  #East Wealth Interface
+                logger.info("Use the AKShare Eastern wealth interface for real-time behavior")
 
             if df is None or getattr(df, "empty", True):
-                logger.warning(f"AKShare {source} 返回空数据")
+                logger.warning(f"AKShare {source}Return empty data")
                 return None
 
-            # 列名兼容（两个接口的列名可能不同）
+            #Compatibility of listings (can vary between two interfaces)
             code_col = next((c for c in ["代码", "code", "symbol", "股票代码"] if c in df.columns), None)
             price_col = next((c for c in ["最新价", "现价", "最新价(元)", "price", "最新", "trade"] if c in df.columns), None)
             pct_col = next((c for c in ["涨跌幅", "涨跌幅(%)", "涨幅", "pct_chg", "changepercent"] if c in df.columns), None)
@@ -232,7 +231,7 @@ class AKShareAdapter(DataSourceAdapter):
             volume_col = next((c for c in ["成交量", "成交量(手)", "volume", "成交量(股)", "vol"] if c in df.columns), None)
 
             if not code_col or not price_col:
-                logger.error(f"AKShare {source} 缺少必要列: code={code_col}, price={price_col}, columns={list(df.columns)}")
+                logger.error(f"AKShare {source}Synchronising {code_col}, price={price_col}, columns={list(df.columns)}")
                 return None
 
             result: Dict[str, Dict[str, Optional[float]]] = {}
@@ -240,25 +239,25 @@ class AKShareAdapter(DataSourceAdapter):
                 code_raw = row.get(code_col)
                 if not code_raw:
                     continue
-                # 标准化股票代码：处理交易所前缀（如 sz000001, sh600036）
+                #Standardised stock code: processing exchange prefixes (e.g. sz00001, sh600036)
                 code_str = str(code_raw).strip()
 
-                # 如果代码长度超过6位，去掉前面的交易所前缀（如 sz, sh）
+                #If the code length exceeds 6 bits, remove the front prefix (e.g. sz, sh)
                 if len(code_str) > 6:
-                    # 去掉前面的非数字字符（通常是2个字符的交易所代码）
+                    #Remove the non-digital characters in front (usually two characters of exchange code)
                     code_str = ''.join(filter(str.isdigit, code_str))
 
-                # 如果是纯数字，移除前导0后补齐到6位
+                #If it's a pure number, remove the lead zero and then replace it with six places.
                 if code_str.isdigit():
-                    code_clean = code_str.lstrip('0') or '0'  # 移除前导0，如果全是0则保留一个0
-                    code = code_clean.zfill(6)  # 补齐到6位
+                    code_clean = code_str.lstrip('0') or '0'  #Remove pilot 0, and if all zeros, keep a zero
+                    code = code_clean.zfill(6)  #We got six.
                 else:
-                    # 如果不是纯数字，尝试提取数字部分
+                    #If it's not a pure number, try to extract it.
                     code_digits = ''.join(filter(str.isdigit, code_str))
                     if code_digits:
                         code = code_digits.zfill(6)
                     else:
-                        # 无法提取有效代码，跳过
+                        #Could not extract valid code. Skip
                         continue
 
                 close = self._safe_float(row.get(price_col))
@@ -270,9 +269,9 @@ class AKShareAdapter(DataSourceAdapter):
                 pre = self._safe_float(row.get(pre_close_col)) if pre_close_col else None
                 vol = self._safe_float(row.get(volume_col)) if volume_col else None
 
-                # 🔥 日志：记录AKShare返回的成交量
-                if code in ["300750", "000001", "600000"]:  # 只记录几个示例股票
-                    logger.info(f"📊 [AKShare实时] {code} - volume_col={volume_col}, vol={vol}, amount={amt}")
+                #Log: Record the turnover of AKshare's return
+                if code in ["300750", "000001", "600000"]:  #Only a few examples of stocks are recorded
+                    logger.info(f"[Akshare Real Time]{code} - volume_col={volume_col}, vol={vol}, amount={amt}")
 
                 result[code] = {
                     "close": close,
@@ -285,11 +284,11 @@ class AKShareAdapter(DataSourceAdapter):
                     "pre_close": pre
                 }
 
-            logger.info(f"✅ AKShare {source} 获取到 {len(result)} 只股票的实时行情")
+            logger.info(f"✅ AKShare {source}Fetched{len(result)}Real-time equity only.")
             return result
 
         except Exception as e:
-            logger.error(f"获取AKShare {source} 实时快照失败: {e}")
+            logger.error(f"Get AKShare{source}Real time snapshot failed:{e}")
             return None
 
     def get_kline(self, code: str, period: str = "day", limit: int = 120, adj: Optional[str] = None):
@@ -356,7 +355,7 @@ class AKShareAdapter(DataSourceAdapter):
                 if dfn is not None and not dfn.empty:
                     for _, row in dfn.head(limit).iterrows():
                         items.append({
-                            # AkShare 将字段标准化为中文列名：新闻标题 / 文章来源 / 发布时间 / 新闻链接
+                            #AkShare Standardise Fields for Listing in Chinese: News Title / Source / Release Time / News Chain Answer.
                             "title": str(row.get('新闻标题') or row.get('标题') or row.get('title') or ''),
                             "source": str(row.get('文章来源') or row.get('来源') or row.get('source') or 'akshare'),
                             "time": str(row.get('发布时间') or row.get('time') or ''),

@@ -1,7 +1,6 @@
-"""
-错误信息格式化工具
+"""Error Information Formatting Tool
 
-将技术性错误转换为用户友好的错误提示，明确指出问题所在（数据源、大模型、配置等）
+Convert technical errors into user-friendly error alerts, specifying the problem (data sources, large models, configurations, etc.)
 """
 
 import re
@@ -10,28 +9,28 @@ from enum import Enum
 
 
 class ErrorCategory(str, Enum):
-    """错误类别"""
-    LLM_API_KEY = "llm_api_key"  # 大模型 API Key 错误
-    LLM_NETWORK = "llm_network"  # 大模型网络错误
-    LLM_QUOTA = "llm_quota"  # 大模型配额/限流错误
-    LLM_CONTENT_FILTER = "llm_content_filter"  # 大模型内容审核失败
-    LLM_OTHER = "llm_other"  # 大模型其他错误
+    """Error Category"""
+    LLM_API_KEY = "llm_api_key"  #Large Model API Key Error
+    LLM_NETWORK = "llm_network"  #Large Model Network Error
+    LLM_QUOTA = "llm_quota"  #Large model quota/restriction error
+    LLM_CONTENT_FILTER = "llm_content_filter"  #Large model content review failed
+    LLM_OTHER = "llm_other"  #Big Model Other Errors
 
-    DATA_SOURCE_API_KEY = "data_source_api_key"  # 数据源 API Key 错误
-    DATA_SOURCE_NETWORK = "data_source_network"  # 数据源网络错误
-    DATA_SOURCE_NOT_FOUND = "data_source_not_found"  # 数据源找不到数据
-    DATA_SOURCE_OTHER = "data_source_other"  # 数据源其他错误
+    DATA_SOURCE_API_KEY = "data_source_api_key"  #Data source API Key error
+    DATA_SOURCE_NETWORK = "data_source_network"  #Data Source Network Error
+    DATA_SOURCE_NOT_FOUND = "data_source_not_found"  #Data source not found
+    DATA_SOURCE_OTHER = "data_source_other"  #Data source other errors
 
-    STOCK_CODE_INVALID = "stock_code_invalid"  # 股票代码无效
-    NETWORK = "network"  # 网络连接错误
-    SYSTEM = "system"  # 系统错误
-    UNKNOWN = "unknown"  # 未知错误
+    STOCK_CODE_INVALID = "stock_code_invalid"  #Stock code is invalid.
+    NETWORK = "network"  #Network connection error
+    SYSTEM = "system"  #System error
+    UNKNOWN = "unknown"  #Unknown error
 
 
 class ErrorFormatter:
-    """错误信息格式化器"""
+    """Error Info Formatter"""
     
-    # LLM 厂商名称映射
+    #LLM Vendor Name Map
     LLM_PROVIDERS = {
         "google": "Google Gemini",
         "dashscope": "阿里百炼（通义千问）",
@@ -44,7 +43,7 @@ class ErrorFormatter:
         "moonshot": "月之暗面（Kimi）",
     }
     
-    # 数据源名称映射
+    #Data Source Name Map
     DATA_SOURCES = {
         "tushare": "Tushare",
         "akshare": "AKShare",
@@ -55,128 +54,120 @@ class ErrorFormatter:
     
     @classmethod
     def format_error(cls, error_message: str, context: Optional[Dict] = None) -> Dict[str, str]:
-        """
-        格式化错误信息
-        
-        Args:
-            error_message: 原始错误信息
-            context: 上下文信息（可选），包含 llm_provider, model, data_source 等
-            
-        Returns:
-            {
-                "category": "错误类别",
-                "title": "错误标题",
-                "message": "用户友好的错误描述",
-                "suggestion": "解决建议",
-                "technical_detail": "技术细节（可选）"
-            }
-        """
+        """Format Error Information
+
+Args:
+Error message: Original error message
+context: context information (optional), including llm provider, model, data source, etc.
+
+Returns:
+FMT 0 
+"""
         context = context or {}
         
-        # 分类错误
+        #Category error
         category, provider_or_source = cls._categorize_error(error_message, context)
         
-        # 生成友好提示
+        #Generate friendly tips
         return cls._generate_friendly_message(category, provider_or_source, error_message, context)
     
     @classmethod
     def _categorize_error(cls, error_message: str, context: Dict) -> Tuple[ErrorCategory, Optional[str]]:
-        """
-        分类错误
-        
-        Returns:
-            (错误类别, 相关厂商/数据源名称)
-        """
+        """Category error
+
+Returns:
+(Error category, relevant manufacturer/data source name)
+"""
         error_lower = error_message.lower()
         
-        # 1. 检查是否是 LLM 相关错误
+        #1. Check for LLM-related errors
         llm_provider = context.get("llm_provider") or cls._extract_llm_provider(error_message)
         
         if llm_provider or any(keyword in error_lower for keyword in [
             "api key", "api_key", "apikey", "invalid_api_key", "authentication", 
             "unauthorized", "401", "403", "gemini", "openai", "dashscope", "qianfan"
         ]):
-            # LLM API Key 错误
+            #LLM API Key Error
             if any(keyword in error_lower for keyword in [
                 "api key", "api_key", "apikey", "invalid", "authentication", 
                 "unauthorized", "401", "invalid_api_key", "api key not valid"
             ]):
                 return ErrorCategory.LLM_API_KEY, llm_provider
             
-            # LLM 配额/限流错误
+            #LLM quota/restriction error
             if any(keyword in error_lower for keyword in [
                 "quota", "rate limit", "too many requests", "429", "resource exhausted",
                 "insufficient_quota", "billing"
             ]):
                 return ErrorCategory.LLM_QUOTA, llm_provider
 
-            # LLM 内容审核失败
+            #LLM content verification failed
             if any(keyword in error_lower for keyword in [
                 "data_inspection_failed", "inappropriate content", "content filter",
                 "内容审核", "敏感内容", "违规内容", "content policy"
             ]):
                 return ErrorCategory.LLM_CONTENT_FILTER, llm_provider
 
-            # LLM 网络错误
+            #LLM Network Error
             if any(keyword in error_lower for keyword in [
                 "connection", "network", "timeout", "unreachable", "dns", "ssl"
             ]):
                 return ErrorCategory.LLM_NETWORK, llm_provider
 
-            # LLM 其他错误
+            #LLM Other Error
             return ErrorCategory.LLM_OTHER, llm_provider
         
-        # 2. 检查是否是数据源相关错误
+        #2. Check for data source-related errors
         data_source = context.get("data_source") or cls._extract_data_source(error_message)
         
         if data_source or any(keyword in error_lower for keyword in [
             "tushare", "akshare", "baostock", "finnhub", "数据源", "data source"
         ]):
-            # 数据源 API Key 错误
+            #Data source API Key error
             if any(keyword in error_lower for keyword in [
                 "token", "api key", "authentication", "unauthorized"
             ]):
                 return ErrorCategory.DATA_SOURCE_API_KEY, data_source
             
-            # 数据源找不到数据
+            #Data source not found
             if any(keyword in error_lower for keyword in [
                 "not found", "no data", "empty", "无数据", "未找到"
             ]):
                 return ErrorCategory.DATA_SOURCE_NOT_FOUND, data_source
             
-            # 数据源网络错误
+            #Data Source Network Error
             if any(keyword in error_lower for keyword in [
                 "connection", "network", "timeout"
             ]):
                 return ErrorCategory.DATA_SOURCE_NETWORK, data_source
             
-            # 数据源其他错误
+            #Data source other errors
             return ErrorCategory.DATA_SOURCE_OTHER, data_source
         
-        # 3. 检查是否是股票代码错误
+        #3. Check for stock code errors
         if any(keyword in error_lower for keyword in [
             "股票代码", "stock code", "symbol", "invalid code", "代码无效"
         ]):
             return ErrorCategory.STOCK_CODE_INVALID, None
         
-        # 4. 检查是否是网络错误
+        #4. Check for network error
         if any(keyword in error_lower for keyword in [
             "connection", "network", "timeout", "unreachable", "dns"
         ]):
             return ErrorCategory.NETWORK, None
         
-        # 5. 系统错误
+        #5. System error
         if any(keyword in error_lower for keyword in [
             "internal error", "server error", "500", "系统错误"
         ]):
             return ErrorCategory.SYSTEM, None
         
-        # 6. 未知错误
+        #6. Unknown error
         return ErrorCategory.UNKNOWN, None
     
     @classmethod
     def _extract_llm_provider(cls, error_message: str) -> Optional[str]:
-        """从错误信息中提取 LLM 厂商"""
+        """Extract LLM manufacturer from error information"""
         error_lower = error_message.lower()
         for key, name in cls.LLM_PROVIDERS.items():
             if key in error_lower or name.lower() in error_lower:
@@ -185,7 +176,7 @@ class ErrorFormatter:
     
     @classmethod
     def _extract_data_source(cls, error_message: str) -> Optional[str]:
-        """从错误信息中提取数据源"""
+        """Extract data sources from error information"""
         error_lower = error_message.lower()
         for key, name in cls.DATA_SOURCES.items():
             if key in error_lower or name.lower() in error_lower:
@@ -200,16 +191,16 @@ class ErrorFormatter:
         original_error: str,
         context: Dict
     ) -> Dict[str, str]:
-        """生成用户友好的错误信息"""
+        """Generate user-friendly error messages"""
         
-        # 获取友好的厂商/数据源名称
+        #Obtain friendly vendor/data source names
         friendly_name = None
         if provider_or_source:
             friendly_name = cls.LLM_PROVIDERS.get(provider_or_source) or \
                            cls.DATA_SOURCES.get(provider_or_source) or \
                            provider_or_source
         
-        # 根据类别生成消息
+        #Generate messages by category
         if category == ErrorCategory.LLM_API_KEY:
             return {
                 "category": "大模型配置错误",

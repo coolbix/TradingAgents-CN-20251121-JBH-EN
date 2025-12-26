@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-股票数据模型定义
-定义标准化的股票数据结构，用于MongoDB存储和数据交换
+"""Stock data model definition
+Define standardized stock data structure for MongoDB storage and data exchange
 """
 
 from typing import Dict, List, Optional, Any, Union
@@ -11,48 +10,48 @@ from decimal import Decimal
 from pydantic import BaseModel, Field, validator
 from enum import Enum
 
-# 导入日志模块
+#Import Log Module
 from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
 
 class MarketType(str, Enum):
-    """市场类型枚举"""
-    CN = "CN"  # 中国A股
-    HK = "HK"  # 港股
-    US = "US"  # 美股
+    """Market type inventory"""
+    CN = "CN"  #China A Unit
+    HK = "HK"  #Port Unit
+    US = "US"  #United States share
 
 
 class StockStatus(str, Enum):
-    """股票状态枚举"""
-    LISTED = "L"      # 上市
-    DELISTED = "D"    # 退市
-    SUSPENDED = "P"   # 暂停上市
+    """Stock Count"""
+    LISTED = "L"      #Listing
+    DELISTED = "D"    #Releasing.
+    SUSPENDED = "P"   #Time out.
 
 
 class ReportType(str, Enum):
-    """报告类型枚举"""
-    ANNUAL = "annual"      # 年报
-    QUARTERLY = "quarterly" # 季报
+    """List of reporting types"""
+    ANNUAL = "annual"      #Annual report
+    QUARTERLY = "quarterly" #Quarterly
 
 
 class NewsCategory(str, Enum):
-    """新闻类别枚举"""
-    COMPANY_ANNOUNCEMENT = "company_announcement"  # 公司公告
-    INDUSTRY_NEWS = "industry_news"               # 行业新闻
-    MARKET_NEWS = "market_news"                   # 市场新闻
-    RESEARCH_REPORT = "research_report"           # 研究报告
+    """List of categories of information"""
+    COMPANY_ANNOUNCEMENT = "company_announcement"  #Company announcement
+    INDUSTRY_NEWS = "industry_news"               #Industry News
+    MARKET_NEWS = "market_news"                   #Market News
+    RESEARCH_REPORT = "research_report"           #Studies
 
 
 class SentimentType(str, Enum):
-    """情绪类型枚举"""
+    """Emotion type count."""
     POSITIVE = "positive"
     NEGATIVE = "negative"
     NEUTRAL = "neutral"
 
 
 class BaseStockModel(BaseModel):
-    """股票数据基础模型"""
+    """Equities data base model"""
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     data_source: str = Field(..., description="数据来源")
@@ -68,7 +67,7 @@ class BaseStockModel(BaseModel):
 
 
 class StockBasicInfo(BaseStockModel):
-    """股票基础信息模型"""
+    """Equities Basic Information Model"""
     symbol: str = Field(..., description="标准化股票代码", regex=r"^\d{6}$")
     exchange_symbol: str = Field(..., description="交易所完整代码")
     name: str = Field(..., description="股票名称")
@@ -97,7 +96,7 @@ class StockBasicInfo(BaseStockModel):
 
 
 class StockDailyQuote(BaseStockModel):
-    """股票日线行情模型"""
+    """Stock dayline pattern"""
     symbol: str = Field(..., description="股票代码")
     trade_date: date = Field(..., description="交易日期")
     open: float = Field(..., description="开盘价")
@@ -122,7 +121,7 @@ class StockDailyQuote(BaseStockModel):
 
 
 class StockRealtimeQuote(BaseStockModel):
-    """股票实时行情模型"""
+    """Equities real-time business model"""
     symbol: str = Field(..., description="股票代码")
     name: str = Field(..., description="股票名称")
     current_price: float = Field(..., description="当前价格")
@@ -143,7 +142,7 @@ class StockRealtimeQuote(BaseStockModel):
 
 
 class BalanceSheetData(BaseModel):
-    """资产负债表数据"""
+    """Balance sheet data"""
     total_assets: Optional[float] = Field(None, description="资产总计")
     total_liab: Optional[float] = Field(None, description="负债合计")
     total_hldr_eqy_exc_min_int: Optional[float] = Field(None, description="股东权益合计")
@@ -155,7 +154,7 @@ class BalanceSheetData(BaseModel):
 
 
 class IncomeStatementData(BaseModel):
-    """利润表数据"""
+    """Profit statement data"""
     total_revenue: Optional[float] = Field(None, description="营业总收入")
     revenue: Optional[float] = Field(None, description="营业收入")
     oper_cost: Optional[float] = Field(None, description="营业总成本")
@@ -169,7 +168,7 @@ class IncomeStatementData(BaseModel):
 
 
 class CashflowStatementData(BaseModel):
-    """现金流量表数据"""
+    """Cash flow statement data"""
     n_cashflow_act: Optional[float] = Field(None, description="经营活动现金流量净额")
     n_cashflow_inv_act: Optional[float] = Field(None, description="投资活动现金流量净额")
     n_cashflow_fin_act: Optional[float] = Field(None, description="筹资活动现金流量净额")
@@ -178,7 +177,7 @@ class CashflowStatementData(BaseModel):
 
 
 class FinancialIndicators(BaseModel):
-    """财务指标数据"""
+    """Data on financial indicators"""
     roe: Optional[float] = Field(None, description="净资产收益率")
     roa: Optional[float] = Field(None, description="总资产收益率")
     gross_margin: Optional[float] = Field(None, description="毛利率")
@@ -194,7 +193,7 @@ class FinancialIndicators(BaseModel):
 
 
 class StockFinancialData(BaseStockModel):
-    """股票财务数据模型"""
+    """Equities Financial Data Model"""
     symbol: str = Field(..., description="股票代码")
     report_period: str = Field(..., description="报告期", regex=r"^\d{8}$")
     report_type: ReportType = Field(..., description="报告类型")
@@ -207,7 +206,7 @@ class StockFinancialData(BaseStockModel):
 
 
 class StockNews(BaseStockModel):
-    """股票新闻模型"""
+    """Stock News Model"""
     symbol: Optional[str] = Field(None, description="相关股票代码")
     symbols: List[str] = Field(default_factory=list, description="相关股票列表")
     title: str = Field(..., description="新闻标题")
@@ -226,7 +225,7 @@ class StockNews(BaseStockModel):
 
 
 class MovingAverages(BaseModel):
-    """移动平均线数据"""
+    """Move mean line data"""
     ma5: Optional[float] = Field(None, description="5日均线")
     ma10: Optional[float] = Field(None, description="10日均线")
     ma20: Optional[float] = Field(None, description="20日均线")
@@ -234,7 +233,7 @@ class MovingAverages(BaseModel):
 
 
 class TechnicalIndicatorsData(BaseModel):
-    """技术指标数据"""
+    """Data on technical indicators"""
     rsi: Optional[float] = Field(None, description="RSI相对强弱指标")
     macd: Optional[float] = Field(None, description="MACD")
     macd_signal: Optional[float] = Field(None, description="MACD信号线")
@@ -253,7 +252,7 @@ class TechnicalIndicatorsData(BaseModel):
 
 
 class StockTechnicalIndicators(BaseStockModel):
-    """股票技术指标模型"""
+    """Stock technology indicator model"""
     symbol: str = Field(..., description="股票代码")
     trade_date: date = Field(..., description="交易日期")
     period: str = Field(default="daily", description="周期")
@@ -262,7 +261,7 @@ class StockTechnicalIndicators(BaseStockModel):
 
 
 class DataSourceConfig(BaseStockModel):
-    """数据源配置模型"""
+    """Data source configuration model"""
     source_name: str = Field(..., description="数据源名称")
     source_type: str = Field(..., description="数据源类型")
     priority: int = Field(..., description="优先级")
@@ -274,7 +273,7 @@ class DataSourceConfig(BaseStockModel):
 
 
 class DataSyncLog(BaseStockModel):
-    """数据同步日志模型"""
+    """Data Sync Log Model"""
     task_id: str = Field(..., description="任务ID")
     data_type: str = Field(..., description="数据类型")
     data_source: str = Field(..., description="数据源")
@@ -290,7 +289,7 @@ class DataSyncLog(BaseStockModel):
     performance: Dict[str, Any] = Field(default_factory=dict, description="性能指标")
 
 
-# 导出所有模型
+#Export all models
 __all__ = [
     'MarketType', 'StockStatus', 'ReportType', 'NewsCategory', 'SentimentType',
     'BaseStockModel', 'StockBasicInfo', 'StockDailyQuote', 'StockRealtimeQuote',

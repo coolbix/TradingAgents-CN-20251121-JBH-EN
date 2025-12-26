@@ -1,6 +1,5 @@
-"""
-Progress 子包（过渡期）：对进度跟踪与日志处理进行结构化组织。
-当前阶段采用“新路径重导出到旧实现”的方式，保持 API 稳定。
+"""Progress sub-package (transition period): Structured organization of progress tracking and log processing.
+The current phase maintains API stability using the "New Path Re-export to Old Realization" approach.
 """
 from .tracker import RedisProgressTracker, get_progress_by_id
 from .log_handler import (

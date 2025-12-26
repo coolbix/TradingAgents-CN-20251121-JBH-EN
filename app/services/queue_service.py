@@ -1,6 +1,5 @@
-"""
-增强版队列服务
-基于现有实现，添加并发控制、优先级队列、可见性超时等功能
+"""Enhance Queue Service
+Add complication control, priority queues, visibility overtime based on existing realizations
 """
 
 import json
@@ -39,11 +38,11 @@ from app.services.queue import (
 
 logger = logging.getLogger(__name__)
 
-# Redis键名与配置常量由 app.services.queue.keys 提供（此处不再重复定义）
+#Redis keynames and configuration constants are provided by app.services.queue.keys (defined here no more)
 
 
 class QueueService:
-    """增强版队列服务类"""
+    """Enhance the queue service class"""
 
     def __init__(self, redis: Redis):
         self.r = redis
@@ -58,13 +57,13 @@ class QueueService:
         params: Dict[str, Any],
         batch_id: Optional[str] = None
     ) -> str:
-        """任务入队，支持并发控制（开源版FIFO队列）"""
+        """Tasks in formation, support and distribution control (open-source FIFO queue)"""
 
-        # 检查用户并发限制
+        #Check user and limit
         if not await self._check_user_concurrent_limit(user_id):
             raise ValueError(f"用户 {user_id} 达到并发限制 ({self.user_concurrent_limit})")
 
-        # 检查全局并发限制
+        #Check global and issue limits
         if not await self._check_global_concurrent_limit():
             raise ValueError(f"系统达到全局并发限制 ({self.global_concurrent_limit})")
 
@@ -85,63 +84,63 @@ class QueueService:
         if batch_id:
             mapping["batch_id"] = batch_id
 
-        # 保存任务数据
+        #Can not open message
         await self.r.hset(key, mapping=mapping)
 
-        # 添加到FIFO队列
+        #Add to FIFO queue
         await self.r.lpush(READY_LIST, task_id)
 
         if batch_id:
             await self.r.sadd(BATCH_TASKS_PREFIX + batch_id, task_id)
 
-        logger.info(f"任务已入队: {task_id}")
+        logger.info(f"Tasks in place:{task_id}")
         return task_id
 
     async def dequeue_task(self, worker_id: str) -> Optional[Dict[str, Any]]:
-        """从FIFO队列中取出任务"""
+        """Remove Tasks from FIFO Queue"""
         try:
-            # 从FIFO队列获取任务
+            #Can not open message
             task_id = await self.r.rpop(READY_LIST)
             if not task_id:
                 return None
 
-            # 获取任务详情
+            #Can not open message
             task_data = await self.get_task(task_id)
             if not task_data:
-                logger.warning(f"任务数据不存在: {task_id}")
+                logger.warning(f"Task data does not exist:{task_id}")
                 return None
 
             user_id = task_data.get("user")
 
-            # 再次检查并发限制（防止竞态条件）
+            #Re-inspection and imposition of restrictions (preventing competitive conditions)
             if not await self._check_user_concurrent_limit(user_id):
-                # 如果超过限制，将任务放回队列
+                #Put the task back in line if the limit is exceeded
                 await self.r.lpush(READY_LIST, task_id)
-                logger.warning(f"用户 {user_id} 并发限制，任务重新入队: {task_id}")
+                logger.warning(f"User{user_id}The mission is back in line:{task_id}")
                 return None
 
-            # 标记任务为处理中
+            #Mark Task as Processing
             await self._mark_task_processing(task_id, user_id, worker_id)
 
-            # 设置可见性超时
+            #Set Visibility Timeout
             await self._set_visibility_timeout(task_id, worker_id)
 
-            # 更新任务状态
+            #Update Task Status
             await self.r.hset(TASK_PREFIX + task_id, mapping={
                 "status": "processing",
                 "worker_id": worker_id,
                 "started_at": str(int(time.time()))
             })
 
-            logger.info(f"任务已出队: {task_id} -> Worker: {worker_id}")
+            logger.info(f"Mission is out:{task_id} -> Worker: {worker_id}")
             return task_data
 
         except Exception as e:
-            logger.error(f"出队失败: {e}")
+            logger.error(f"Team failure:{e}")
             return None
 
     async def ack_task(self, task_id: str, success: bool = True) -> bool:
-        """确认任务完成"""
+        """Confirm mission complete."""
         try:
             task_data = await self.get_task(task_id)
             if not task_data:
@@ -150,30 +149,30 @@ class QueueService:
             user_id = task_data.get("user")
             worker_id = task_data.get("worker_id")
 
-            # 从处理中集合移除
+            #Remove from processing
             await self._unmark_task_processing(task_id, user_id)
 
-            # 清除可见性超时
+            #Clear Visibility Timeout
             await self._clear_visibility_timeout(task_id)
 
-            # 更新任务状态
+            #Update Task Status
             status = "completed" if success else "failed"
             await self.r.hset(TASK_PREFIX + task_id, mapping={
                 "status": status,
                 "completed_at": str(int(time.time()))
             })
 
-            # 添加到相应的集合
+            #Add to the corresponding set
             if success:
                 await self.r.sadd(SET_COMPLETED, task_id)
             else:
                 await self.r.sadd(SET_FAILED, task_id)
 
-            logger.info(f"任务已确认: {task_id} (成功: {success})")
+            logger.info(f"Mandate confirmed:{task_id}(success:{success})")
             return True
 
         except Exception as e:
-            logger.error(f"确认任务失败: {e}")
+            logger.error(f"Confirm mission failure:{e}")
             return False
 
     async def create_batch(self, user_id: str, symbols: List[str], params: Dict[str, Any]) -> tuple[str, int]:
@@ -234,33 +233,33 @@ class QueueService:
             "failed": int(failed or 0),
         }
 
-    # 新增：并发控制方法
+    #Add: Parallel control method
     async def _check_user_concurrent_limit(self, user_id: str) -> bool:
-        """检查用户并发限制（委托 helpers）"""
+        """Check user and limit (commission helpers)"""
         return await check_user_concurrent_limit(self.r, user_id, self.user_concurrent_limit)
 
     async def _check_global_concurrent_limit(self) -> bool:
-        """检查全局并发限制（委托 helpers）"""
+        """Check global and issue limits (commission helpers)"""
         return await check_global_concurrent_limit(self.r, self.global_concurrent_limit)
 
     async def _mark_task_processing(self, task_id: str, user_id: str, worker_id: str):
-        """标记任务为处理中（委托 helpers）"""
+        """Mark task as processing (commission helpers)"""
         await mark_task_processing(self.r, task_id, user_id)
 
     async def _unmark_task_processing(self, task_id: str, user_id: str):
-        """取消任务处理中标记（委托 helpers）"""
+        """Unmark task processing (commissions helpers)"""
         await unmark_task_processing(self.r, task_id, user_id)
 
     async def _set_visibility_timeout(self, task_id: str, worker_id: str):
-        """设置可见性超时（委托 helpers）"""
+        """Set Visibility Timeout (commissions helpers)"""
         await set_visibility_timeout(self.r, task_id, worker_id, self.visibility_timeout)
 
     async def _clear_visibility_timeout(self, task_id: str):
-        """清除可见性超时"""
+        """Clear Visibility Timeout"""
         await clear_visibility_timeout(self.r, task_id)
 
     async def get_user_queue_status(self, user_id: str) -> Dict[str, int]:
-        """获取用户队列状态"""
+        """Get User Queue Status"""
         user_processing_key = USER_PROCESSING_PREFIX + user_id
         processing_count = await self.r.scard(user_processing_key)
 
@@ -271,9 +270,9 @@ class QueueService:
         }
 
     async def cleanup_expired_tasks(self):
-        """清理过期任务（可见性超时）"""
+        """Clean-up of expired tasks (visibility timeout)"""
         try:
-            # 获取所有可见性超时键
+            #Get All Visibility Timeout Keys
             timeout_keys = await self.r.keys(VISIBILITY_TIMEOUT_PREFIX + "*")
 
             current_time = int(time.time())
@@ -288,18 +287,18 @@ class QueueService:
                         if task_id:
                             expired_tasks.append(task_id)
 
-            # 处理过期任务
+            #Processing expired tasks
             for task_id in expired_tasks:
                 await self._handle_expired_task(task_id)
 
             if expired_tasks:
-                logger.warning(f"处理了 {len(expired_tasks)} 个过期任务")
+                logger.warning(f"Got it.{len(expired_tasks)}Expire Tasks")
 
         except Exception as e:
-            logger.error(f"清理过期任务失败: {e}")
+            logger.error(f"Could not close temporary folder: %s{e}")
 
     async def _handle_expired_task(self, task_id: str):
-        """处理过期任务"""
+        """Processing expired tasks"""
         try:
             task_data = await self.get_task(task_id)
             if not task_data:
@@ -307,29 +306,29 @@ class QueueService:
 
             user_id = task_data.get("user")
 
-            # 从处理中集合移除
+            #Remove from processing
             await self._unmark_task_processing(task_id, user_id)
 
-            # 清除可见性超时
+            #Clear Visibility Timeout
             await self._clear_visibility_timeout(task_id)
 
-            # 重新加入队列
+            #Rejoinder
             await self.r.lpush(READY_LIST, task_id)
 
-            # 更新任务状态
+            #Update Task Status
             await self.r.hset(TASK_PREFIX + task_id, mapping={
                 "status": "queued",
                 "worker_id": "",
                 "requeued_at": str(int(time.time()))
             })
 
-            logger.warning(f"过期任务重新入队: {task_id}")
+            logger.warning(f"Expired tasks re-enter:{task_id}")
 
         except Exception as e:
-            logger.error(f"处理过期任务失败: {task_id} - {e}")
+            logger.error(f"Could not close temporary folder: %s{task_id} - {e}")
 
     async def cancel_task(self, task_id: str) -> bool:
-        """取消任务"""
+        """Cancel Task"""
         try:
             task_data = await self.get_task(task_id)
             if not task_data:
@@ -339,24 +338,24 @@ class QueueService:
             user_id = task_data.get("user")
 
             if status == "processing":
-                # 如果正在处理中，从处理集合移除
+                #Remove from processing pool if processed
                 await self._unmark_task_processing(task_id, user_id)
                 await self._clear_visibility_timeout(task_id)
             elif status == "queued":
-                # 如果在队列中，从队列移除
+                #If in queue, remove from queue
                 await self.r.lrem(READY_LIST, 0, task_id)
 
-            # 更新任务状态
+            #Update Task Status
             await self.r.hset(TASK_PREFIX + task_id, mapping={
                 "status": "cancelled",
                 "cancelled_at": str(int(time.time()))
             })
 
-            logger.info(f"任务已取消: {task_id}")
+            logger.info(f"Other Organiser{task_id}")
             return True
 
         except Exception as e:
-            logger.error(f"取消任务失败: {e}")
+            logger.error(f"Can not open message{e}")
             return False
 
 
