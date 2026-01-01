@@ -85,7 +85,7 @@ def test_data_source_manager():
         print("✅ 数据源管理器创建成功")
         
         # 检查可用数据源
-        available = [s.value for s in manager.available_sources]
+        available = [s.value for s in manager.available_china_sources]
         print(f"✅ 可用数据源: {available}")
         
         if 'akshare' in available:

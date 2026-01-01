@@ -149,10 +149,10 @@ def get_bool(env_var: str, system_key: Optional[str], default: bool) -> bool:
     return default
 
 
-def use_app_cache_enabled(default: bool = False) -> bool:
+def is_use_app_cache_enabled(default: bool = False) -> bool:
     """Whether to enable priority reading from the app cache (Mongo collection). ENV: TA USE APP CACHE; DB: ta use app cache
-An assessment log will be recorded, containing the source and the original ENV values, to facilitate the sorting of the effective path.
-"""
+    An assessment log will be recorded, containing the source and the original ENV values, to facilitate the sorting of the effective path.
+    """
     #Infer source (DB/ENV/DEFAULT)
     src = "default"
     env_val = os.getenv("TA_USE_APP_CACHE")
@@ -216,7 +216,7 @@ __all__ = [
     "get_float",
     "get_int",
     "get_bool",
-    "use_app_cache_enabled",
+    "is_use_app_cache_enabled",
     "get_timezone_name",
     "get_zoneinfo",
 ]

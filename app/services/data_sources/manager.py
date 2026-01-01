@@ -15,11 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class DataSourceManager:
-    """Data Source Manager
-- Manage multiple adapters based on priority ranking
-- Offering capacity to fallback
-- Optional: Consistency check (if dependent)
-"""
+    """
+    NOTE: there is another DataSourceManager in tradingagents/dataflows/data_source_manager.py
+    NOTE: consider unifying them in the future
+    Data Source Manager
+    - Manage multiple adapters based on priority ranking
+    - Offering capacity to fallback
+    - Optional: Consistency check (if dependent)
+    """
 
     def __init__(self):
         self.adapters: List[DataSourceAdapter] = [
@@ -44,8 +47,8 @@ class DataSourceManager:
     def _load_priority_from_database(self):
         """Data source priority configuration from database load (read A stock market priority from data groupings)"""
         try:
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
             groupings_collection = db.datasource_groupings
 
             #Query data source grouping for Unit A market

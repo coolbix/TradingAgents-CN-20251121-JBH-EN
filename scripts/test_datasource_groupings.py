@@ -11,7 +11,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db_sync
+from app.core.database import get_mongo_db_synchronous
 
 
 def test_datasource_groupings():
@@ -22,7 +22,7 @@ def test_datasource_groupings():
     
     try:
         # 获取数据库连接
-        db = get_mongo_db_sync()
+        db = get_mongo_db_synchronous()
         groupings_collection = db.datasource_groupings
         
         # 查询所有美股数据源分组
@@ -106,7 +106,7 @@ def test_all_groupings():
     print("=" * 80)
     
     try:
-        db = get_mongo_db_sync()
+        db = get_mongo_db_synchronous()
         groupings_collection = db.datasource_groupings
         
         # 查询所有分组

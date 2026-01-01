@@ -22,8 +22,8 @@ redis_client: Optional[Redis] = None
 redis_pool: Optional[ConnectionPool] = None
 
 #Sync MongoDB connection (for non-spacing context)
-_sync_mongo_client: Optional[MongoClient] = None
-_sync_mongo_db: Optional[Database] = None
+_synchronous_mongo_client: Optional[MongoClient] = None
+_synchronous_mongo_db: Optional[Database] = None
 
 
 class DatabaseManager:
@@ -38,11 +38,12 @@ class DatabaseManager:
         self._redis_healthy = False
 
     async def init_mongodb(self):
-        """Initialize MongoDB connection"""
+        """Initialize 'asynchronous' MongoDB connection"""
         try:
             logger.info("Initializing the MongoDB connection...")
 
-            #Create MongoDB client and configure connect pool
+            #Create 'asynchronous' MongoDB client and configure connect pool
+            #NOTE: there is 'synchronous' version of MongoClient created in get_mongo_db_sync()
             self.mongo_client = AsyncIOMotorClient(
                 settings.MONGO_URI,
                 maxPoolSize=settings.MONGO_MAX_CONNECTIONS,
@@ -75,7 +76,7 @@ class DatabaseManager:
         try:
             logger.info("Initializing Redis connection...")
 
-            #Create Redis Connect Pool
+            #Create 'asynchronous' Redis Connect Pool
             self.redis_pool = ConnectionPool.from_url(
                 settings.REDIS_URL,
                 max_connections=settings.REDIS_MAX_CONNECTIONS,
@@ -394,18 +395,21 @@ def get_mongo_db() -> AsyncIOMotorDatabase:
     return mongo_db
 
 
-def get_mongo_db_sync() -> Database:
-    """Get instance of a simultaneous version of the MongoDB database
-For non-spacing context (e.g., call by normal function)
-"""
-    global _sync_mongo_client, _sync_mongo_db
+def get_mongo_db_synchronous() -> Database:
+    """
+    Get instance of a 'synchronous' version of the MongoDB database
+    NOTE: 'Synchronous'  version of MongoDB access
+    NOTE: 'Asynchronous' version is created in DatabaseManager.init_mongodb()
+    For non-spacing context (e.g., call by normal function)
+    """
+    global _synchronous_mongo_client, _synchronous_mongo_db
 
-    if _sync_mongo_db is not None:
-        return _sync_mongo_db
+    if _synchronous_mongo_db is not None:
+        return _synchronous_mongo_db
 
-    #Create a simultaneous MongoDB client
-    if _sync_mongo_client is None:
-        _sync_mongo_client = MongoClient(
+    #Create a 'synchronous' MongoDB client
+    if _synchronous_mongo_client is None:
+        _synchronous_mongo_client = MongoClient(
             settings.MONGO_URI,
             maxPoolSize=settings.MONGO_MAX_CONNECTIONS,
             minPoolSize=settings.MONGO_MIN_CONNECTIONS,
@@ -413,8 +417,8 @@ For non-spacing context (e.g., call by normal function)
             serverSelectionTimeoutMS=5000
         )
 
-    _sync_mongo_db = _sync_mongo_client[settings.MONGO_DB]
-    return _sync_mongo_db
+    _synchronous_mongo_db = _synchronous_mongo_client[settings.MONGO_DB]
+    return _synchronous_mongo_db
 
 
 def get_redis_client() -> Redis:

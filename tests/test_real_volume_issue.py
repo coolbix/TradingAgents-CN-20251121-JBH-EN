@@ -41,7 +41,7 @@ def test_real_tushare_volume_access():
         manager = DataSourceManager()
         
         # 确保使用Tushare数据源
-        if ChinaDataSource.TUSHARE in manager.available_sources:
+        if ChinaDataSource.TUSHARE in manager.available_china_sources:
             manager.set_current_source(ChinaDataSource.TUSHARE)
             print(f"📊 当前数据源: {manager.current_source.value}")
             

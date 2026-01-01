@@ -282,8 +282,8 @@ No historical transaction data obtained, only basic information such as company 
 
             #If access to basic information fails, try to obtain the most basic information from the cache
             try:
-                from tradingagents.config.runtime_settings import use_app_cache_enabled
-                if use_app_cache_enabled(False):
+                from tradingagents.config.runtime_settings import is_use_app_cache_enabled
+                if is_use_app_cache_enabled(False):
                     from .cache.app_adapter import get_market_quote_dataframe
                     df_q = get_market_quote_dataframe(symbol)
                     if df_q is not None and not df_q.empty:
@@ -351,8 +351,8 @@ Analysis modules: Analysis module level
         #If the current price/fall/offset is still missing and the app cache is enabled, read the market quotes pocket
         try:
             if (current_price == "N/A" or change_pct == "N/A" or volume == "N/A"):
-                from tradingagents.config.runtime_settings import use_app_cache_enabled  # type: ignore
-                if use_app_cache_enabled(False):
+                from tradingagents.config.runtime_settings import is_use_app_cache_enabled  # type: ignore
+                if is_use_app_cache_enabled(False):
                     from .cache.app_adapter import get_market_quote_dataframe
                     df_q = get_market_quote_dataframe(symbol)
                     if df_q is not None and not df_q.empty:
@@ -867,8 +867,8 @@ Analysis modules: Analysis module level
                 logger.info(f"MongoDB is not available, using input prices:{price_value}Dollar")
 
             #First priority: Obtain standardized financial data from the MongoDB stock financial data collection
-            from tradingagents.config.runtime_settings import use_app_cache_enabled
-            if use_app_cache_enabled(False):
+            from tradingagents.config.runtime_settings import is_use_app_cache_enabled
+            if is_use_app_cache_enabled(False):
                 logger.info(f"Priority from MongoDB stock financial data{symbol}Financial data")
 
                 #Obtain standardized financial data directly from MongoDB
@@ -2307,8 +2307,8 @@ def _add_financial_cache_methods():
     def _cache_raw_financial_data(self, symbol: str, financial_data: dict, stock_info: dict):
         """Cache raw financial data to database"""
         try:
-            from tradingagents.config.runtime_settings import use_app_cache_enabled
-            if not use_app_cache_enabled(False):
+            from tradingagents.config.runtime_settings import is_use_app_cache_enabled
+            if not is_use_app_cache_enabled(False):
                 logger.debug(f"📊 [Financial Cache] Apply cache not enabled, skip cache save")
                 return
 

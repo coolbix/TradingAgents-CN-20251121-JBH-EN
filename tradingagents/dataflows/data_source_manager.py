@@ -52,15 +52,19 @@ Value using uniform data source code
 
 
 class DataSourceManager:
-    """Data Source Manager"""
+    """
+    Data Source Manager
+    NOTE: there is another DataSourceManager in app/services/data_sources/manager.py
+    NOTE: consider unifying them in the future
+    """
 
     def __init__(self):
         """Initialize data source manager"""
         #Check to enable the MongoDB cache
-        self.use_mongodb_cache = self._check_mongodb_enabled()
+        self.use_mongodb_cache = self._check_if_use_mongodb_enabled()
 
         self.default_source = self._get_default_source()
-        self.available_sources = self._check_available_sources()
+        self.available_china_sources = self._check_available_china_data_sources()
         self.current_source = self.default_source
 
         #Initialise Unified Cache Manager
@@ -78,29 +82,28 @@ class DataSourceManager:
         logger.info(f"MongoDB cache:{'Enabled' if self.use_mongodb_cache else 'It\'s not working.'}")
         logger.info(f"Unified Cache:{'Enabled' if self.cache_enabled else 'It\'s not working.'}")
         logger.info(f"Default data source:{self.default_source.value}")
-        logger.info(f"Available data sources:{[s.value for s in self.available_sources]}")
+        logger.info(f"Available data sources:{[s.value for s in self.available_china_sources]}")
 
-    def _check_mongodb_enabled(self) -> bool:
-        """Check to enable the MongoDB cache"""
-        from tradingagents.config.runtime_settings import use_app_cache_enabled
-        return use_app_cache_enabled()
+    def _check_if_use_mongodb_enabled(self) -> bool:
+        """Check if using MongoDB cache is enabled from runtime settings"""
+        from tradingagents.config.runtime_settings import is_use_app_cache_enabled
+        return is_use_app_cache_enabled()
 
     def _get_data_source_priority_order(self, symbol: Optional[str] = None) -> List[ChinaDataSource]:
         """Data source prioritization from database (for downgrading)
+        Args:
+        Symbol: Equities code to identify market types (A/US/Hong Kong)
 
-Args:
-Symbol: Equities code to identify market types (A/US/Hong Kong)
-
-Returns:
-List of data sources in order of priority (not including MongoDB because MongoDB is the highest priority)
-"""
+        Returns:
+        List of data sources in order of priority (not including MongoDB because MongoDB is the highest priority)
+        """
         #Identification of market types
         market_category = self._identify_market_category(symbol)
 
         try:
             #🔥 Read the data source configuration from the database (using sync client)
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
             config_collection = db.system_configs
 
             #Get the latest active configuration
@@ -143,7 +146,7 @@ List of data sources in order of priority (not including MongoDB because MongoDB
                     if ds_type in source_mapping:
                         source = source_mapping[ds_type]
                         #Excludes MongoDB (MongoDB is the highest priority and does not participate in downgrading)
-                        if source != ChinaDataSource.MONGODB and source in self.available_sources:
+                        if source != ChinaDataSource.MONGODB and source in self.available_china_sources:
                             result.append(source)
 
                 if result:
@@ -164,17 +167,16 @@ List of data sources in order of priority (not including MongoDB because MongoDB
             ChinaDataSource.BAOSTOCK,
         ]
         #Return only available data sources
-        return [s for s in default_order if s in self.available_sources]
+        return [s for s in default_order if s in self.available_china_sources]
 
     def _identify_market_category(self, symbol: Optional[str]) -> Optional[str]:
         """Identification of market classifications to which stock codes belong
+        Args:
+        symbol: stock code
 
-Args:
-symbol: stock code
-
-Returns:
-Market classification ID (a shares/us stocks/hk stocks) returns Noone if it cannot be identified
-"""
+        Returns:
+        Market classification ID (a shares/us stocks/hk stocks) returns Noone if it cannot be identified
+        """
         if not symbol:
             return None
 
@@ -220,15 +222,14 @@ Market classification ID (a shares/us stocks/hk stocks) returns Noone if it cann
 
     def get_china_stock_data_tushare(self, symbol: str, start_date: str, end_date: str) -> str:
         """Using Tushare to access Chinese stock A historical data
-
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-
-Returns:
-str: Formatted Stock Data Reports
-"""
+        Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
+        
+        Returns:
+        str: Formatted Stock Data Reports
+        """
         #Switch to Tushare Data Source
         original_source = self.current_source
         self.current_source = ChinaDataSource.TUSHARE
@@ -242,14 +243,14 @@ str: Formatted Stock Data Reports
 
     def get_fundamentals_data(self, symbol: str) -> str:
         """Obtain basic face data to support multiple data sources and automatic downgrade
-Priority: MongoDB →Tushare →AKShare → Generate Analysis
+        Priority: MongoDB →Tushare →AKShare → Generate Analysis
 
-Args:
-symbol: stock code
+        Args:
+        symbol: stock code
 
-Returns:
-str: Basic analysis reports
-"""
+        Returns:
+        str: Basic analysis reports
+        """
         logger.info(f"[Data source:{self.current_source.value}Start access to basic data:{symbol}",
                    extra={
                        'symbol': symbol,
@@ -308,28 +309,27 @@ str: Basic analysis reports
 
     def get_china_stock_fundamentals_tushare(self, symbol: str) -> str:
         """Access to Chinese stock fundamentals using Tushare (old interface compatible)
+        Args:
+        symbol: stock code
 
-Args:
-symbol: stock code
-
-Returns:
-str: Basic analysis reports
-"""
+        Returns:
+        str: Basic analysis reports
+        """
         #Redirect to Unified Interface
         return self._get_tushare_fundamentals(symbol)
 
     def get_news_data(self, symbol: str = None, hours_back: int = 24, limit: int = 20) -> List[Dict[str, Any]]:
         """A unified interface for access to news data to support multiple data sources and automatic downgrading
-Priority: MongoDB → Tushare → AKShare
+        Priority: MongoDB → Tushare → AKShare
 
-Args:
-Symbol: stock code, market news for empty
-Hours back: backtrace hours
-Limited number of returns
+        Args:
+        Symbol: stock code, market news for empty
+        Hours back: backtrace hours
+        Limited number of returns
 
-Returns:
-List [Dict]: News Data List
-"""
+        Returns:
+        List [Dict]: News Data List
+        """
         logger.info(f"[Data source:{self.current_source.value}Start access to news data:{symbol or 'Market News'}Backtracking{hours_back}Hours",
                    extra={
                        'symbol': symbol,
@@ -390,23 +390,22 @@ List [Dict]: News Data List
                         }, exc_info=True)
             return self._try_fallback_news(symbol, hours_back, limit)
 
-    def _check_available_sources(self) -> List[ChinaDataSource]:
+    def _check_available_china_data_sources(self) -> List[ChinaDataSource]:
         """Check available data sources
+        Check logic:
+        1. Inspection of the installation of dependent packages (technical availability)
+        2. Check whether the database configuration is enabled (business availability)
 
-Check logic:
-1. Inspection of the installation of dependent packages (technical availability)
-2. Check whether the database configuration is enabled (business availability)
-
-Returns:
-List of available and enabled data sources
-"""
+        Returns:
+        List of available and enabled data sources
+        """
         available = []
 
         #🔥 Read the data source configuration from the database, get access status
         enabled_sources_in_db = set()
         try:
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
             config_collection = db.system_configs
 
             #Get the latest active configuration
@@ -458,7 +457,7 @@ List of available and enabled data sources
                 import tushare as ts
                 #Prefer API Key to database configuration, followed by environment variables
                 token = datasource_configs.get('tushare', {}).get('api_key') or os.getenv('TUSHARE_TOKEN')
-                if token:
+                if token and not token.startswith('your_'):
                     available.append(ChinaDataSource.TUSHARE)
                     source = "数据库配置" if datasource_configs.get('tushare', {}).get('api_key') else "环境变量"
                     logger.info(f"Tushare data sources are available and enabled (API Key source:{source})")
@@ -499,8 +498,8 @@ List of available and enabled data sources
     def _get_datasource_configs_from_db(self) -> dict:
         """Read data source configuration from database (including API Key)"""
         try:
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
 
             #Read activated configurations from system configs
             config = db.system_configs.find_one({"is_active": True})
@@ -531,7 +530,7 @@ List of available and enabled data sources
 
     def set_current_source(self, source: ChinaDataSource) -> bool:
         """Set Current Data Source"""
-        if source in self.available_sources:
+        if source in self.available_china_sources:
             self.current_source = source
             logger.info(f"The data source has been converted to:{source.value}")
             return True
@@ -597,16 +596,15 @@ List of available and enabled data sources
 
     def _get_cached_data(self, symbol: str, start_date: str = None, end_date: str = None, max_age_hours: int = 24) -> Optional[pd.DataFrame]:
         """Fetch data from cache
+        Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
+        max age hours: maximum cache time (hours)
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-max age hours: maximum cache time (hours)
-
-Returns:
-DataFrame: Cache data, if not returnedNone
-"""
+        Returns:
+        DataFrame: Cache data, if not returnedNone
+        """
         if not self.cache_enabled or not self.cache_manager:
             return None
 
@@ -630,13 +628,12 @@ DataFrame: Cache data, if not returnedNone
 
     def _save_to_cache(self, symbol: str, data: pd.DataFrame, start_date: str = None, end_date: str = None):
         """Save Data to Cache
-
-Args:
-symbol: stock code
-Data:
-Start date: Start date
-End date: End date
-"""
+        Args:
+        symbol: stock code
+        Data:
+        Start date: Start date
+        End date: End date
+        """
         if not self.cache_enabled or not self.cache_manager:
             return
 
@@ -649,13 +646,12 @@ End date: End date
 
     def _get_volume_safely(self, data: pd.DataFrame) -> float:
         """Secure access to traffic data
-
-Args:
-Data: Stock data DataFrame
-
-Returns:
-float: barter, return 0 if access failed
-"""
+        Args:
+        Data: Stock data DataFrame
+        
+        Returns:
+        float: barter, return 0 if access failed
+        """
         try:
             if 'volume' in data.columns:
                 return data['volume'].iloc[-1]
@@ -669,17 +665,16 @@ float: barter, return 0 if access failed
     def _format_stock_data_response(self, data: pd.DataFrame, symbol: str, stock_name: str,
                                     start_date: str, end_date: str) -> str:
         """Formatting of stock data responses (including technical indicators)
+        Args:
+        Data: Stock data DataFrame
+        symbol: stock code
+        Stock name: Stock name
+        Start date: Start date
+        End date: End date
 
-Args:
-Data: Stock data DataFrame
-symbol: stock code
-Stock name: Stock name
-Start date: Start date
-End date: End date
-
-Returns:
-str: Formatted data reports (including technical indicators)
-"""
+        Returns:
+        str: Formatted data reports (including technical indicators)
+        """
         try:
             original_data_count = len(data)
             logger.info(f"[Technical indicators]{original_data_count}Article")
@@ -896,16 +891,15 @@ str: Formatted data reports (including technical indicators)
 
     def get_stock_dataframe(self, symbol: str, start_date: str = None, end_date: str = None, period: str = "daily") -> pd.DataFrame:
         """DataFrame interface to capture stock data, support multiple data sources and automatically downgrade
-
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-period: data cycle (daily/weekly/monthly), default is Daily
-
-Returns:
-DataFrame: DataFrame, column: open, high, low, close, vol, amount, date
-"""
+        Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
+        period: data cycle (daily/weekly/monthly), default is Daily
+        
+        Returns:
+        DataFrame: DataFrame, column: open, high, low, close, vol, amount, date
+        """
         logger.info(f"[DataFrame interface]{symbol} ({start_date}Present.{end_date})")
 
         try:
@@ -934,7 +928,7 @@ DataFrame: DataFrame, column: open, high, low, close, vol, amount, date
 
             #Downgrade to other data sources
             logger.warning(f"[DataFrame Interface]{self.current_source.value}Failed. Try demotion.")
-            for source in self.available_sources:
+            for source in self.available_china_sources:
                 if source == self.current_source:
                     continue
                 try:
@@ -1014,16 +1008,15 @@ DataFrame: Standardized DataFrame
 
     def get_stock_data(self, symbol: str, start_date: str = None, end_date: str = None, period: str = "daily") -> str:
         """Integrated interface to capture stock data to support multi-cycle data
-
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-period: data cycle (daily/weekly/monthly), default is Daily
-
-Returns:
-str: Formatted Stock Data
-"""
+        Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
+        period: data cycle (daily/weekly/monthly), default is Daily
+        
+        Returns:
+        str: Formatted Stock Data
+        """
         #Record detailed input parameters
         logger.info(f"[Data source:{self.current_source.value}Start acquisition{period}Data:{symbol}",
                    extra={
@@ -1125,10 +1118,9 @@ str: Formatted Stock Data
 
     def _get_mongodb_data(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> tuple[str, str | None]:
         """Obtain multi-cycle data from MongoDB - with calculation of technical indicators
-
-Returns:
-tuple[str, str|None]: (result string, actual data source name)
-"""
+        Returns:
+        tuple[str, str|None]: (result string, actual data source name)
+        """
         logger.debug(f"[MongoDB] Call parameters: symbol={symbol}, start_date={start_date}, end_date={end_date}, period={period}")
 
         try:
@@ -1374,7 +1366,7 @@ tuple[str, str|None]: (result string, actual data source name)
         fallback_order = self._get_data_source_priority_order(symbol)
 
         for source in fallback_order:
-            if source != self.current_source and source in self.available_sources:
+            if source != self.current_source and source in self.available_china_sources:
                 try:
                     logger.info(f"[Reserve data source]{source.value}Access{period}Data:{symbol}")
 
@@ -1405,14 +1397,14 @@ tuple[str, str|None]: (result string, actual data source name)
 
     def get_stock_info(self, symbol: str) -> Dict:
         """Access to stock basic information to support multiple data sources and automatic downgrading
-Priority: MongoDB → Tushare → Akshare → BaoStock
-"""
+        Priority: MongoDB → Tushare → Akshare → BaoStock
+        """
         logger.info(f"[Data source:{self.current_source.value}Start access to stock information:{symbol}")
 
         #Prefer App Mongo cache (when ta use app cache=True)
         try:
-            from tradingagents.config.runtime_settings import use_app_cache_enabled  # type: ignore
-            use_cache = use_app_cache_enabled(False)
+            from tradingagents.config.runtime_settings import is_use_app_cache_enabled  # type: ignore
+            use_cache = is_use_app_cache_enabled(False)
             logger.info(f"🔧 [configuration check] use app cache enabled() returns value:{use_cache}")
         except Exception as e:
             logger.error(f"❌ [configuration check] use app cache enabled() call failed:{e}", exc_info=True)
@@ -1514,13 +1506,12 @@ Priority: MongoDB → Tushare → Akshare → BaoStock
 
     def get_stock_basic_info(self, stock_code: str = None) -> Optional[Dict[str, Any]]:
         """Access to stock base information (compatible stock data service interface)
+        Args:
+        Stock code: Stock code, return all stock lists if None
 
-Args:
-Stock code: Stock code, return all stock lists if None
-
-Returns:
-Dict: Stock Dictionary, or error words containing error fields General
-"""
+        Returns:
+        Dict: Stock Dictionary, or error words containing error fields General
+        """
         if stock_code is None:
             #Returns all stock lists
             logger.info("Get all the stock lists.")
@@ -1553,15 +1544,14 @@ Dict: Stock Dictionary, or error words containing error fields General
 
     def get_stock_data_with_fallback(self, stock_code: str, start_date: str, end_date: str) -> str:
         """Get Stock Data (compatible stock data service interface)
+        Args:
+        Stock code: Stock code
+        Start date: Start date
+        End date: End date
 
-Args:
-Stock code: Stock code
-Start date: Start date
-End date: End date
-
-Returns:
-str: Formatted Stock Data Reports
-"""
+        Returns:
+        str: Formatted Stock Data Reports
+        """
         logger.info(f"Access to stock data:{stock_code} ({start_date}Present.{end_date})")
 
         try:
@@ -1576,7 +1566,7 @@ str: Formatted Stock Data Reports
         logger.error(f"🔄 {self.current_source.value}Failed to attempt backup data source for stock information...")
 
         #Get all available data sources
-        available_sources = self.available_sources.copy()
+        available_sources = self.available_china_sources.copy()
 
         #Remove the current data source
         if self.current_source.value in available_sources:
@@ -1626,11 +1616,10 @@ str: Formatted Stock Data Reports
 
     def _get_akshare_stock_info(self, symbol: str) -> Dict:
         """Use AKShare for basic stock information
-
-Important: AKshare needs to distinguish between stocks and indices
-- For 000001, it is recognized as Shenzhen.
-- For equities, full code is required (e.g. sz00001 or ssh60000)
-"""
+        Important: AKshare needs to distinguish between stocks and indices
+        - For 000001, it is recognized as Shenzhen.
+        - For equities, full code is required (e.g. sz00001 or ssh60000)
+        """
         try:
             import akshare as ak
 
@@ -2002,7 +1991,7 @@ Important: AKshare needs to distinguish between stocks and indices
         fallback_order = self._get_data_source_priority_order(symbol)
 
         for source in fallback_order:
-            if source != self.current_source and source in self.available_sources:
+            if source != self.current_source and source in self.available_china_sources:
                 try:
                     logger.info(f"🔄 Try secondary data source access fundamentals:{source.value}")
 
@@ -2078,7 +2067,7 @@ Important: AKshare needs to distinguish between stocks and indices
         fallback_order = self._get_data_source_priority_order(symbol)
 
         for source in fallback_order:
-            if source != self.current_source and source in self.available_sources:
+            if source != self.current_source and source in self.available_china_sources:
                 try:
                     logger.info(f"🔄 trying to get news from secondary data sources:{source.value}")
 
@@ -2118,16 +2107,16 @@ def get_data_source_manager() -> DataSourceManager:
 
 def get_china_stock_data_unified(symbol: str, start_date: str, end_date: str) -> str:
     """Unified Chinese stock access interface
-Automatically use configured data sources to support backup data Source
+    Automatically use configured data sources to support backup data Source
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
+    Args:
+    symbol: stock code
+    Start date: Start date
+    End date: End date
 
-Returns:
-str: Formatted Stock Data
-"""
+    Returns:
+    str: Formatted Stock Data
+    """
     from tradingagents.utils.logging_init import get_logger
 
 
@@ -2154,13 +2143,12 @@ str: Formatted Stock Data
 
 def get_china_stock_info_unified(symbol: str) -> Dict:
     """Unified Chinese stock access interface
+    Args:
+    symbol: stock code
 
-Args:
-symbol: stock code
-
-Returns:
-Dict: Stock Basic Information
-"""
+    Returns:
+    Dict: Stock Basic Information
+    """
     manager = get_data_source_manager()
     return manager.get_stock_info(symbol)
 
@@ -2180,10 +2168,9 @@ def get_data_source_manager() -> DataSourceManager:
 
 def get_stock_data_service() -> DataSourceManager:
     """Examples of access to stock data services (compatible stock data service interface)
-
- This function is compatible interface and actually returns DataManager instance
-Recommended direct use()
-"""
+    This function is compatible interface and actually returns DataManager instance
+    Recommended direct use()
+    """
     return get_data_source_manager()
 
 
@@ -2191,18 +2178,17 @@ Recommended direct use()
 
 class USDataSourceManager:
     """American Stock Data Source Manager
-
-Supported data sources:
-- yfinance: Stock prices and technical indicators (free of charge)
-- alpha vantage: Basics and news data (needs API Key)
-- Finnhub: Back-up data source (needs API Key)
-- Mongodb: Cache data source (highest priority)
-"""
+    Supported data sources:
+    - yfinance: Stock prices and technical indicators (free of charge)
+    - alpha vantage: Basics and news data (needs API Key)
+    - Finnhub: Back-up data source (needs API Key)
+    - Mongodb: Cache data source (highest priority)
+    """
 
     def __init__(self):
         """Initialise aesthetic data source manager"""
         #Check to enable MongoDB cache
-        self.use_mongodb_cache = self._check_mongodb_enabled()
+        self.use_mongodb_cache = self._check_if_use_mongodb_enabled()
 
         #Check available data sources
         self.available_sources = self._check_available_sources()
@@ -2216,24 +2202,23 @@ Supported data sources:
         logger.info(f"Default data source:{self.default_source.value}")
         logger.info(f"Available data sources:{[s.value for s in self.available_sources]}")
 
-    def _check_mongodb_enabled(self) -> bool:
+    def _check_if_use_mongodb_enabled(self) -> bool:
         """Check to enable the MongoDB cache"""
-        from tradingagents.config.runtime_settings import use_app_cache_enabled
-        return use_app_cache_enabled()
+        from tradingagents.config.runtime_settings import is_use_app_cache_enabled
+        return is_use_app_cache_enabled()
 
     def _get_data_source_priority_order(self, symbol: Optional[str] = None) -> List[USDataSource]:
         """Acquiring US stock data source priorities from the database (for downgrading)
+        Args:
+        symbol: stock code
 
-Args:
-symbol: stock code
-
-Returns:
-List of data sources in order of priority (excluding MongoDB)
-"""
+        Returns:
+        List of data sources in order of priority (excluding MongoDB)
+        """
         try:
             #Read data source configuration from the database
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
 
             #Method 1: Read from Data groupings (recommended)
             groupings_collection = db.datasource_groupings
@@ -2299,9 +2284,8 @@ List of data sources in order of priority (excluding MongoDB)
 
     def _check_available_sources(self) -> List[USDataSource]:
         """Check available data sources
-
-Read enabled status from the database and check if dependency is satisfied
-"""
+        Read enabled status from the database and check if dependency is satisfied
+        """
         available = []
 
         #MongoDB Cache
@@ -2361,8 +2345,8 @@ Read enabled status from the database and check if dependency is satisfied
     def _get_enabled_sources_from_db(self) -> List[str]:
         """Read enabled list of data sources from the database"""
         try:
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
 
             #Read from Data groupings
             groupings = list(db.datasource_groupings.find({
@@ -2394,8 +2378,8 @@ Read enabled status from the database and check if dependency is satisfied
     def _get_datasource_configs_from_db(self) -> dict:
         """Read data source configuration from database (including API Key)"""
         try:
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
 
             #Read activated configurations from system configs
             config = db.system_configs.find_one({"is_active": True})

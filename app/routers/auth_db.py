@@ -218,6 +218,15 @@ async def login(payload: LoginRequest, request: Request):
 @router.post("/refresh")
 async def refresh_token(payload: RefreshTokenRequest):
     """Refresh Access Cards"""
+    """
+    Login returns both an access token and a refresh token.
+    The refresh token is just another JWT created with AuthService.create_access_token(..., expires_delta=60*60*24*7) so it lasts ~7 days (auth_db.py).
+    
+    /refresh expects refresh_token in the body.
+    It validates it with AuthService.verify_token, then verifies the user still exists and is active (auth_db.py).
+    If valid, it issues a new access token (1 hour) and a new refresh token (7 days) and returns them (auth_db.py).
+    There’s no server-side storage or revocation list here; refresh tokens are stateless JWTs, so rotation is purely time-based (auth_db.py).
+    """    
     try:
         logger.debug(f"Request received from refresh token")
         logger.debug(f"Refresh token length:{len(payload.refresh_token) if payload.refresh_token else 0}")

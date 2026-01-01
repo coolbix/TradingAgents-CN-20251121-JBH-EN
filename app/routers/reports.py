@@ -32,10 +32,10 @@ Priority: Cache - > MongoDB (data source priority) - > Default return stock code
 
     try:
         #Fetch stock names from MongoDB
-        from ..core.database import get_mongo_db_sync
+        from ..core.database import get_mongo_db_synchronous
         from ..core.unified_config import UnifiedConfigManager
 
-        db = get_mongo_db_sync()
+        db = get_mongo_db_synchronous()
         code6 = str(stock_code).zfill(6)
 
         #🔥Query by data source priority

@@ -83,7 +83,7 @@ def test_fundamentals_from_tushare():
     manager = DataSourceManager()
     
     # 临时切换到 Tushare 数据源
-    if ChinaDataSource.TUSHARE in manager.available_sources:
+    if ChinaDataSource.TUSHARE in manager.available_china_sources:
         original_source = manager.current_source
         manager.current_source = ChinaDataSource.TUSHARE
         
@@ -207,7 +207,7 @@ def test_data_source_priority():
     manager = DataSourceManager()
     
     print("\n📊 基本面数据源优先级:")
-    if manager.use_mongodb_cache and ChinaDataSource.MONGODB in manager.available_sources:
+    if manager.use_mongodb_cache and ChinaDataSource.MONGODB in manager.available_china_sources:
         print("   1. ✅ MongoDB（最高优先级）- 财务数据")
         print("   2. ✅ Tushare - 基本面数据")
         print("   3. ✅ AKShare - 生成分析")

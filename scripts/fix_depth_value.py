@@ -11,7 +11,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db_sync
+from app.core.database import get_mongo_db_synchronous
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,7 @@ def fix_depth_value():
     """修复分析深度值"""
     try:
         # 获取同步数据库连接
-        db = get_mongo_db_sync()
+        db = get_mongo_db_synchronous()
         users_collection = db["users"]
         
         # 查找所有用户

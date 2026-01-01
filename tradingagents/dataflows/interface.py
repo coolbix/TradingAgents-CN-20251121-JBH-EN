@@ -60,8 +60,8 @@ list: list of data sources in order of priority, e.g. ['akshare', 'yfinance']
 """
     try:
         #Try reading configurations from the database
-        from app.core.database import get_mongo_db_sync
-        db = get_mongo_db_sync()
+        from app.core.database import get_mongo_db_synchronous
+        db = get_mongo_db_synchronous()
 
         #Get the latest active configuration
         config_data = db.system_configs.find_one(
@@ -119,8 +119,8 @@ list: list of data sources in order of priority, such as ['yfinance', 'finnhub']
 """
     try:
         #Try reading configurations from the database
-        from app.core.database import get_mongo_db_sync
-        db = get_mongo_db_sync()
+        from app.core.database import get_mongo_db_synchronous
+        db = get_mongo_db_synchronous()
 
         #Get the latest active configuration
         config_data = db.system_configs.find_one(
@@ -1716,7 +1716,7 @@ str: Current data source information
 
         manager = get_data_source_manager()
         current = manager.get_current_source()
-        available = manager.available_sources
+        available = manager.available_china_sources
 
         result = f"当前数据源: {current.value}\n"
         result += f"可用数据源: {[s.value for s in available]}\n"

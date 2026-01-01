@@ -33,11 +33,11 @@ def test_mongodb_as_datasource():
     print(f"\n🔍 当前数据源: {manager.current_source.value}")
     print(f"🔍 默认数据源: {manager.default_source.value}")
     print(f"🔍 MongoDB缓存启用: {manager.use_mongodb_cache}")
-    print(f"🔍 可用数据源: {[s.value for s in manager.available_sources]}")
+    print(f"🔍 可用数据源: {[s.value for s in manager.available_china_sources]}")
     
     # 验证 MongoDB 是否在可用数据源列表中
     if manager.use_mongodb_cache:
-        if ChinaDataSource.MONGODB in manager.available_sources:
+        if ChinaDataSource.MONGODB in manager.available_china_sources:
             print("\n✅ MongoDB 已加入可用数据源列表")
         else:
             print("\n❌ MongoDB 未加入可用数据源列表")
@@ -90,7 +90,7 @@ def test_mongodb_as_datasource():
     print("🔄 测试数据源优先级")
     print("=" * 70)
     
-    if manager.use_mongodb_cache and ChinaDataSource.MONGODB in manager.available_sources:
+    if manager.use_mongodb_cache and ChinaDataSource.MONGODB in manager.available_china_sources:
         print("\n✅ MongoDB 数据源优先级测试:")
         print("   1. MongoDB（最高优先级）")
         print("   2. AKShare")

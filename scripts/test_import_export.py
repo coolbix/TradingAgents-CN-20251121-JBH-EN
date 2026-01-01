@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import asyncio
 import json
-from app.core.database import get_mongo_db_sync
+from app.core.database import get_mongo_db_synchronous
 
 async def test_export_import():
     """测试导出和导入功能"""
@@ -20,7 +20,7 @@ async def test_export_import():
     print("=" * 80)
     
     # 获取数据库连接
-    db = get_mongo_db_sync()
+    db = get_mongo_db_synchronous()
     
     # 1. 导出测试数据
     print("\n1️⃣ 导出测试数据")

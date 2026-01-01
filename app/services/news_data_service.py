@@ -256,10 +256,10 @@ Returns:
 Number of records kept
 """
         try:
-            from app.core.database import get_mongo_db_sync
+            from app.core.database import get_mongo_db_synchronous
 
             #Get Sync database connections
-            db = get_mongo_db_sync()
+            db = get_mongo_db_synchronous()
             collection = db.stock_news
             now = datetime.utcnow()
 

@@ -259,8 +259,8 @@ class UnifiedConfigManager:
         """Fetching Data Source Configuration - Prioritize Reading from Database, Back to Hard Encoding (Sync Version)"""
         try:
             #🔥 Prioritize reading configurations from databases (using synchronous connections)
-            from app.core.database import get_mongo_db_sync
-            db = get_mongo_db_sync()
+            from app.core.database import get_mongo_db_synchronous
+            db = get_mongo_db_synchronous()
             config_collection = db.system_configs
 
             #Get the latest active configuration

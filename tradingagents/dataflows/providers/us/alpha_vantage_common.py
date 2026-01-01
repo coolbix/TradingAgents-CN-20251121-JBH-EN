@@ -42,8 +42,8 @@ Optional [str]: API Key, if not returned None
 """
     try:
         logger.debug("[DB query] Start reading Alpha Vantage API Key...")
-        from app.core.database import get_mongo_db_sync
-        db = get_mongo_db_sync()
+        from app.core.database import get_mongo_db_synchronous
+        db = get_mongo_db_synchronous()
         config_collection = db.system_configs
 
         #Get the latest active configuration

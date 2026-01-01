@@ -23,7 +23,7 @@ def test_data_source_availability():
         
         print(f"📊 默认数据源: {manager.default_source.value}")
         print(f"📊 当前数据源: {manager.current_source.value}")
-        print(f"📊 可用数据源: {[s.value for s in manager.available_sources]}")
+        print(f"📊 可用数据源: {[s.value for s in manager.available_china_sources]}")
         
         return manager
         
@@ -125,7 +125,7 @@ def main():
     else:
         print("⚠️ 降级机制可能存在问题")
     
-    print(f"📊 可用数据源数量: {len(manager.available_sources)}")
+    print(f"📊 可用数据源数量: {len(manager.available_china_sources)}")
     print(f"📊 建议: 确保至少有2个数据源可用以支持降级")
 
 if __name__ == "__main__":

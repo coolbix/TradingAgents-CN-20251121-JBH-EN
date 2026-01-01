@@ -99,12 +99,12 @@ def test_data_source_config():
         manager = get_data_source_manager()
         
         print(f"\n当前数据源: {manager.current_source.value}")
-        print(f"可用数据源: {[s.value for s in manager.available_sources]}")
+        print(f"可用数据源: {[s.value for s in manager.available_china_sources]}")
         
         # 检查是否启用了 app cache
         try:
-            from tradingagents.config.runtime_settings import use_app_cache_enabled
-            use_cache = use_app_cache_enabled(False)
+            from tradingagents.config.runtime_settings import is_use_app_cache_enabled
+            use_cache = is_use_app_cache_enabled(False)
             print(f"App Cache 启用状态: {use_cache}")
         except Exception as e:
             print(f"无法检查 App Cache 状态: {e}")

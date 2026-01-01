@@ -82,10 +82,10 @@ def test_data_source_manager():
         manager = DataSourceManager()
         print(f"✅ 数据源管理器初始化成功")
         print(f"   当前数据源: {manager.current_source.value}")
-        print(f"   可用数据源: {[s.value for s in manager.available_sources]}")
+        print(f"   可用数据源: {[s.value for s in manager.available_china_sources]}")
         
         # 检查BaoStock是否在可用数据源中
-        available_sources = [s.value for s in manager.available_sources]
+        available_sources = [s.value for s in manager.available_china_sources]
         if 'baostock' in available_sources:
             print(f"✅ BaoStock已被识别为可用数据源")
             return True

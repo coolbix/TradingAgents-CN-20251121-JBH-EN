@@ -8,9 +8,9 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db_sync
+from app.core.database import get_mongo_db_synchronous
 
-db = get_mongo_db_sync()
+db = get_mongo_db_synchronous()
 
 print("=" * 70)
 print("📊 美股数据源分组配置（datasource_groupings 集合）")

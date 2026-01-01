@@ -102,13 +102,13 @@ async def test_config_bridge():
     print("\n5️⃣ 测试 tradingagents 读取配置...")
     try:
         from tradingagents.config.runtime_settings import (
-            get_float, get_int, get_bool, use_app_cache_enabled
+            get_float, get_int, get_bool, is_use_app_cache_enabled
         )
         
         print("\n📋 tradingagents 读取的配置值：")
         
         # 测试布尔值
-        use_cache = use_app_cache_enabled(False)
+        use_cache = is_use_app_cache_enabled(False)
         print(f"  • ta_use_app_cache: {use_cache}")
         
         # 测试浮点数

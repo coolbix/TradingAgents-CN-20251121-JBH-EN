@@ -25,7 +25,7 @@ def test_china_data_source():
         manager = DataSourceManager()
         print(f"✅ 数据源管理器初始化成功")
         print(f"   当前数据源: {manager.current_source.value}")
-        print(f"   可用数据源: {[s.value for s in manager.available_sources]}")
+        print(f"   可用数据源: {[s.value for s in manager.available_china_sources]}")
         
         # 测试获取数据
         print(f"\n📊 测试获取平安银行(000001)数据...")

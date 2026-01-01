@@ -138,7 +138,7 @@ def test_real_tushare_data():
         
         # 设置为Tushare数据源
         from tradingagents.dataflows.data_source_manager import ChinaDataSource
-        if ChinaDataSource.TUSHARE in manager.available_sources:
+        if ChinaDataSource.TUSHARE in manager.available_china_sources:
             manager.set_current_source(ChinaDataSource.TUSHARE)
             
             print(f"📊 当前数据源: {manager.current_source.value}")

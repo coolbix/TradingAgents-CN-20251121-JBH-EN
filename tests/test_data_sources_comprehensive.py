@@ -89,7 +89,7 @@ def test_china_stock_data_sources():
             
             manager = DataSourceManager()
             print(f"   当前数据源: {manager.current_source.value}")
-            print(f"   可用数据源: {[s.value for s in manager.available_sources]}")
+            print(f"   可用数据源: {[s.value for s in manager.available_china_sources]}")
             
             start_time = time.time()
             result = manager.get_stock_data(symbol, start_date, end_date)
@@ -101,7 +101,7 @@ def test_china_stock_data_sources():
                     'success': True,
                     'time': end_time - start_time,
                     'current_source': manager.current_source.value,
-                    'available_sources': [s.value for s in manager.available_sources]
+                    'available_sources': [s.value for s in manager.available_china_sources]
                 }
             else:
                 print(f"❌ 数据源管理器获取失败: {result[:100]}...")

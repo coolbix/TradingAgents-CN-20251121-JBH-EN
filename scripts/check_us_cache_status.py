@@ -9,7 +9,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db_sync
+from app.core.database import get_mongo_db_synchronous
 
 print("=" * 80)
 print("📊 美股缓存状态检查")
@@ -26,7 +26,7 @@ print(f"说明: {'使用集成缓存（MongoDB/Redis/File）' if cache_strategy 
 print("\n2️⃣ MongoDB 数据库中的美股数据")
 print("-" * 80)
 
-db = get_mongo_db_sync()
+db = get_mongo_db_synchronous()
 
 # 检查各个集合
 collections_to_check = {

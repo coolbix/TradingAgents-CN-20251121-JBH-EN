@@ -56,7 +56,8 @@ class SyncStats:
 
 
 class MultiSourceBasicsSyncService:
-    """Multidata Source Basic Information Synchronization Service"""
+    """Multi Source (Tushare, AKShare, BaoStock) China Stock Basic Information Synchronization Service"""
+    #Stock Basic Information: code, name, area, industry, market, list_date, sse, full_symbol, category, source, updated_at
 
     def __init__(self):
         self._lock = asyncio.Lock()
@@ -141,12 +142,23 @@ Returns:
 
     async def run_full_sync(self, force: bool = False, preferred_sources: List[str] = None) -> Dict[str, Any]:
         """Run Full Sync
+        Args:
+        force: whether to enforce (even if already in operation)
+        Prefered sources: Priority list of data sources
+        """
 
-Args:
-force: whether to enforce (even if already in operation)
-Prefered sources: Priority list of data sources
-"""
         async with self._lock:
+            """
+            The lock is there to prevent two overlapping sync runs from trampling each other.
+            In MultiSourceBasicsSyncService.__init__, self._lock = asyncio.Lock() is used in run_full_sync to serialize access to the _running flag and ensure only one sync starts at a time.
+            
+            How it’s used:
+            At the start of run_full_sync, it does async with self._lock: and checks _running.
+            If a sync is already running and force is false, it returns the current status.
+            If not running, it sets _running = True under the lock so no other coroutine can slip in and start another run.
+            In the finally: block, it again uses async with self._lock: to set _running = False, ensuring the running flag is reset safely when the job finishes or fails.
+            Net effect: concurrent callers of run_full_sync won’t trigger duplicate work or race on _running; they’ll either wait or get a “already running” response.
+            """
             if self._running and not force:
                 logger.info("Multi-source stock basics sync already running; skip start")
                 return await self.get_status()

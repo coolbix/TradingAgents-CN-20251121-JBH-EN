@@ -124,7 +124,7 @@ def test_fallback_mechanism_logic():
             return False
         
         # 检查可用数据源
-        available_sources = manager.available_sources
+        available_sources = manager.available_china_sources
         print(f"📊 可用数据源: {available_sources}")
         
         if len(available_sources) > 1:

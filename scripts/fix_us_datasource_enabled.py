@@ -22,7 +22,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from datetime import datetime
-from app.core.database import get_mongo_db_sync
+from app.core.database import get_mongo_db_synchronous
 
 
 def fix_us_datasource_enabled():
@@ -34,7 +34,7 @@ def fix_us_datasource_enabled():
     
     try:
         # 获取数据库连接
-        db = get_mongo_db_sync()
+        db = get_mongo_db_synchronous()
         groupings_collection = db.datasource_groupings
         
         # 查询美股数据源分组

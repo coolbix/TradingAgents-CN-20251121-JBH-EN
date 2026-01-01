@@ -12,13 +12,13 @@ from tradingagents.utils.logging_manager import get_logger
 logger = get_logger('agents')
 
 #Import Configuration
-from tradingagents.config.runtime_settings import use_app_cache_enabled
+from tradingagents.config.runtime_settings import is_use_app_cache_enabled
 
 class MongoDBCacheAdapter:
     """MongoDB cache adapter (read synchronized data from MongoDB in app)"""
     
     def __init__(self):
-        self.use_app_cache = use_app_cache_enabled(False)
+        self.use_app_cache = is_use_app_cache_enabled(False)
         self.mongodb_client = None
         self.db = None
         

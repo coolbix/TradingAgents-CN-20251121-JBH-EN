@@ -38,7 +38,7 @@ def clean_import_test():
         
         print(f"📊 默认数据源: {manager.default_source.value}")
         print(f"📊 当前数据源: {manager.current_source.value}")
-        print(f"📊 可用数据源: {[s.value for s in manager.available_sources]}")
+        print(f"📊 可用数据源: {[s.value for s in manager.available_china_sources]}")
         
         # 验证默认数据源是AKShare
         if manager.default_source == ChinaDataSource.AKSHARE:

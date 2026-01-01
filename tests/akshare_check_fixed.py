@@ -47,7 +47,7 @@ def check_data_source_manager():
         manager = DataSourceManager()
         
         # 检查可用数据源
-        available = [s.value for s in manager.available_sources]
+        available = [s.value for s in manager.available_china_sources]
         if 'akshare' in available:
             print("✅ AKShare在可用数据源中")
         else:
