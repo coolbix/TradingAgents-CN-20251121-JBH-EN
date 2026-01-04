@@ -398,6 +398,32 @@ def get_mongo_db() -> AsyncIOMotorDatabase:
     return mongo_db
 
 
+def get_redis_client() -> Redis:
+    """Get Redis client"""
+    if redis_client is None:
+        raise RuntimeError("Redis客户端未初始化")
+    return redis_client
+
+
+async def get_database_health() -> dict:
+    """Access to database health status"""
+    return await db_manager.health_check()
+
+
+#JBH REMOVE  #Gender-compatible Names
+#JBH REMOVE  init_db = init_database
+#JBH REMOVE  close_db = close_database
+
+
+def get_database():
+    """Access to database examples"""
+    if db_manager.mongo_client is None:
+        raise RuntimeError("MongoDB客户端未初始化")
+    #JBH  return db_manager.mongo_client.tradingagents
+    return db_manager.mongo_client[settings.MONGO_DB]
+
+
+#=================== Synchronous MongoDB Access ===================
 def get_mongo_db_synchronous() -> Database:
     """
     Get instance of a 'synchronous' version of the MongoDB database
@@ -422,27 +448,3 @@ def get_mongo_db_synchronous() -> Database:
 
     _synchronous_mongo_db = _synchronous_mongo_client[settings.MONGO_DB]
     return _synchronous_mongo_db
-
-
-def get_redis_client() -> Redis:
-    """Get Redis client"""
-    if redis_client is None:
-        raise RuntimeError("Redis客户端未初始化")
-    return redis_client
-
-
-async def get_database_health() -> dict:
-    """Access to database health status"""
-    return await db_manager.health_check()
-
-
-#JBH REMOVE  #Gender-compatible Names
-#JBH REMOVE  init_db = init_database
-#JBH REMOVE  close_db = close_database
-
-
-def get_database():
-    """Access to database examples"""
-    if db_manager.mongo_client is None:
-        raise RuntimeError("MongoDB客户端未初始化")
-    return db_manager.mongo_client.tradingagents
