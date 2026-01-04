@@ -29,7 +29,7 @@ except ImportError:
                     os.environ[key.strip()] = value.strip()
         print("✅ 手动加载.env文件完成")
 
-from app.core.database import init_db, get_mongo_db
+from app.core.database import init_database, get_mongo_db
 
 async def debug_providers():
     """调试厂家配置"""

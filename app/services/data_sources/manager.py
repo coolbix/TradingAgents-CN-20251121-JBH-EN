@@ -45,7 +45,7 @@ class DataSourceManager:
             self.consistency_checker = None
 
     def _load_priority_from_database(self):
-        """Data source priority configuration from database load (read A stock market priority from data groupings)"""
+        """sets DataSourceAdapters priority from database configuration 'db.datasource_groupings'."""
         try:
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
@@ -65,20 +65,20 @@ class DataSourceManager:
                     priority = grouping.get('priority')
                     if data_source_name and priority is not None:
                         priority_map[data_source_name] = priority
-                        logger.info(f"Read from the database{data_source_name}In the A stock market priorities:{priority}")
+                        logger.info(f"Read db.datasource_groupings: data_source_name({data_source_name}), priority({priority})")
 
                 #Update priority for each Adapter
                 for adapter in self.adapters:
                     if adapter.name in priority_map:
                         #Dynamic setting priorities
                         adapter._priority = priority_map[adapter.name]
-                        logger.info(f"Settings{adapter.name}Priority:{adapter._priority}")
+                        logger.info(f"Sets {adapter.name} Priority:{adapter._priority}")
                     else:
                         #Use default priority
                         adapter._priority = adapter._get_default_priority()
-                        logger.info(f"Not found in database ⚠️{adapter.name}, use the default priority:{adapter._priority}")
+                        logger.info(f"⚠️ Not priority found in database for {adapter.name}, use the default priority:{adapter._priority}")
             else:
-                logger.info("No data source configuration for the A share market was found in ⚠️ database, using default priority")
+                logger.info("⚠️ No data source configuration for the A share market was found in database, using default priority")
                 #Use default priority
                 for adapter in self.adapters:
                     adapter._priority = adapter._get_default_priority()

@@ -201,7 +201,7 @@ async def main():
     # 初始化数据库连接
     logger.info("📊 初始化数据库连接...")
     try:
-        from app.core.database import init_db
+        from app.core.database import init_database
         await init_db()
         logger.info("✅ 数据库连接初始化成功")
     except Exception as e:

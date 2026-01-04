@@ -25,7 +25,7 @@ import asyncio
 from pathlib import Path
 
 from app.core.config import settings
-from app.core.database import init_db, close_db
+from app.core.database import init_database, close_database
 from app.core.logging_config import setup_logging
 from app.routers import auth_db as auth, analysis, screening, queue, sse, health, favorites, config, reports, database, operation_logs, tags, tushare_init, akshare_init, baostock_init, historical_data, multi_period_sync, financial_data, news_data, social_media, internal_messages, usage_statistics, model_capabilities, cache, logs
 from app.routers import sync as sync_router, multi_source_sync
@@ -595,7 +595,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"UserService cleanup error: {e}")
 
-        await close_db()
+        await close_database()
         logger.info("TradingAgents FastAPI backend stopped")
 
 

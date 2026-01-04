@@ -2,7 +2,7 @@
 测试 preferred_sources 参数是否生效
 """
 import asyncio
-from app.core.database import init_db
+from app.core.database import init_database
 from app.services.data_sources.manager import DataSourceManager
 
 

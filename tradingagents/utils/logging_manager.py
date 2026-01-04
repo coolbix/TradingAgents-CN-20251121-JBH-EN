@@ -11,11 +11,48 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, Union
 import json
+import inspect
 import toml
 
 #Note: You can't import yourself here. This can cause circular import.
 #Use a standard library self-starter to avoid undefined references before the log system is initiated
 _bootstrap_logger = logging.getLogger("tradingagents.logging_manager")
+
+_CLASSNAME_FACTORY_INSTALLED = False
+_ORIGINAL_RECORD_FACTORY = logging.getLogRecordFactory()
+
+
+def _find_classname_from_stack() -> str:
+    frame = inspect.currentframe()
+    try:
+        while frame:
+            module_name = frame.f_globals.get("__name__", "")
+            if module_name.startswith("logging"):
+                frame = frame.f_back
+                continue
+            if "self" in frame.f_locals:
+                return frame.f_locals["self"].__class__.__name__
+            if "cls" in frame.f_locals and isinstance(frame.f_locals["cls"], type):
+                return frame.f_locals["cls"].__name__
+            frame = frame.f_back
+    finally:
+        del frame
+    return "-"
+
+
+def _install_classname_record_factory() -> None:
+    global _CLASSNAME_FACTORY_INSTALLED
+    if _CLASSNAME_FACTORY_INSTALLED:
+        return
+
+    def record_factory(*args, **kwargs):
+        record = _ORIGINAL_RECORD_FACTORY(*args, **kwargs)
+        if not hasattr(record, "classname"):
+            record.classname = _find_classname_from_stack()
+        return record
+
+    logging.setLogRecordFactory(record_factory)
+    _CLASSNAME_FACTORY_INSTALLED = True
 
 
 class ColoredFormatter(logging.Formatter):
@@ -50,7 +87,8 @@ class StructuredFormatter(logging.Formatter):
             'message': record.getMessage(),
             'module': record.module,
             'function': record.funcName,
-            'line': record.lineno
+            'line': record.lineno,
+            'classname': getattr(record, 'classname', '-')
         }
         
         #Add Extra Fields
@@ -90,8 +128,8 @@ class TradingAgentsLogger:
         return {
             'level': log_level,
             'format': {
-                'console': '%(asctime)s | %(name)-20s | %(levelname)-8s | %(message)s',
-                'file': '%(asctime)s | %(name)-20s | %(levelname)-8s | %(module)s:%(funcName)s:%(lineno)d | %(message)s',
+                'console': '%(asctime)s | %(name)-20s | %(levelname)-8s | %(classname)-20s | %(message)s',
+                'file': '%(asctime)s | %(name)-20s | %(levelname)-8s | %(classname)-20s | %(module)s:%(funcName)s:%(lineno)d | %(message)s',
                 'structured': 'json'
             },
             'handlers': {
@@ -184,6 +222,7 @@ class TradingAgentsLogger:
     
     def _setup_logging(self):
         """Setup Log System"""
+        _install_classname_record_factory()
         #Create Log Directory
         if self.config['handlers']['file']['enabled']:
             log_dir = Path(self.config['handlers']['file']['directory'])

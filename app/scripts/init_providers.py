@@ -10,7 +10,7 @@ from datetime import datetime
 #Add Item Root Directory to Python Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from app.core.database import init_db, get_mongo_db
+from app.core.database import init_database, get_mongo_db
 from app.models.config import LLMProvider
 
 async def init_providers():

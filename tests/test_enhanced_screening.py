@@ -21,7 +21,7 @@ async def test_enhanced_screening():
     
     try:
         # 导入服务
-        from app.core.database import init_db
+        from app.core.database import init_database
         from app.services.enhanced_screening_service import get_enhanced_screening_service
         from app.models.screening import ScreeningCondition, OperatorType
         

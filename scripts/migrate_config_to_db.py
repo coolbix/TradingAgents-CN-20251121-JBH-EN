@@ -75,7 +75,7 @@ class ConfigMigrator:
             print(f"❌ 数据库连接失败: {e}")
             raise
     
-    async def close_db(self):
+    async def close_database(self):
         """关闭数据库连接"""
         if self.client:
             self.client.close()
@@ -361,7 +361,7 @@ class ConfigMigrator:
             traceback.print_exc()
             return 1
         finally:
-            await self.close_db()
+            await self.close_database()
         
         return 0
 

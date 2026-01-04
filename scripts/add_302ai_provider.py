@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from app.core.database import init_db, get_mongo_db
+from app.core.database import init_database, get_mongo_db
 
 async def add_302ai_provider():
     """添加 302.AI 供应商"""

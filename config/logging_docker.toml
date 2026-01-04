@@ -6,8 +6,8 @@ level = "INFO"
 
 [logging.format]
 # 必须包含所有格式配置
-console = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
-file = "%(asctime)s | %(name)-20s | %(levelname)-8s | %(module)s:%(funcName)s:%(lineno)d | %(message)s"
+console = "%(asctime)s | %(levelname)-8s | %(name)s | %(classname)-20s | %(message)s"
+file = "%(asctime)s | %(name)-20s | %(levelname)-8s | %(classname)-20s | %(module)s:%(funcName)s:%(lineno)d | %(message)s"
 structured = "json"
 
 [logging.handlers]

@@ -19,7 +19,7 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.core.database import init_db
+from app.core.database import init_database
 from app.services.social_media_service import get_social_media_service
 
 # 配置日志

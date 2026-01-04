@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-from app.core.database import init_db, get_database
+from app.core.database import init_database, get_database
 
 # 配置日志
 logging.basicConfig(

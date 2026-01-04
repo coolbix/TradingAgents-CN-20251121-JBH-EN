@@ -21,7 +21,7 @@ async def test_usage_recording():
     # 1. 初始化数据库
     print("\n1️⃣ 初始化数据库...")
     try:
-        from app.core.database import init_db, get_mongo_db
+        from app.core.database import init_database, get_mongo_db
         await init_db()
         db = get_mongo_db()
         print("✅ 数据库初始化成功")
@@ -133,7 +133,7 @@ async def test_analysis_service_recording():
     print("=" * 80)
     
     try:
-        from app.core.database import init_db, get_mongo_db
+        from app.core.database import init_database, get_mongo_db
         await init_db()
         db = get_mongo_db()
         

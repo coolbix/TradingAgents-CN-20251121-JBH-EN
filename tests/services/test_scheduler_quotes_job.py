@@ -61,7 +61,7 @@ def test_scheduler_adds_quotes_job(monkeypatch):
             return None
 
     monkeypatch.setattr(main_mod, "init_db", _noop_async, raising=True)
-    monkeypatch.setattr(main_mod, "close_db", _noop_async, raising=True)
+    monkeypatch.setattr(main_mod, "close_database", _noop_async, raising=True)
     monkeypatch.setattr(main_mod, "get_basics_sync_service", lambda: _FakeBasicsService(), raising=True)
 
     # Patch scheduler, quotes service and asyncio.create_task

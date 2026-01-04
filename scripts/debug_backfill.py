@@ -1,7 +1,7 @@
 import asyncio
 from app.core.config import settings
 from app.services.data_sources.manager import DataSourceManager
-from app.core.database import init_db, get_mongo_db, close_db
+from app.core.database import init_database, get_mongo_db, close_database
 from app.services.quotes_ingestion_service import QuotesIngestionService
 
 async def main():
@@ -42,7 +42,7 @@ async def main():
     except Exception as e:
         print("Fetch sample error:", e)
 
-    await close_db()
+    await close_database()
 
 if __name__ == "__main__":
     asyncio.run(main())

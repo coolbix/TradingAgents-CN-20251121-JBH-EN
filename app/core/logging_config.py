@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import os
 import platform
+import inspect
 
 from app.core.logging_context import LoggingContextFilter, trace_id_var
 
@@ -27,6 +28,42 @@ except Exception:
     except Exception:
         toml_loader = None
 
+_CLASSNAME_FACTORY_INSTALLED = False
+_ORIGINAL_RECORD_FACTORY = logging.getLogRecordFactory()
+
+
+def _find_classname_from_stack() -> str:
+    frame = inspect.currentframe()
+    try:
+        while frame:
+            module_name = frame.f_globals.get("__name__", "")
+            if module_name.startswith("logging"):
+                frame = frame.f_back
+                continue
+            if "self" in frame.f_locals:
+                return frame.f_locals["self"].__class__.__name__
+            if "cls" in frame.f_locals and isinstance(frame.f_locals["cls"], type):
+                return frame.f_locals["cls"].__name__
+            frame = frame.f_back
+    finally:
+        del frame
+    return "-"
+
+
+def _install_classname_record_factory() -> None:
+    global _CLASSNAME_FACTORY_INSTALLED
+    if _CLASSNAME_FACTORY_INSTALLED:
+        return
+
+    def record_factory(*args, **kwargs):
+        record = _ORIGINAL_RECORD_FACTORY(*args, **kwargs)
+        if not hasattr(record, "classname"):
+            record.classname = _find_classname_from_stack()
+        return record
+
+    logging.setLogRecordFactory(record_factory)
+    _CLASSNAME_FACTORY_INSTALLED = True
+
 
 def resolve_logging_cfg_path() -> Path:
     """Select a path to the profile according to the environment (may not exist)
@@ -46,6 +83,7 @@ class SimpleJsonFormatter(logging.Formatter):
             "time": self.formatTime(record, "%Y-%m-%d %H:%M:%S"),
             "name": record.name,
             "level": record.levelname,
+            "classname": getattr(record, "classname", "-"),
             "trace_id": getattr(record, "trace_id", "-"),
             "message": record.getMessage(),
         }
@@ -68,6 +106,7 @@ def setup_logging(log_level: str = "INFO"):
     1) Prioritize reading from config/ logging.toml to dictConfig
     2) Back to the built-in default configuration when failed or non-existent
     """
+    _install_classname_record_factory()
     #1) Priority if TOML configuration exists and is parsable
     try:
         cfg_path = resolve_logging_cfg_path()
@@ -86,10 +125,10 @@ def setup_logging(log_level: str = "INFO"):
             level = logging_root.get("level", log_level)
             fmt_cfg = logging_root.get("format", {})
             fmt_console = fmt_cfg.get(
-                "console", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                "console", "%(asctime)s - %(name)s - %(levelname)s - %(classname)s - %(message)s"
             )
             fmt_file = fmt_cfg.get(
-                "file", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                "file", "%(asctime)s - %(name)s - %(levelname)s - %(classname)s - %(message)s"
             )
             #Ensure text format contains track id (if not visible)
             if "%(trace_id)" not in str(fmt_console):
@@ -363,11 +402,11 @@ def setup_logging(log_level: str = "INFO"):
         "filters": {"request_context": {"()": "app.core.logging_context.LoggingContextFilter"}},
         "formatters": {
             "default": {
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s trace=%(trace_id)s",
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(classname)s - %(message)s trace=%(trace_id)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
             "detailed": {
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(pathname)s:%(lineno)d - %(message)s trace=%(trace_id)s",
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(classname)s - %(pathname)s:%(lineno)d - %(message)s trace=%(trace_id)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
         },

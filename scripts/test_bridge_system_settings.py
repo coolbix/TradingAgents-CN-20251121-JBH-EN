@@ -27,7 +27,7 @@ async def main():
     
     # 1. 初始化数据库
     print("\n1️⃣ 初始化数据库连接...")
-    from app.core.database import init_db
+    from app.core.database import init_database
     await init_db()
     print("✅ 数据库连接成功")
     

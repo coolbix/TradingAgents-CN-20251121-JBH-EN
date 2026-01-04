@@ -436,9 +436,9 @@ async def get_database_health() -> dict:
     return await db_manager.health_check()
 
 
-#Gender-compatible Names
-init_db = init_database
-close_db = close_database
+#JBH REMOVE  #Gender-compatible Names
+#JBH REMOVE  init_db = init_database
+#JBH REMOVE  close_db = close_database
 
 
 def get_database():

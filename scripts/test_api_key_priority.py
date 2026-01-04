@@ -58,7 +58,7 @@ async def test_api_key_validation():
 async def test_provider_key_priority():
     """测试厂家 API Key 优先级"""
     from app.services.config_service import ConfigService
-    from app.core.database import init_db
+    from app.core.database import init_database
     
     # 初始化数据库
     await init_db()

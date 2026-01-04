@@ -24,7 +24,7 @@ async def test_sync_control_functions():
     
     try:
         from app.services.multi_source_basics_sync_service import get_multi_source_sync_service
-        from app.core.database import init_db, get_mongo_db
+        from app.core.database import init_database, get_mongo_db
         
         # 初始化数据库
         await init_db()

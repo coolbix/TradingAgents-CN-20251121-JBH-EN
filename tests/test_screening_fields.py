@@ -20,7 +20,7 @@ async def test_screening_fields():
     
     try:
         # 导入服务
-        from app.core.database import init_db
+        from app.core.database import init_database
         from app.services.database_screening_service import get_database_screening_service
         from app.models.screening import ScreeningCondition, OperatorType
         
