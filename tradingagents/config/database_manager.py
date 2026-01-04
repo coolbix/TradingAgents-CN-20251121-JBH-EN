@@ -189,13 +189,13 @@ class DatabaseManager:
         """Update configuration based on test results"""
         #Confirm Cache Backend
         if self.redis_available:
-            self.primary_backend = "redis"
+            self.primary_cache_backend = "redis"
         elif self.mongodb_available:
-            self.primary_backend = "mongodb"
+            self.primary_cache_backend = "mongodb"
         else:
-            self.primary_backend = "file"
+            self.primary_cache_backend = "file"
 
-        self.logger.info(f"Main cache backend:{self.primary_backend}")
+        self.logger.info(f"Primary cache backend:{self.primary_cache_backend}")
     
     def _initialize_connections(self):
         """Initialize database connection"""
@@ -283,18 +283,18 @@ class DatabaseManager:
     
     def get_cache_backend(self) -> str:
         """Get the current cache backend"""
-        return self.primary_backend
+        return self.primary_cache_backend
 
     def get_config(self) -> Dict[str, Any]:
         """Get Profile Information"""
         return {
             "mongodb": self.mongodb_config,
             "redis": self.redis_config,
-            "primary_backend": self.primary_backend,
+            "primary_backend": self.primary_cache_backend,
             "mongodb_available": self.mongodb_available,
             "redis_available": self.redis_available,
             "cache": {
-                "primary_backend": self.primary_backend,
+                "primary_backend": self.primary_cache_backend,
                 "fallback_enabled": True,  #Always enable downgrade
                 "ttl_settings": {
                     #US share data TTL (seconds)

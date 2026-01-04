@@ -90,10 +90,9 @@ class StockDataCache:
             'enable_length_check': os.getenv('ENABLE_CACHE_LENGTH_CHECK', 'false').lower() == 'true'  #File cache default unlimited
         }
 
-        logger.info(f"Initialization of cache manager, cache catalogue:{self.cache_dir}")
-        logger.info(f"Initialization of database cache manager completed")
-        logger.info(f"US share data: ✅ configured")
-        logger.info(f"Unit A data: ✅ configured")
+        logger.info(f"FileCache(StockDataCache): initialized. cache directory: {self.cache_dir}")
+        #logger.info(f"FileCache(StockDataCache): US share data: ✅ configured")
+        #logger.info(f"FileCache(StockDataCache): Unit A data: ✅ configured")
 
     def _determine_market_type(self, symbol: str) -> str:
         """Market type determined by stock code"""
