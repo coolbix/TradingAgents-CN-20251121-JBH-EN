@@ -59,7 +59,7 @@ async def test_market_quotes_status():
     print("测试 2: market_quotes 集合状态检查")
     print("="*60)
     
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     service = QuotesIngestionService()
     
@@ -118,7 +118,7 @@ async def test_historical_data_import():
     print("测试 3: 从历史数据导入到 market_quotes")
     print("="*60)
     
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     service = QuotesIngestionService()
     

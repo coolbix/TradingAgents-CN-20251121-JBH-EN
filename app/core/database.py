@@ -16,10 +16,10 @@ from .config import settings
 logger = logging.getLogger(__name__)
 
 #Examples of global connections
-mongo_client: Optional[AsyncIOMotorClient] = None
-mongo_db: Optional[AsyncIOMotorDatabase] = None
-redis_client: Optional[Redis] = None
-redis_pool: Optional[ConnectionPool] = None
+_mongo_client: Optional[AsyncIOMotorClient] = None
+_mongo_db: Optional[AsyncIOMotorDatabase] = None
+_redis_client: Optional[Redis] = None
+_redis_pool: Optional[ConnectionPool] = None
 
 #Sync MongoDB connection (for non-spacing context)
 _synchronous_mongo_client: Optional[MongoClient] = None
@@ -186,23 +186,23 @@ class DatabaseManager:
 
 
 #Examples of global database manager
-db_manager = DatabaseManager()
+DB_MANAGER = DatabaseManager()
 
 
 async def init_database():
     """Initialize database connection"""
-    global mongo_client, mongo_db, redis_client, redis_pool
+    global _mongo_client, _mongo_db, _redis_client, _redis_pool
 
     try:
         #Initialize MongoDB
-        await db_manager.init_mongodb()
-        mongo_client = db_manager.mongo_client
-        mongo_db = db_manager.mongo_db
+        await DB_MANAGER.init_mongodb()
+        _mongo_client = DB_MANAGER.mongo_client
+        _mongo_db = DB_MANAGER.mongo_db
 
         #Initialise Redis
-        await db_manager.init_redis()
-        redis_client = db_manager.redis_client
-        redis_pool = db_manager.redis_pool
+        await DB_MANAGER.init_redis()
+        _redis_client = DB_MANAGER.redis_client
+        _redis_pool = DB_MANAGER.redis_pool
 
         logger.info("Initialization of all database connections completed")
 
@@ -373,41 +373,41 @@ async def create_database_indexes(db):
 
 async def close_database():
     """Close database connection"""
-    global mongo_client, mongo_db, redis_client, redis_pool
+    global _mongo_client, _mongo_db, _redis_client, _redis_pool
 
-    await db_manager.close_connections()
+    await DB_MANAGER.close_connections()
 
     #Empty Global Variables
-    mongo_client = None
-    mongo_db = None
-    redis_client = None
-    redis_pool = None
+    _mongo_client = None
+    _mongo_db = None
+    _redis_client = None
+    _redis_pool = None
 
 
 def get_mongo_client() -> AsyncIOMotorClient:
     """Get MongoDB Client"""
-    if mongo_client is None:
+    if _mongo_client is None:
         raise RuntimeError("MongoDB客户端未初始化")
-    return mongo_client
+    return _mongo_client
 
 
 def get_mongo_db() -> AsyncIOMotorDatabase:
     """Example of accessing MongoDB database"""
-    if mongo_db is None:
+    if _mongo_db is None:
         raise RuntimeError("MongoDB数据库未初始化")
-    return mongo_db
+    return _mongo_db
 
 
 def get_redis_client() -> Redis:
     """Get Redis client"""
-    if redis_client is None:
+    if _redis_client is None:
         raise RuntimeError("Redis客户端未初始化")
-    return redis_client
+    return _redis_client
 
 
 async def get_database_health() -> dict:
     """Access to database health status"""
-    return await db_manager.health_check()
+    return await DB_MANAGER.health_check()
 
 
 #JBH REMOVE  #Gender-compatible Names
@@ -417,10 +417,10 @@ async def get_database_health() -> dict:
 
 def get_database():
     """Access to database examples"""
-    if db_manager.mongo_client is None:
+    if DB_MANAGER.mongo_client is None:
         raise RuntimeError("MongoDB客户端未初始化")
     #JBH  return db_manager.mongo_client.tradingagents
-    return db_manager.mongo_client[settings.MONGO_DB]
+    return DB_MANAGER.mongo_client[settings.MONGO_DB]
 
 
 #=================== Synchronous MongoDB Access ===================

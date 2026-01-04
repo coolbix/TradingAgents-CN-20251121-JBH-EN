@@ -159,7 +159,7 @@ os.environ['CURRENCY_PREFERENCE'] = "CNY"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # 初始化数据库
-    await init_db()
+    await init_database()
     
     # 🔧 配置桥接
     try:

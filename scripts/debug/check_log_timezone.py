@@ -26,7 +26,7 @@ async def check_log_timezone():
         from app.models.operation_log import ActionType
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         print("✅ 数据库连接成功")
         
         # 显示当前时间信息

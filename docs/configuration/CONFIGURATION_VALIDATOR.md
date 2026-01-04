@@ -117,7 +117,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"配置验证失败: {e}")
         raise
     
-    await init_db()
+    await init_database()
     # ... 其他启动逻辑
 ```
 

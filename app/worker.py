@@ -203,7 +203,7 @@ async def worker_loop(stop_event: asyncio.Event):
 
 async def main():
     setup_logging("INFO")
-    await init_db()
+    await init_database()
     # Apply dynamic log level from system settings
     try:
         from app.services.config_provider import provider as config_provider

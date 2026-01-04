@@ -25,7 +25,7 @@ async def fix_timezone_data():
         from app.core.database import init_database, get_mongo_db
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         print("✅ 数据库连接成功")
         
         db = get_mongo_db()

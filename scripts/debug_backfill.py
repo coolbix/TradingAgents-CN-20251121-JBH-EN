@@ -13,7 +13,7 @@ async def main():
     available = [a.name for a in m.get_available_adapters()]
     print("Available adapters:", available)
 
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     coll = db["market_quotes"]
     try:

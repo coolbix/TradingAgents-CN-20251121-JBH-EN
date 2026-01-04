@@ -488,7 +488,7 @@ async def crawl_and_save_internal_messages(symbols: List[str], message_types: Li
     
     try:
         # 初始化数据库
-        await init_db()
+        await init_database()
         
         # 获取服务
         service = await get_internal_message_service()

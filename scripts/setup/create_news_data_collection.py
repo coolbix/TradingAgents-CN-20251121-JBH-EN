@@ -35,7 +35,7 @@ async def create_news_collection():
     
     try:
         # 初始化数据库连接
-        await init_db()
+        await init_database()
 
         # 获取数据库连接
         db = get_database()

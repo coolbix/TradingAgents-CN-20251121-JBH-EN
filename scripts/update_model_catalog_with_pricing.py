@@ -14,7 +14,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import db_manager
+from app.core.database import DB_MANAGER
 from app.services.config_service import ConfigService
 
 
@@ -28,16 +28,16 @@ async def main():
     try:
         # 初始化数据库连接
         print("🔄 正在初始化数据库连接...")
-        await db_manager.init_mongodb()
+        await DB_MANAGER.init_mongodb()
         print("✅ 数据库连接成功")
         print()
 
         # 获取配置服务
-        config_service = ConfigService(db_manager=db_manager)
+        config_service = ConfigService(db_manager=DB_MANAGER)
 
         # 删除现有的模型目录
         print("🗑️  正在删除现有的模型目录...")
-        db = db_manager.mongo_db
+        db = DB_MANAGER.mongo_db
         catalog_collection = db["model_catalog"]
         result = await catalog_collection.delete_many({})
         print(f"✅ 已删除 {result.deleted_count} 条记录")

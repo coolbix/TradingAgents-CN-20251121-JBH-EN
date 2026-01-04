@@ -22,7 +22,7 @@ async def main():
     print("\n1️⃣ 检查数据库连接...")
     try:
         from app.core.database import init_database, get_mongo_db
-        await init_db()
+        await init_database()
         db = get_mongo_db()
         print("✅ MongoDB 连接成功")
         print(f"   数据库名称: {db.name}")

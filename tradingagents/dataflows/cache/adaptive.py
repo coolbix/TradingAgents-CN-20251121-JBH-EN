@@ -32,7 +32,7 @@ class AdaptiveCacheSystem:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
         #Fetch Configuration
-        self.config = self.db_manager.get_config()
+        self.config = self.db_manager.get_database_config()
         self.cache_config = self.config["cache"]
         
         #Initialise Cache Backend

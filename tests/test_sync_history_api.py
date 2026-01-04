@@ -28,7 +28,7 @@ async def test_sync_history_api():
         from app.services.multi_source_basics_sync_service import get_multi_source_sync_service
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         db = get_mongo_db()
         service = get_multi_source_sync_service()
         

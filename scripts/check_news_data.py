@@ -22,7 +22,7 @@ async def check_news_data():
     
     try:
         # 初始化数据库
-        await init_db()
+        await init_database()
         db = get_database()
         collection = db.stock_news
         

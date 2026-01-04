@@ -22,7 +22,7 @@ async def test_usage_recording():
     print("\n1️⃣ 初始化数据库...")
     try:
         from app.core.database import init_database, get_mongo_db
-        await init_db()
+        await init_database()
         db = get_mongo_db()
         print("✅ 数据库初始化成功")
     except Exception as e:
@@ -134,7 +134,7 @@ async def test_analysis_service_recording():
     
     try:
         from app.core.database import init_database, get_mongo_db
-        await init_db()
+        await init_database()
         db = get_mongo_db()
         
         from app.services.analysis_service import AnalysisService

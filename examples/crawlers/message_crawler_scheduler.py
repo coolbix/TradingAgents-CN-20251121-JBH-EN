@@ -182,7 +182,7 @@ class MessageCrawlerScheduler:
         start_time = datetime.now()
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         
         # 并行执行社媒和内部消息爬取
         social_task = asyncio.create_task(self.run_social_media_crawl())

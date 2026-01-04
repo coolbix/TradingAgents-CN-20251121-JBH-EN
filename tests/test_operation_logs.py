@@ -20,7 +20,7 @@ async def test_operation_logs():
     
     try:
         # 初始化数据库
-        await init_db()
+        await init_database()
         print("✅ 数据库初始化成功")
         
         # 获取服务实例

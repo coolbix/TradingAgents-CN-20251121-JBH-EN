@@ -8,7 +8,7 @@ from app.core.database import get_mongo_db, init_db
 
 async def check_real_estate():
     """检查房地产行业的数据"""
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     collection = db['stock_basic_info']
     

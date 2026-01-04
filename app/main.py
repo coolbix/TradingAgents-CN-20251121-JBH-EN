@@ -226,7 +226,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"Configure authentication failed:{e}")
         raise
 
-    await init_db()
+    await init_database()
 
     #Configure Bridges: Write Unified Configurations to Environmental Variables for TradingAgents Core Library
     try:

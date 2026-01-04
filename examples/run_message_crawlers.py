@@ -95,7 +95,7 @@ async def query_saved_messages():
         from app.services.internal_message_service import get_internal_message_service
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         
         # 获取服务
         social_service = await get_social_media_service()

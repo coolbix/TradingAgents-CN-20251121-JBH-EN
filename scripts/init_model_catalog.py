@@ -13,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import db_manager
+from app.core.database import DB_MANAGER
 from app.services.config_service import ConfigService
 
 
@@ -27,12 +27,12 @@ async def main():
     try:
         # 初始化数据库连接
         print("🔌 正在连接数据库...")
-        await db_manager.init_mongodb()
+        await DB_MANAGER.init_mongodb()
         print("✅ 数据库连接成功")
         print()
 
         # 创建 ConfigService 实例并传入 db_manager
-        config_service = ConfigService(db_manager=db_manager)
+        config_service = ConfigService(db_manager=DB_MANAGER)
 
         # 初始化默认模型目录
         print("📦 正在初始化默认模型目录...")
@@ -73,7 +73,7 @@ async def main():
     finally:
         # 关闭数据库连接
         try:
-            await db_manager.close()
+            await DB_MANAGER.close()
             print()
             print("🔌 数据库连接已关闭")
         except:

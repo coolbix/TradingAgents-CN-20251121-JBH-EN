@@ -36,7 +36,7 @@ async def debug_providers():
     print("🔍 开始调试厂家配置...")
     
     # 初始化数据库连接
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     providers_collection = db.llm_providers
     

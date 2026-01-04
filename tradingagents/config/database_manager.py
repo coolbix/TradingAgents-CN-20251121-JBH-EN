@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
 class DatabaseManager:
-    """Smart Database Manager"""
+    """Manage database: MongoDB, Redis, Cache backend"""
     #NOTE: "Synchronous" Database Manager
     #NOTE: there is another DatabaseManager in app/core/database.py (asynchronous version)
     #NOTE: consider unifying them in the future
@@ -20,8 +20,8 @@ class DatabaseManager:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-        #Load.env Configuration
-        self._load_env_config()
+        #Load MongoDB and Redis Configuration From .env File
+        self._load_mongodb_redis_env_config()
 
         #Database Connection Status
         self.mongodb_available = False
@@ -29,7 +29,7 @@ class DatabaseManager:
         self.mongodb_client = None
         self.redis_client = None
 
-        #Test database availability
+        #Test MongoDB/Redis availability, and update Cache Backend configuration
         self._detect_databases()
 
         #Initialize Connection
@@ -37,8 +37,8 @@ class DatabaseManager:
 
         self.logger.info(f"Database manager initialised - MongoDB:{self.mongodb_available}, Redis: {self.redis_available}")
     
-    def _load_env_config(self):
-        """Load Configuration From.env File"""
+    def _load_mongodb_redis_env_config(self):
+        """Load MongoDB and Redis Configuration From .env File"""
         #Try loading python-dotenv
         try:
             from dotenv import load_dotenv
@@ -183,10 +183,10 @@ class DatabaseManager:
             self.logger.info(f"❌ Redis: {redis_msg}")
         
         #Update Configuration
-        self._update_config_based_on_detection()
+        self._update_primary_cache_backend()
     
-    def _update_config_based_on_detection(self):
-        """Update configuration based on test results"""
+    def _update_primary_cache_backend(self):
+        """Update primary_cache_backend configuration based on test MongoDB and Redis results"""
         #Confirm Cache Backend
         if self.redis_available:
             self.primary_cache_backend = "redis"
@@ -285,7 +285,7 @@ class DatabaseManager:
         """Get the current cache backend"""
         return self.primary_cache_backend
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_database_config(self) -> Dict[str, Any]:
         """Get Profile Information"""
         return {
             "mongodb": self.mongodb_config,

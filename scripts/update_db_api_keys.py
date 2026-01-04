@@ -29,7 +29,7 @@ async def update_api_keys():
     from app.core.database import init_database, get_mongo_db
     
     # 初始化数据库
-    await init_db()
+    await init_database()
     db = await get_mongo_db()
     
     print("\n" + "=" * 80)

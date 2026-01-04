@@ -61,7 +61,7 @@ async def test_provider_key_priority():
     from app.core.database import init_database
     
     # 初始化数据库
-    await init_db()
+    await init_database()
     
     config_service = ConfigService()
     

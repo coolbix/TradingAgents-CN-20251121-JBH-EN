@@ -18,7 +18,7 @@ async def init_providers():
     print("🚀 开始初始化大模型厂家数据...")
     
     #Initialize database connection
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     providers_collection = db.llm_providers
     

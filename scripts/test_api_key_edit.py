@@ -32,7 +32,7 @@ async def test_add_provider_with_key():
     from app.core.database import init_database
     
     # 初始化数据库
-    await init_db()
+    await init_database()
     
     config_service = ConfigService()
     
@@ -85,7 +85,7 @@ async def test_update_provider_key(provider_id: str):
     from app.core.database import init_database
     
     # 初始化数据库
-    await init_db()
+    await init_database()
     
     config_service = ConfigService()
     
@@ -125,7 +125,7 @@ async def test_clear_provider_key(provider_id: str):
     from app.core.database import init_database
     
     # 初始化数据库
-    await init_db()
+    await init_database()
     
     config_service = ConfigService()
     
@@ -165,7 +165,7 @@ async def test_cleanup(provider_id: str):
     from app.core.database import init_database
     
     # 初始化数据库
-    await init_db()
+    await init_database()
     
     config_service = ConfigService()
     

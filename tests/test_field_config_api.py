@@ -25,7 +25,7 @@ async def test_field_config_api():
         from app.models.screening import BASIC_FIELDS_INFO
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         print("✅ 数据库连接成功")
         
         # 测试字段配置

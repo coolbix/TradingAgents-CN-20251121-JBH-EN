@@ -25,7 +25,7 @@ async def test_screening_fields():
         from app.models.screening import ScreeningCondition, OperatorType
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         print("✅ 数据库连接成功")
         
         # 获取服务实例

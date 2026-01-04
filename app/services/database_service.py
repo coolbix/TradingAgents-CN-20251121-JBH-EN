@@ -14,7 +14,7 @@ import motor.motor_asyncio
 import redis.asyncio as redis
 from pymongo.errors import ServerSelectionTimeoutError
 
-from app.core.database import get_mongo_db, get_redis_client, db_manager
+from app.core.database import get_mongo_db, get_redis_client, DB_MANAGER
 from app.core.config import settings
 
 from app.services.database import status_checks as _db_status

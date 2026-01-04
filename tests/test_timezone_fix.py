@@ -21,7 +21,7 @@ async def test_timezone_fix():
     
     try:
         # 初始化数据库
-        await init_db()
+        await init_database()
         print("✅ 数据库初始化成功")
         
         # 显示当前时间信息

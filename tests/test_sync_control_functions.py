@@ -27,7 +27,7 @@ async def test_sync_control_functions():
         from app.core.database import init_database, get_mongo_db
         
         # 初始化数据库
-        await init_db()
+        await init_database()
         service = get_multi_source_sync_service()
         db = get_mongo_db()
         

@@ -241,7 +241,7 @@ async def main():
 
     try:
         # 初始化数据库连接
-        await init_db()
+        await init_database()
         logger.info("✅ 数据库连接初始化成功")
         # 创建社媒消息集合
         social_media_success = await create_social_media_collection()

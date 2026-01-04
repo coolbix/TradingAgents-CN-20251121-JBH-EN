@@ -191,7 +191,7 @@ async def main():
     
     # 初始化数据库
     try:
-        await init_db()
+        await init_database()
         print("✅ 数据库初始化成功\n")
     except Exception as e:
         print(f"❌ 数据库初始化失败: {e}\n")

@@ -462,7 +462,7 @@ async def crawl_and_save_social_media(symbols: List[str], platforms: List[str] =
     
     try:
         # 初始化数据库
-        await init_db()
+        await init_database()
         
         # 获取服务
         service = await get_social_media_service()

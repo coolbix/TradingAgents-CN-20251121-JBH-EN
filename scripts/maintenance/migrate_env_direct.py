@@ -34,7 +34,7 @@ async def migrate_env_direct():
     print("🚀 开始直接迁移.env中的API密钥到数据库...")
     
     # 初始化数据库连接
-    await init_db()
+    await init_database()
     db = get_mongo_db()
     providers_collection = db.llm_providers
     
