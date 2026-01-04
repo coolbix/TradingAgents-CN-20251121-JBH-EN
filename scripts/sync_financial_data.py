@@ -347,7 +347,7 @@ async def main(code: Optional[str] = None, sync_all: bool = False, batch: Option
     
     # 连接数据库
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     # 初始化 Provider
     provider = AKShareProvider()

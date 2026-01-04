@@ -29,7 +29,7 @@ async def check_financial_data():
 
     # 初始化数据库连接
     settings = get_settings()
-    await init_mongodb(settings.MONGO_URI, settings.MONGO_DB)
+    await init_mongodb(settings.MONGO_URI, settings.MONGO_DB_NAME)
 
     db = get_mongo_db()
     

@@ -41,7 +41,7 @@ async def diagnose_stock(code: str):
     
     # 连接数据库
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     code6 = str(code).zfill(6)
     

@@ -78,7 +78,7 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
         from app.core.config import settings
         
         client = MongoClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        db = client[settings.MONGO_DB_NAME]
         
         # 1. 查询模型配置
         configs_collection = db.system_configs

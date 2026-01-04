@@ -9,7 +9,7 @@ python scripts/migration/migrate_paper_accounts_cash_structure.py
 
 Environment variables:
 MONGO_URI: e.g. mongodb://user:pass@host:27017
-MONGODB_DATABASE or MONGO_DB: database name
+MONGODB_DATABASE or MONGO_DB_NAME: database name
 """
 
 import os
@@ -23,7 +23,7 @@ def get_mongo_params():
     uri = os.environ.get("MONGO_URI") or os.environ.get("MONGODB_URI") or "mongodb://localhost:27017"
     db_name = (
         os.environ.get("MONGODB_DATABASE")
-        or os.environ.get("MONGO_DB")
+        or os.environ.get("MONGO_DB_NAME")
         or os.environ.get("MONGODB_DB")
         or "tradingagents"
     )

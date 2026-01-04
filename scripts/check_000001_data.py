@@ -14,7 +14,7 @@ from app.core.config import SETTINGS
 
 async def check_data():
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     print("=" * 80)
     print("检查平安银行（000001）的数据")

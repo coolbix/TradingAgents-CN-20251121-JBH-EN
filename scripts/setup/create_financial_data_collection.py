@@ -30,7 +30,7 @@ async def create_financial_data_collection():
         settings = get_settings()
 
         client = AsyncIOMotorClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        db = client[settings.MONGO_DB_NAME]
         
         collection_name = "stock_financial_data"
         collection = db[collection_name]

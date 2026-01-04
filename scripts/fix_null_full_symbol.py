@@ -72,7 +72,7 @@ async def fix_null_full_symbol():
     # 连接数据库
     print("🔧 连接 MongoDB...")
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     print("✅ MongoDB 连接成功\n")
     

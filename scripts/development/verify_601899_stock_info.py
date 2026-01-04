@@ -29,7 +29,7 @@ async def verify_stock_601899():
     # 连接 MongoDB
     settings = get_settings()
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     # 查询 601899

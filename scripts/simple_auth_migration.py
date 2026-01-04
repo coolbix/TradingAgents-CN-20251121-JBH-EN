@@ -33,7 +33,7 @@ def migrate_auth_to_db():
         # 2. 连接数据库
         print("🗄️ 连接数据库...")
         client = MongoClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        db = client[settings.MONGO_DB_NAME]
         users_collection = db.users
         
         # 3. 读取现有的配置文件密码

@@ -40,7 +40,7 @@ def _tname(v: Any) -> str:
 
 async def main():
     uri = SETTINGS.MONGO_URI
-    dbname = SETTINGS.MONGO_DB
+    dbname = SETTINGS.MONGO_DB_NAME
     print(f"Mongo URI: {uri}")
     print(f"Mongo DB : {dbname}")
 

@@ -22,7 +22,7 @@ def check_system_config():
     print("=" * 80)
     
     client = MongoClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     # 列出所有集合
     print(f"\n📋 数据库中的集合：")

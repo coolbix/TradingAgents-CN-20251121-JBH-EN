@@ -57,7 +57,7 @@ async def sync_stock_basic_info(
     
     # 1. 连接数据库
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     # 2. 初始化 Provider

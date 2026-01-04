@@ -107,7 +107,7 @@ async def validate_config():
 
             #Create a simultaneous MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             providers_collection = db.llm_providers
 
             #Query all plant configurations (original data)

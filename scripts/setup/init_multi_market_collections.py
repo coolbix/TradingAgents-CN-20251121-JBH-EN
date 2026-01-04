@@ -231,9 +231,9 @@ async def main():
         # 连接MongoDB
         mongo_uri = SETTINGS.MONGO_URI
         client = AsyncIOMotorClient(mongo_uri)
-        db = client[SETTINGS.MONGO_DB]
+        db = client[SETTINGS.MONGO_DB_NAME]
 
-        logger.info(f"✅ 连接MongoDB成功: {SETTINGS.MONGO_DB}")
+        logger.info(f"✅ 连接MongoDB成功: {SETTINGS.MONGO_DB_NAME}")
         
         # 创建港股集合
         await create_hk_collections(db)

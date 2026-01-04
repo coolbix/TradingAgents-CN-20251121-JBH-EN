@@ -15,7 +15,7 @@ import json
 
 # 连接 MongoDB
 client = MongoClient(SETTINGS.MONGO_URI)
-db = client[SETTINGS.MONGO_DB]
+db = client[SETTINGS.MONGO_DB_NAME]
 
 print("=" * 80)
 print("检查 llm_providers 集合")

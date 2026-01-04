@@ -126,7 +126,7 @@ from app.models.analysis_preference import AnalysisPreference
 class AnalysisPreferenceService:
     def __init__(self):
         self.client = MongoClient(settings.MONGO_URI)
-        self.db = self.client[settings.MONGO_DB]
+        self.db = self.client[settings.MONGO_DB_NAME]
         self.collection = self.db.analysis_preferences
     
     async def create_preference(self, preference: AnalysisPreference) -> AnalysisPreference:
@@ -167,7 +167,7 @@ from app.models.prompt_template import PromptTemplate
 class PromptTemplateService:
     def __init__(self):
         self.client = MongoClient(settings.MONGO_URI)
-        self.db = self.client[settings.MONGO_DB]
+        self.db = self.client[settings.MONGO_DB_NAME]
         self.collection = self.db.prompt_templates
     
     async def create_template(self, template: PromptTemplate) -> PromptTemplate:
@@ -208,7 +208,7 @@ from app.models.template_history import TemplateHistory
 class TemplateHistoryService:
     def __init__(self):
         self.client = MongoClient(settings.MONGO_URI)
-        self.db = self.client[settings.MONGO_DB]
+        self.db = self.client[settings.MONGO_DB_NAME]
         self.collection = self.db.template_history
     
     async def record_change(self, history: TemplateHistory) -> TemplateHistory:

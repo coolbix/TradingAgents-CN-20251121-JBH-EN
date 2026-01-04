@@ -1059,7 +1059,7 @@ async def update_job_progress(
 
         #Use sync client to avoid recurring conflict of events
         sync_client = MongoClient(SETTINGS.MONGO_URI)
-        sync_db = sync_client[SETTINGS.MONGO_DB]
+        sync_db = sync_client[SETTINGS.MONGO_DB_NAME]
 
         #Find Recent Implementation Records
         latest_execution = sync_db.scheduler_executions.find_one(

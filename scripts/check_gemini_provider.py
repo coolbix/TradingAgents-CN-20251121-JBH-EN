@@ -14,7 +14,7 @@ from app.core.config import SETTINGS
 
 # 连接 MongoDB
 client = MongoClient(SETTINGS.MONGO_URI)
-db = client[SETTINGS.MONGO_DB]
+db = client[SETTINGS.MONGO_DB_NAME]
 collection = db.system_configs
 
 # 查询最新的活跃配置

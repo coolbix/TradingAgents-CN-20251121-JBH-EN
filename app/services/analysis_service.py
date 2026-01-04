@@ -125,7 +125,7 @@ class AnalysisService:
 
                 #Use sync MongoDB client
                 client = MongoClient(SETTINGS.MONGO_URI)
-                db = client[SETTINGS.MONGO_DB]
+                db = client[SETTINGS.MONGO_DB_NAME]
                 collection = db.system_configs
 
                 #Query the latest active configuration
@@ -253,7 +253,7 @@ class AnalysisService:
 
                 #Use sync MongoDB client
                 client = MongoClient(SETTINGS.MONGO_URI)
-                db = client[SETTINGS.MONGO_DB]
+                db = client[SETTINGS.MONGO_DB_NAME]
                 collection = db.system_configs
 
                 #Query the latest active configuration

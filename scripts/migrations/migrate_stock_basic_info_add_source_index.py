@@ -46,7 +46,7 @@ async def migrate_stock_basic_info():
     # 🔥 使用配置文件中的连接信息
     settings = get_settings()
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     try:

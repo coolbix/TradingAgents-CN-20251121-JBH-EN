@@ -62,7 +62,7 @@ def bridge_config_to_env():
 
             #Create a simultaneous MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             providers_collection = db.llm_providers
 
             #Query All Plant Configurations
@@ -150,7 +150,7 @@ def bridge_config_to_env():
 
             #Create a simultaneous MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             config_collection = db.system_configs
 
             #Query the latest system configuration
@@ -368,7 +368,7 @@ def _bridge_system_settings() -> int:
         )
 
         try:
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             #Read activated configuration from system configs
             config_doc = db.system_configs.find_one({"is_active": True})
 

@@ -28,7 +28,7 @@ class UserService:
 
     def __init__(self):
         self.client = MongoClient(SETTINGS.MONGO_URI)
-        self.db = self.client[SETTINGS.MONGO_DB]
+        self.db = self.client[SETTINGS.MONGO_DB_NAME]
         self.users_collection = self.db.users
 
     def close(self):

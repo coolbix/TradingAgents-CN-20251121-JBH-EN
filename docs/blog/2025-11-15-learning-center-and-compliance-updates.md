@@ -111,7 +111,7 @@
 背景：迁移脚本初次运行出现 MongoDB 鉴权错误（`Command find requires authentication`）。
 
 处理与结果：
-- 注入 `MONGO_URI` 与 `MONGO_DB` 环境变量后重试，成功连接并扫描 1 条记录、迁移 0 条
+- 注入 `MONGO_URI` 与 `MONGO_DB_NAME` 环境变量后重试，成功连接并扫描 1 条记录、迁移 0 条
 - 结论：已存在兼容的多币种对象结构（源于读时兼容迁移），脚本可用于历史数据修复与审计
 
 建议验证：

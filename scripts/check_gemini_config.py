@@ -22,7 +22,7 @@ async def check_gemini_config():
     from app.core.config import SETTINGS
     
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     collection = db.llm_configs
     
     # 查询 gemini-2.5-flash

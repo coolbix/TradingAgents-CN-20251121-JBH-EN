@@ -16,7 +16,7 @@ def main():
     
     # 连接数据库
     client = MongoClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     # 1. 查看当前数据库中的配置
     print("\n📊 1. 查看数据库中的配置")

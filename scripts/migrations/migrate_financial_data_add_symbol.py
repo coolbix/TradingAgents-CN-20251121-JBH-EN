@@ -32,7 +32,7 @@ async def migrate_financial_data():
     # 连接数据库
     settings = get_settings()
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_financial_data"]
     
     try:
@@ -217,7 +217,7 @@ async def rollback_migration():
     
     settings = get_settings()
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_financial_data"]
     
     try:

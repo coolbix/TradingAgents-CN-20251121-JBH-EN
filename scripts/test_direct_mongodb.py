@@ -22,10 +22,10 @@ def test_direct():
     
     print(f"\n📊 连接信息：")
     print(f"  MONGO_URI: {SETTINGS.MONGO_URI}")
-    print(f"  MONGO_DB: {SETTINGS.MONGO_DB}")
+    print(f"  MONGO_DB_NAME: {SETTINGS.MONGO_DB_NAME}")
     
     client = MongoClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     collection = db.system_configs
     
     print(f"\n🔍 查询 system_configs 集合（所有文档）...")

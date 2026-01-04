@@ -28,7 +28,7 @@ def test_default_base_url():
     
     # 连接数据库
     client = MongoClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     providers_collection = db.llm_providers
     
     # 测试厂家

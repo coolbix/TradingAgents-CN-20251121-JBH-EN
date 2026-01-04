@@ -461,7 +461,7 @@ async def create_user(
             from pymongo import MongoClient
             from app.core.config import SETTINGS
             client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             db.users.update_one(
                 {"username": payload.username},
                 {"$set": {"is_admin": True}}

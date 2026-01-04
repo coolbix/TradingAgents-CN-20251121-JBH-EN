@@ -254,13 +254,13 @@ async def test_query_performance(collection):
 async def main():
     """主函数"""
     logger.info("🚀 开始 MongoDB 索引优化...")
-    logger.info(f"📍 数据库: {SETTINGS.MONGO_DB}")
+    logger.info(f"📍 数据库: {SETTINGS.MONGO_DB_NAME}")
     logger.info(f"📍 集合: stock_daily_quotes")
     
     try:
         # 连接 MongoDB
         client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-        db = client[SETTINGS.MONGO_DB]
+        db = client[SETTINGS.MONGO_DB_NAME]
         collection = db.stock_daily_quotes
         
         # 1. 分析现有索引

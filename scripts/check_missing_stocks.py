@@ -55,7 +55,7 @@ async def get_db_stock_codes() -> Set[str]:
     logger.info("🗄️  获取数据库股票列表...")
     
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     cursor = collection.find({}, {"code": 1, "symbol": 1, "_id": 0})

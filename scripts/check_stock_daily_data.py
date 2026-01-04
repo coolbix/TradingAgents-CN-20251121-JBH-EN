@@ -17,7 +17,7 @@ async def check_stock_daily_data(symbol: str = "000001"):
     
     # 连接 MongoDB
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     collection = db.stock_daily_quotes
     
     code6 = symbol.zfill(6)

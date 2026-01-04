@@ -222,7 +222,7 @@ DEBUG=false
 # ==================== 数据库配置 ====================
 MONGO_HOST=mongodb
 MONGO_PORT=27017
-MONGO_DB=tradingagents
+MONGO_DB_NAME=tradingagents
 MONGO_USER=admin
 MONGO_PASSWORD=MyStrongPassword123!
 MONGO_URI=mongodb://admin:MyStrongPassword123!@mongodb:27017/tradingagents?authSource=admin

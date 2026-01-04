@@ -31,7 +31,7 @@ async def fix_stock_basic_info_symbol():
     # 连接数据库
     settings = get_settings()
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     try:
@@ -188,7 +188,7 @@ async def check_and_fix_unique_index():
     
     settings = get_settings()
     client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     try:

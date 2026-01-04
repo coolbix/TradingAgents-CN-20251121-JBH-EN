@@ -98,7 +98,7 @@ async def补充行业信息(
     # 连接 MongoDB
     logger.info(f"🔌 连接 MongoDB: {SETTINGS.MONGO_URI}")
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     collection = db["stock_basic_info"]
     
     try:

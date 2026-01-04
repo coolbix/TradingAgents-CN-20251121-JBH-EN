@@ -70,7 +70,7 @@ try:
     
     # 使用同步 MongoDB 客户端
     client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    db = client[settings.MONGO_DB_NAME]
     collection = db.system_configs  # ✅ 集合名是复数
     
     # 查询系统配置（与 config_service 保持一致）

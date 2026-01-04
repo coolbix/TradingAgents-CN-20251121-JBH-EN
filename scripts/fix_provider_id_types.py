@@ -23,7 +23,7 @@ async def fix_provider_id_types():
     """修复厂家 ID 类型"""
     # 使用配置文件中的数据库连接信息
     client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     providers_collection = db.llm_providers
     
     print("🔍 检查数据库中的厂家 ID 类型...")

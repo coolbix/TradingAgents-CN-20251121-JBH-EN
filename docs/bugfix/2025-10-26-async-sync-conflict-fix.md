@@ -187,7 +187,7 @@ def get_mongo_db_sync() -> Database:
             serverSelectionTimeoutMS=5000
         )
 
-    _sync_mongo_db = _sync_mongo_client[settings.MONGO_DB]
+    _sync_mongo_db = _sync_mongo_client[settings.MONGO_DB_NAME]
     return _sync_mongo_db
 ```
 

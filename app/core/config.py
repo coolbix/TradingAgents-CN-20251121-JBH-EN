@@ -50,7 +50,7 @@ class Settings(BaseSettings):
             return f"mongodb://{self.MONGODB_HOST}:{self.MONGODB_PORT}/{self.MONGODB_DATABASE}"
 
     @property
-    def MONGO_DB(self) -> str:
+    def MONGO_DB_NAME(self) -> str:
         """Get Database Name"""
         return self.MONGODB_DATABASE
 

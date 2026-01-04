@@ -83,7 +83,7 @@ def _bridge_system_settings() -> int:
         )
 
         try:
-            db = client[settings.MONGO_DB]
+            db = client[settings.MONGO_DB_NAME]
             # 从 system_configs 集合中读取激活的配置
             config_doc = db.system_configs.find_one({"is_active": True})
 

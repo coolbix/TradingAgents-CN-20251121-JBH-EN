@@ -15,7 +15,7 @@ def main():
     
     # 连接数据库
     client = MongoClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     # 1. 检查厂家配置
     print("\n📊 1. 检查厂家配置（llm_providers）")

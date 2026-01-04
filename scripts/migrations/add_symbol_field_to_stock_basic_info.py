@@ -36,10 +36,10 @@ async def get_mongo_db() -> Optional[AsyncIOMotorDatabase]:
         from app.core.config import get_settings
         settings = get_settings()
         client = AsyncIOMotorClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        db = client[settings.MONGO_DB_NAME]
         # 测试连接
         await db.command("ping")
-        logger.info(f"✅ MongoDB 连接成功: {settings.MONGO_DB}")
+        logger.info(f"✅ MongoDB 连接成功: {settings.MONGO_DB_NAME}")
         return db
     except Exception as e:
         logger.error(f"❌ MongoDB 连接失败: {e}")

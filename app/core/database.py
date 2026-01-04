@@ -58,14 +58,14 @@ class DatabaseManager:
             )
 
             #Access to database examples
-            self.mongo_db = self.mongo_client[SETTINGS.MONGO_DB]
+            self.mongo_db = self.mongo_client[SETTINGS.MONGO_DB_NAME]
 
             #Test Connection
             await self.mongo_client.admin.command('ping')
             self._mongo_healthy = True
 
             logger.info("MongoDB connection successfully established")
-            logger.info(f"Database:{SETTINGS.MONGO_DB}")
+            logger.info(f"Database:{SETTINGS.MONGO_DB_NAME}")
             logger.info(f"Connecting pool:{SETTINGS.MONGO_MIN_CONNECTIONS}-{SETTINGS.MONGO_MAX_CONNECTIONS}")
             logger.info(f"Timeout configuration: confect Timeout={SETTINGS.MONGO_CONNECT_TIMEOUT_MS}ms, socketTimeout={SETTINGS.MONGO_SOCKET_TIMEOUT_MS}ms")
 
@@ -147,7 +147,7 @@ class DatabaseManager:
                 result = await self.mongo_client.admin.command('ping')
                 health_status["mongodb"] = {
                     "status": "healthy",
-                    "details": {"ping": result, "database": SETTINGS.MONGO_DB}
+                    "details": {"ping": result, "database": SETTINGS.MONGO_DB_NAME}
                 }
                 self._mongo_healthy = True
             else:
@@ -420,7 +420,7 @@ def get_database():
     if DB_MANAGER.mongo_client is None:
         raise RuntimeError("MongoDB客户端未初始化")
     #JBH  return db_manager.mongo_client.tradingagents
-    return DB_MANAGER.mongo_client[SETTINGS.MONGO_DB]
+    return DB_MANAGER.mongo_client[SETTINGS.MONGO_DB_NAME]
 
 
 #=================== Synchronous MongoDB Access ===================
@@ -446,5 +446,5 @@ def get_mongo_db_synchronous() -> Database:
             serverSelectionTimeoutMS=5000
         )
 
-    _synchronous_mongo_db = _synchronous_mongo_client[SETTINGS.MONGO_DB]
+    _synchronous_mongo_db = _synchronous_mongo_client[SETTINGS.MONGO_DB_NAME]
     return _synchronous_mongo_db

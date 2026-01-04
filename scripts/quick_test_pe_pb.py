@@ -36,7 +36,7 @@ def test_pe_pb_from_basic_info(code: str):
     
     # 连接数据库
     client = MongoClient(SETTINGS.MONGO_URI)
-    db = client[SETTINGS.MONGO_DB]
+    db = client[SETTINGS.MONGO_DB_NAME]
     
     code6 = str(code).zfill(6)
     

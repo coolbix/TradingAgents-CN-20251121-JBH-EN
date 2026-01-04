@@ -110,7 +110,7 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
         import os
 
         client = MongoClient(SETTINGS.MONGO_URI)
-        db = client[SETTINGS.MONGO_DB]
+        db = client[SETTINGS.MONGO_DB_NAME]
 
         #Query the latest active configuration
         configs_collection = db.system_configs
@@ -176,7 +176,7 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
         #Try fetching data base url and API Key from the vendor configuration
         try:
             client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             providers_collection = db.llm_providers
             provider_doc = providers_collection.find_one({"name": provider})
 
@@ -226,7 +226,7 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
             from app.core.config import SETTINGS
 
             client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB_NAME]
             providers_collection = db.llm_providers
             provider_doc = providers_collection.find_one({"name": provider})
 
@@ -525,7 +525,7 @@ def create_analysis_config(
                 from app.core.config import SETTINGS
 
                 client = MongoClient(SETTINGS.MONGO_URI)
-                db = client[SETTINGS.MONGO_DB]
+                db = client[SETTINGS.MONGO_DB_NAME]
                 providers_collection = db.llm_providers
                 provider_doc = providers_collection.find_one({"name": llm_provider})
 
@@ -1131,7 +1131,7 @@ class SimpleAnalysisService:
                     from datetime import datetime
 
                     sync_client = MongoClient(SETTINGS.MONGO_URI)
-                    sync_db = sync_client[SETTINGS.MONGO_DB]
+                    sync_db = sync_client[SETTINGS.MONGO_DB_NAME]
 
                     sync_db.analysis_tasks.update_one(
                         {"task_id": task_id},
@@ -1437,7 +1437,7 @@ class SimpleAnalysisService:
 
                                     #Create a simultaneous MongoDB client
                                     sync_client = MongoClient(SETTINGS.MONGO_URI)
-                                    sync_db = sync_client[SETTINGS.MONGO_DB]
+                                    sync_db = sync_client[SETTINGS.MONGO_DB_NAME]
 
                                     #Synchronize MongoDB
                                     sync_db.analysis_tasks.update_one(
