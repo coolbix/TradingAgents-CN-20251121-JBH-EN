@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.models.config import ModelProvider, DataSourceType
 
 
@@ -59,18 +59,18 @@ class ConfigMigrator:
         print("📡 连接数据库...")
         
         # 构建 MongoDB URI
-        if settings.MONGODB_USERNAME and settings.MONGODB_PASSWORD:
-            uri = f"mongodb://{settings.MONGODB_USERNAME}:{settings.MONGODB_PASSWORD}@{settings.MONGODB_HOST}:{settings.MONGODB_PORT}/{settings.MONGODB_DATABASE}?authSource={settings.MONGODB_AUTH_SOURCE}"
+        if SETTINGS.MONGODB_USERNAME and SETTINGS.MONGODB_PASSWORD:
+            uri = f"mongodb://{SETTINGS.MONGODB_USERNAME}:{SETTINGS.MONGODB_PASSWORD}@{SETTINGS.MONGODB_HOST}:{SETTINGS.MONGODB_PORT}/{SETTINGS.MONGODB_DATABASE}?authSource={SETTINGS.MONGODB_AUTH_SOURCE}"
         else:
-            uri = f"mongodb://{settings.MONGODB_HOST}:{settings.MONGODB_PORT}/{settings.MONGODB_DATABASE}"
+            uri = f"mongodb://{SETTINGS.MONGODB_HOST}:{SETTINGS.MONGODB_PORT}/{SETTINGS.MONGODB_DATABASE}"
         
         self.client = AsyncIOMotorClient(uri)
-        self.db = self.client[settings.MONGODB_DATABASE]
+        self.db = self.client[SETTINGS.MONGODB_DATABASE]
         
         # 测试连接
         try:
             await self.client.admin.command('ping')
-            print(f"✅ 数据库连接成功: {settings.MONGODB_HOST}:{settings.MONGODB_PORT}/{settings.MONGODB_DATABASE}")
+            print(f"✅ 数据库连接成功: {SETTINGS.MONGODB_HOST}:{SETTINGS.MONGODB_PORT}/{SETTINGS.MONGODB_DATABASE}")
         except Exception as e:
             print(f"❌ 数据库连接失败: {e}")
             raise

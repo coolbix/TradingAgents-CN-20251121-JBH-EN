@@ -16,14 +16,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from datetime import datetime
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 async def fix_provider_id_types():
     """修复厂家 ID 类型"""
     # 使用配置文件中的数据库连接信息
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     providers_collection = db.llm_providers
     
     print("🔍 检查数据库中的厂家 ID 类型...")

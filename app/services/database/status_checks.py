@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from app.core.database import get_mongo_db, get_redis_client
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 async def get_mongodb_status() -> Dict[str, Any]:
@@ -18,9 +18,9 @@ async def get_mongodb_status() -> Dict[str, Any]:
         server_status = await db.command("serverStatus")
         return {
             "connected": True,
-            "host": settings.MONGODB_HOST,
-            "port": settings.MONGODB_PORT,
-            "database": settings.MONGODB_DATABASE,
+            "host": SETTINGS.MONGODB_HOST,
+            "port": SETTINGS.MONGODB_PORT,
+            "database": SETTINGS.MONGODB_DATABASE,
             "version": server_info.get("version", "Unknown"),
             "uptime": server_status.get("uptime", 0),
             "connections": server_status.get("connections", {}),
@@ -31,9 +31,9 @@ async def get_mongodb_status() -> Dict[str, Any]:
         return {
             "connected": False,
             "error": str(e),
-            "host": settings.MONGODB_HOST,
-            "port": settings.MONGODB_PORT,
-            "database": settings.MONGODB_DATABASE,
+            "host": SETTINGS.MONGODB_HOST,
+            "port": SETTINGS.MONGODB_PORT,
+            "database": SETTINGS.MONGODB_DATABASE,
         }
 
 
@@ -44,9 +44,9 @@ async def get_redis_status() -> Dict[str, Any]:
         info = await redis_client.info()
         return {
             "connected": True,
-            "host": settings.REDIS_HOST,
-            "port": settings.REDIS_PORT,
-            "database": settings.REDIS_DB,
+            "host": SETTINGS.REDIS_HOST,
+            "port": SETTINGS.REDIS_PORT,
+            "database": SETTINGS.REDIS_DB,
             "version": info.get("redis_version", "Unknown"),
             "uptime": info.get("uptime_in_seconds", 0),
             "memory_used": info.get("used_memory", 0),
@@ -58,9 +58,9 @@ async def get_redis_status() -> Dict[str, Any]:
         return {
             "connected": False,
             "error": str(e),
-            "host": settings.REDIS_HOST,
-            "port": settings.REDIS_PORT,
-            "database": settings.REDIS_DB,
+            "host": SETTINGS.REDIS_HOST,
+            "port": SETTINGS.REDIS_PORT,
+            "database": SETTINGS.REDIS_DB,
         }
 
 

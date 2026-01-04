@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, List
 from pymongo import MongoClient
 from bson import ObjectId
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.models.user import User, UserCreate, UserUpdate, UserResponse
 
 #Try Import Log Manager
@@ -27,8 +27,8 @@ class UserService:
     """User service category"""
 
     def __init__(self):
-        self.client = MongoClient(settings.MONGO_URI)
-        self.db = self.client[settings.MONGO_DB]
+        self.client = MongoClient(SETTINGS.MONGO_URI)
+        self.db = self.client[SETTINGS.MONGO_DB]
         self.users_collection = self.db.users
 
     def close(self):

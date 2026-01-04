@@ -3,7 +3,7 @@ from typing import Any, Dict
 import re
 import logging
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.routers.auth_db import get_current_user
 
 router = APIRouter()
@@ -38,10 +38,10 @@ def _mask_value(key: str, value: Any) -> Any:
 
 
 def _build_summary() -> Dict[str, Any]:
-    raw = settings.model_dump()
+    raw = SETTINGS.model_dump()
     # Attach derived URLs
-    raw["MONGO_URI"] = settings.MONGO_URI
-    raw["REDIS_URL"] = settings.REDIS_URL
+    raw["MONGO_URI"] = SETTINGS.MONGO_URI
+    raw["REDIS_URL"] = SETTINGS.REDIS_URL
 
     summary: Dict[str, Any] = {}
     for k, v in raw.items():
@@ -102,12 +102,12 @@ async def validate_config():
             #🔥 Changes: Read raw data directly from the database and avoid using modified data returned by getting llm providers()
             #Get llm providers() gives the environment variable Key value to provider.api key, making it impossible to distinguish between sources
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
             from app.models.config import LLMProvider
 
             #Create a simultaneous MongoDB client
-            client = MongoClient(settings.MONGO_URI)
-            db = client[settings.MONGO_DB]
+            client = MongoClient(SETTINGS.MONGO_URI)
+            db = client[SETTINGS.MONGO_DB]
             providers_collection = db.llm_providers
 
             #Query all plant configurations (original data)

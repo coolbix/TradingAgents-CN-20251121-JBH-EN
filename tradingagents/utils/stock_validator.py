@@ -326,8 +326,8 @@ class StockDataPreparer:
         end_date = datetime.strptime(analysis_date, '%Y-%m-%d')
 
         #Fetching configuration backtrace days (consistent with Get china stock data unified)
-        from app.core.config import settings
-        lookback_days = getattr(settings, 'MARKET_ANALYST_LOOKBACK_DAYS', 365)
+        from app.core.config import SETTINGS
+        lookback_days = getattr(SETTINGS, 'MARKET_ANALYST_LOOKBACK_DAYS', 365)
 
         #Use extended date range for data checking and synchronization
         extended_start_date = end_date - timedelta(days=lookback_days)
@@ -486,8 +486,8 @@ class StockDataPreparer:
 
         #Calculate Date Range
         end_date = datetime.strptime(analysis_date, '%Y-%m-%d')
-        from app.core.config import settings
-        lookback_days = getattr(settings, 'MARKET_ANALYST_LOOKBACK_DAYS', 365)
+        from app.core.config import SETTINGS
+        lookback_days = getattr(SETTINGS, 'MARKET_ANALYST_LOOKBACK_DAYS', 365)
         extended_start_date = end_date - timedelta(days=lookback_days)
         extended_start_date_str = extended_start_date.strftime('%Y-%m-%d')
         end_date_str = end_date.strftime('%Y-%m-%d')

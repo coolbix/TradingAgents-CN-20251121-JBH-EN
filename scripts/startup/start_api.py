@@ -162,13 +162,13 @@ def check_services():
     # 检查Redis
     try:
         import redis
-        from app.core.config import settings
+        from app.core.config import SETTINGS
         
         # 使用配置中的Redis连接信息
         r = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            password=settings.REDIS_PASSWORD if settings.REDIS_PASSWORD else None,
+            host=SETTINGS.REDIS_HOST,
+            port=SETTINGS.REDIS_PORT,
+            password=SETTINGS.REDIS_PASSWORD if SETTINGS.REDIS_PASSWORD else None,
             decode_responses=True
         )
         r.ping()
@@ -180,11 +180,11 @@ def check_services():
     
     # 检查MongoDB
     try:
-        from app.core.config import settings
+        from app.core.config import SETTINGS
         from pymongo import MongoClient
         
         # 使用配置中的MongoDB连接信息
-        client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=2000)
+        client = MongoClient(SETTINGS.MONGO_URI, serverSelectionTimeoutMS=2000)
         client.admin.command('ping')
         print("✅ MongoDB 连接正常")
     except Exception as e:

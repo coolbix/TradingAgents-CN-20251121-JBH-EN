@@ -25,7 +25,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 import logging
 
 # 配置日志
@@ -96,9 +96,9 @@ async def补充行业信息(
     logger.info("=" * 80)
     
     # 连接 MongoDB
-    logger.info(f"🔌 连接 MongoDB: {settings.MONGO_URI}")
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    logger.info(f"🔌 连接 MongoDB: {SETTINGS.MONGO_URI}")
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     collection = db["stock_basic_info"]
     
     try:

@@ -36,7 +36,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 async def create_hk_collections(db):
@@ -229,11 +229,11 @@ async def main():
     
     try:
         # 连接MongoDB
-        mongo_uri = settings.MONGO_URI
+        mongo_uri = SETTINGS.MONGO_URI
         client = AsyncIOMotorClient(mongo_uri)
-        db = client[settings.MONGO_DB]
+        db = client[SETTINGS.MONGO_DB]
 
-        logger.info(f"✅ 连接MongoDB成功: {settings.MONGO_DB}")
+        logger.info(f"✅ 连接MongoDB成功: {SETTINGS.MONGO_DB}")
         
         # 创建港股集合
         await create_hk_collections(db)

@@ -7,7 +7,7 @@ from datetime import datetime, time as dtime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def is_trading_time(now: Optional[datetime] = None) -> bool:
@@ -29,7 +29,7 @@ def is_trading_time(now: Optional[datetime] = None) -> bool:
     Returns:
         Bool: Is it within the trading time
     """
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = now or datetime.now(tz)
     
     #Chile
@@ -61,7 +61,7 @@ def is_strict_trading_time(now: Optional[datetime] = None) -> bool:
     Returns:
         Bool: In strict trading time Internal
     """
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = now or datetime.now(tz)
     
     #Chile
@@ -88,7 +88,7 @@ def is_pre_market_time(now: Optional[datetime] = None) -> bool:
     Returns:
         Bool: Whether the time is before the disk
     """
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = now or datetime.now(tz)
     
     #Chile
@@ -111,7 +111,7 @@ def is_after_market_time(now: Optional[datetime] = None) -> bool:
     Returns:
         Bool: Is it after schedule time?
     """
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = now or datetime.now(tz)
     
     #Chile
@@ -140,7 +140,7 @@ def get_trading_status(now: Optional[datetime] = None) -> str:
         - "after market": Post-drive buffer period
         - "Closed":
     """
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = now or datetime.now(tz)
     
     #Weekend

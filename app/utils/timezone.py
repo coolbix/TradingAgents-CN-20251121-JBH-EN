@@ -4,7 +4,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from typing import Optional
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def get_tz_name() -> str:
@@ -22,7 +22,7 @@ def get_tz_name() -> str:
                 return tz.strip()
     except Exception:
         pass
-    return settings.TIMEZONE or "Asia/Shanghai"
+    return SETTINGS.TIMEZONE or "Asia/Shanghai"
 
 
 def get_tz() -> ZoneInfo:

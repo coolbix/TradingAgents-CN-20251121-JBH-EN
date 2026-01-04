@@ -1,13 +1,13 @@
 import asyncio
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.services.data_sources.manager import DataSourceManager
 from app.core.database import init_database, get_mongo_db, close_database
 from app.services.quotes_ingestion_service import QuotesIngestionService
 
 async def main():
     print("Settings:")
-    print("  QUOTES_BACKFILL_ON_STARTUP=", settings.QUOTES_BACKFILL_ON_STARTUP)
-    print("  QUOTES_BACKFILL_ON_OFFHOURS=", settings.QUOTES_BACKFILL_ON_OFFHOURS)
+    print("  QUOTES_BACKFILL_ON_STARTUP=", SETTINGS.QUOTES_BACKFILL_ON_STARTUP)
+    print("  QUOTES_BACKFILL_ON_OFFHOURS=", SETTINGS.QUOTES_BACKFILL_ON_OFFHOURS)
 
     m = DataSourceManager()
     available = [a.name for a in m.get_available_adapters()]

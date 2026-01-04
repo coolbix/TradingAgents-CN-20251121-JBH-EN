@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.services.quotes_ingestion_service import QuotesIngestionService
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def test_trading_time_logic():
@@ -24,7 +24,7 @@ def test_trading_time_logic():
     print("=" * 80)
     
     service = QuotesIngestionService()
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     
     # 测试用例
     test_cases = [
@@ -93,9 +93,9 @@ def test_trading_time_logic():
     print("\n" + "=" * 80)
     print("收盘后缓冲期测试总结")
     print("=" * 80)
-    print(f"\n配置的同步间隔: {settings.QUOTES_INGEST_INTERVAL_SECONDS} 秒 ({settings.QUOTES_INGEST_INTERVAL_SECONDS / 60} 分钟)")
+    print(f"\n配置的同步间隔: {SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS} 秒 ({SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS / 60} 分钟)")
     print(f"缓冲期时长: 30 分钟 (15:00-15:30)")
-    print(f"理论同步次数: {30 * 60 // settings.QUOTES_INGEST_INTERVAL_SECONDS} 次")
+    print(f"理论同步次数: {30 * 60 // SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS} 次")
     
     print("\n缓冲期内的同步机会：")
     for i, (time_str, result, expected) in enumerate(buffer_period_tests, 1):
@@ -105,8 +105,8 @@ def test_trading_time_logic():
     print("\n💡 说明：")
     print("  - 收盘时间是 15:00")
     print("  - 缓冲期延长到 15:30，增加 30 分钟")
-    print(f"  - 假设同步间隔为 {settings.QUOTES_INGEST_INTERVAL_SECONDS / 60} 分钟")
-    print(f"  - 在缓冲期内可以进行 {30 * 60 // settings.QUOTES_INGEST_INTERVAL_SECONDS} 次同步")
+    print(f"  - 假设同步间隔为 {SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS / 60} 分钟")
+    print(f"  - 在缓冲期内可以进行 {30 * 60 // SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS} 次同步")
     print("  - 大大降低了错过收盘价的风险！")
     
     return all_passed

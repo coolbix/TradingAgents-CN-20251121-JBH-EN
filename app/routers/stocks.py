@@ -486,8 +486,8 @@ async def get_kline(
     mongodb_period = period_map.get(period, "daily")
 
     #Get Current Time (Beijing Time)
-    from app.core.config import settings
-    tz = ZoneInfo(settings.TIMEZONE)
+    from app.core.config import SETTINGS
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = datetime.now(tz)
     today_str_yyyymmdd = now.strftime("%Y%m%d")  #Format: 20251028 (for query)
     today_str_formatted = now.strftime("%Y-%m-%d")  #Format: 2025-10-28 (for return)

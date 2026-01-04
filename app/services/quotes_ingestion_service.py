@@ -6,7 +6,7 @@ from collections import deque
 
 from pymongo import UpdateOne
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.core.database import get_mongo_db
 from app.services.data_sources.manager import DataSourceManager
 
@@ -29,7 +29,7 @@ class QuotesIngestionService:
 
         self.collection_name = collection_name
         self.status_collection_name = "quotes_ingestion_status"  #Status Record Pool
-        self.tz = ZoneInfo(settings.TIMEZONE)
+        self.tz = ZoneInfo(SETTINGS.TIMEZONE)
 
         #Tushare Permission Detect Related Properties
         self._tushare_permission_checked = False  #Have you tested permissions?
@@ -119,7 +119,7 @@ class QuotesIngestionService:
                 "success": success,
                 "data_source": source,
                 "records_count": records_count,
-                "interval_seconds": settings.QUOTES_INGEST_INTERVAL_SECONDS,
+                "interval_seconds": SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS,
                 "error_message": error_msg,
                 "updated_at": now,
             }
@@ -149,8 +149,8 @@ class QuotesIngestionService:
                 return {
                     "last_sync_time": None,
                     "last_sync_time_iso": None,
-                    "interval_seconds": settings.QUOTES_INGEST_INTERVAL_SECONDS,
-                    "interval_minutes": settings.QUOTES_INGEST_INTERVAL_SECONDS / 60,
+                    "interval_seconds": SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS,
+                    "interval_minutes": SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS / 60,
                     "data_source": None,
                     "success": None,
                     "records_count": 0,
@@ -183,8 +183,8 @@ class QuotesIngestionService:
             return {
                 "last_sync_time": None,
                 "last_sync_time_iso": None,
-                "interval_seconds": settings.QUOTES_INGEST_INTERVAL_SECONDS,
-                "interval_minutes": settings.QUOTES_INGEST_INTERVAL_SECONDS / 60,
+                "interval_seconds": SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS,
+                "interval_minutes": SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS / 60,
                 "data_source": None,
                 "success": None,
                 "records_count": 0,
@@ -279,7 +279,7 @@ class QuotesIngestionService:
             - "Tushare"
             - kshare api: "east money" | "sina"
         """
-        if not settings.QUOTES_ROTATION_ENABLED:
+        if not SETTINGS.QUOTES_ROTATION_ENABLED:
             #Rotation not enabled, default priority used
             return "tushare", None
 
@@ -585,7 +585,7 @@ class QuotesIngestionService:
         """
         #Non-trading periods
         if not self._is_trading_time():
-            if settings.QUOTES_BACKFILL_ON_OFFHOURS:
+            if SETTINGS.QUOTES_BACKFILL_ON_OFFHOURS:
                 await self.backfill_last_close_snapshot_if_needed()
             else:
                 logger.info("{\\cHFFFFFF}{\\cH00FF00} Non-trading time, skipping line collection")
@@ -593,7 +593,7 @@ class QuotesIngestionService:
 
         try:
             #First run: Test Tushare Permissions
-            if settings.QUOTES_AUTO_DETECT_TUSHARE_PERMISSION and not self._tushare_permission_checked:
+            if SETTINGS.QUOTES_AUTO_DETECT_TUSHARE_PERMISSION and not self._tushare_permission_checked:
                 logger.info("🔍 Initial running, detection of Tushare rt k interface privileges...")
                 has_premium = self._check_tushare_permission()
 
@@ -604,7 +604,7 @@ class QuotesIngestionService:
                 else:
                     logger.info(
                         f"Tushare, free of charge, with maximum call per hour{self._tushare_hourly_limit}Minor rt k interface."
-                        f"Current collection interval:{settings.QUOTES_INGEST_INTERVAL_SECONDS}sec"
+                        f"Current collection interval:{SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS}sec"
                     )
 
             #Get Next Data Source

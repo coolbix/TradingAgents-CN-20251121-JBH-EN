@@ -20,7 +20,7 @@ sys.path.insert(0, str(project_root))
 
 from app.core.logging_config import setup_logging
 from app.core.database import init_database, close_database, get_redis_client
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 # Redis keys (must match queue_service)
 READY_LIST = "qa:ready"

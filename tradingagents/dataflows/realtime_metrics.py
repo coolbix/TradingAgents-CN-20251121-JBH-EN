@@ -44,9 +44,9 @@ def calculate_realtime_pe_pb(
         if 'AsyncIOMotorClient' in client_type or 'Motor' in client_type:
             #This is a walk client. Create a synchronized client
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
             logger.debug(f"Distant client detected{client_type}Convert to Sync client")
-            db_client = MongoClient(settings.MONGO_URI)
+            db_client = MongoClient(SETTINGS.MONGO_URI)
 
         db = db_client['tradingagents']
         code6 = str(symbol).zfill(6)
@@ -345,9 +345,9 @@ def get_pe_pb_with_fallback(
         client_type = type(db_client).__name__
         if 'AsyncIOMotorClient' in client_type or 'Motor' in client_type:
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
             logger.debug(f"Distant client detected{client_type}Convert to Sync client")
-            db_client = MongoClient(settings.MONGO_URI)
+            db_client = MongoClient(SETTINGS.MONGO_URI)
 
     except Exception as e:
         logger.error(f"[PE smart policy-failed] Database connection failed:{e}")

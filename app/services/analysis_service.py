@@ -121,11 +121,11 @@ class AnalysisService:
 
             try:
                 from pymongo import MongoClient
-                from app.core.config import settings
+                from app.core.config import SETTINGS
 
                 #Use sync MongoDB client
-                client = MongoClient(settings.MONGO_URI)
-                db = client[settings.MONGO_DB]
+                client = MongoClient(SETTINGS.MONGO_URI)
+                db = client[SETTINGS.MONGO_DB]
                 collection = db.system_configs
 
                 #Query the latest active configuration
@@ -249,11 +249,11 @@ class AnalysisService:
 
             try:
                 from pymongo import MongoClient
-                from app.core.config import settings
+                from app.core.config import SETTINGS
 
                 #Use sync MongoDB client
-                client = MongoClient(settings.MONGO_URI)
-                db = client[settings.MONGO_DB]
+                client = MongoClient(SETTINGS.MONGO_URI)
+                db = client[SETTINGS.MONGO_DB]
                 collection = db.system_configs
 
                 #Query the latest active configuration

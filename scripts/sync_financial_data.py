@@ -24,7 +24,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 from tradingagents.dataflows.providers.china.akshare import AKShareProvider
 import logging
 
@@ -346,8 +346,8 @@ async def main(code: Optional[str] = None, sync_all: bool = False, batch: Option
     logger.info("=" * 80)
     
     # 连接数据库
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     # 初始化 Provider
     provider = AKShareProvider()

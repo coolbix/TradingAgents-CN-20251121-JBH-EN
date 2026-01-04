@@ -11,12 +11,12 @@ def main():
     print("=" * 80)
     
     from pymongo import MongoClient
-    from app.core.config import settings
+    from app.core.config import SETTINGS
     from app.services.simple_analysis_service import get_provider_and_url_by_model_sync
     
     # 连接数据库
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     # 1. 查看当前数据库中的配置
     print("\n📊 1. 查看数据库中的配置")

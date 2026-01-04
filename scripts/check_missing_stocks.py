@@ -22,7 +22,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 from tradingagents.dataflows.providers.china.akshare import AKShareProvider
 import logging
 import argparse
@@ -54,8 +54,8 @@ async def get_db_stock_codes() -> Set[str]:
     """获取数据库中的所有股票代码"""
     logger.info("🗄️  获取数据库股票列表...")
     
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     collection = db["stock_basic_info"]
     
     cursor = collection.find({}, {"code": 1, "symbol": 1, "_id": 0})

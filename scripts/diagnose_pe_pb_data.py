@@ -21,7 +21,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 import logging
 
 # 配置日志
@@ -40,8 +40,8 @@ async def diagnose_stock(code: str):
     logger.info("=" * 80)
     
     # 连接数据库
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     code6 = str(code).zfill(6)
     

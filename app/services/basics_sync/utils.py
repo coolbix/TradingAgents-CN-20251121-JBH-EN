@@ -17,12 +17,12 @@ def fetch_stock_basic_df():
     import time
     import logging
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
-    from app.core.config import settings
+    from app.core.config import SETTINGS
 
     logger = logging.getLogger(__name__)
 
     #Check whether Tushare is enabled
-    if not settings.TUSHARE_ENABLED:
+    if not SETTINGS.TUSHARE_ENABLED:
         logger.error("Tushare data source is disabled (TUSHARE ENABLED=false)")
         logger.error("Please set TUSHARE ENABLED=true in .env file or use multiple data source sync service")
         raise RuntimeError(

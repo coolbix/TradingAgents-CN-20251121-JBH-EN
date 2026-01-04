@@ -18,7 +18,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.services.quotes_ingestion_service import QuotesIngestionService
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def test_trading_time_logic():
@@ -28,7 +28,7 @@ def test_trading_time_logic():
     print("=" * 80)
     
     service = QuotesIngestionService()
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     
     # 测试用例
     test_cases = [
@@ -112,8 +112,8 @@ async def test_status_record_and_get():
     # 验证状态
     checks = [
         ("last_sync_time", lambda v: v is not None, "最后同步时间应该存在"),
-        ("interval_seconds", lambda v: v == settings.QUOTES_INGEST_INTERVAL_SECONDS, "同步间隔应该正确"),
-        ("interval_minutes", lambda v: v == settings.QUOTES_INGEST_INTERVAL_SECONDS / 60, "同步间隔（分钟）应该正确"),
+        ("interval_seconds", lambda v: v == SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS, "同步间隔应该正确"),
+        ("interval_minutes", lambda v: v == SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS / 60, "同步间隔（分钟）应该正确"),
         ("data_source", lambda v: v == "tushare", "数据源应该是 tushare"),
         ("success", lambda v: v is True, "成功状态应该是 True"),
         ("records_count", lambda v: v == 5440, "记录数应该是 5440"),

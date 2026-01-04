@@ -15,7 +15,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from pymongo import MongoClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.services.simple_analysis_service import create_analysis_config, get_provider_and_url_by_model_sync
 
 
@@ -27,8 +27,8 @@ def test_default_base_url():
     print("=" * 60)
     
     # 连接数据库
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     providers_collection = db.llm_providers
     
     # 测试厂家

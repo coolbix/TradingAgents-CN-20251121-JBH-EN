@@ -446,8 +446,8 @@ def _get_log_directory() -> str:
 
         #Back to Settings Configuration
         try:
-            from app.core.config import settings
-            log_dir = settings.log_dir
+            from app.core.config import SETTINGS
+            log_dir = SETTINGS.log_dir
             logger.info(f"🔍 [_get_log_directory] settings.log_dir: {log_dir}")
             if log_dir:
                 logger.info(f"[Get log directory]{log_dir}")

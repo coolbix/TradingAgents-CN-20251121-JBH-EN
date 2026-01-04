@@ -10,12 +10,12 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from pymongo import MongoClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 import json
 
 # 连接 MongoDB
-client = MongoClient(settings.MONGO_URI)
-db = client[settings.MONGO_DB]
+client = MongoClient(SETTINGS.MONGO_URI)
+db = client[SETTINGS.MONGO_DB]
 
 print("=" * 80)
 print("检查 llm_providers 集合")

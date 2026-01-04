@@ -24,7 +24,7 @@ from contextlib import asynccontextmanager
 import asyncio
 from pathlib import Path
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.core.database import init_database, close_database
 from app.core.logging_config import setup_logging
 from app.routers import auth_db as auth, analysis, screening, queue, sse, health, favorites, config, reports, database, operation_logs, tags, tushare_init, akshare_init, baostock_init, historical_data, multi_period_sync, financial_data, news_data, social_media, internal_messages, usage_statistics, model_capabilities, cache, logs
@@ -129,9 +129,9 @@ async def _print_config_summary(logger):
         
         #Pydantic Settings Configuration Loading State
         logger.info("⚙️  Pydantic Settings Configuration:")
-        logger.info(f"  • Settings class: {settings.__class__.__name__}")
-        logger.info(f"  • Config source: {getattr(settings.model_config, 'env_file', 'Not specified')}")
-        logger.info(f"  • Encoding: {getattr(settings.model_config, 'env_file_encoding', 'Not specified')}")
+        logger.info(f"  • Settings class: {SETTINGS.__class__.__name__}")
+        logger.info(f"  • Config source: {getattr(SETTINGS.model_config, 'env_file', 'Not specified')}")
+        logger.info(f"  • Encoding: {getattr(SETTINGS.model_config, 'env_file_encoding', 'Not specified')}")
         
         #Shows the source of some key configuration values (environmental variable vs default)
         key_settings = ['HOST', 'PORT', 'DEBUG', 'MONGODB_HOST', 'REDIS_HOST']
@@ -139,33 +139,33 @@ async def _print_config_summary(logger):
         for setting_name in key_settings:
             env_var_name = setting_name
             env_value = os.getenv(env_var_name)
-            config_value = getattr(settings, setting_name, None)
+            config_value = getattr(SETTINGS, setting_name, None)
             if env_value is not None:
                 logger.info(f"    - {setting_name}: from environment variable ({config_value})")
             else:
                 logger.info(f"    - {setting_name}: using default value ({config_value})")
         
         #Environmental information
-        env = "Production" if settings.is_production else "Development"
+        env = "Production" if SETTINGS.is_production else "Development"
         logger.info(f"Environment: {env}")
 
         #Database Connections
-        logger.info(f"MongoDB: {settings.MONGODB_HOST}:{settings.MONGODB_PORT}/{settings.MONGODB_DATABASE}")
-        logger.info(f"Redis: {settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}")
+        logger.info(f"MongoDB: {SETTINGS.MONGODB_HOST}:{SETTINGS.MONGODB_PORT}/{SETTINGS.MONGODB_DATABASE}")
+        logger.info(f"Redis: {SETTINGS.REDIS_HOST}:{SETTINGS.REDIS_PORT}/{SETTINGS.REDIS_DB}")
 
         #Proxy Configuration
         import os
-        if settings.HTTP_PROXY or settings.HTTPS_PROXY:
+        if SETTINGS.HTTP_PROXY or SETTINGS.HTTPS_PROXY:
             logger.info("Proxy Configuration:")
-            if settings.HTTP_PROXY:
-                logger.info(f"  HTTP_PROXY: {settings.HTTP_PROXY}")
-            if settings.HTTPS_PROXY:
-                logger.info(f"  HTTPS_PROXY: {settings.HTTPS_PROXY}")
-            if settings.NO_PROXY:
+            if SETTINGS.HTTP_PROXY:
+                logger.info(f"  HTTP_PROXY: {SETTINGS.HTTP_PROXY}")
+            if SETTINGS.HTTPS_PROXY:
+                logger.info(f"  HTTPS_PROXY: {SETTINGS.HTTPS_PROXY}")
+            if SETTINGS.NO_PROXY:
                 #Show only the top 3 domain names
-                no_proxy_list = settings.NO_PROXY.split(',')
+                no_proxy_list = SETTINGS.NO_PROXY.split(',')
                 if len(no_proxy_list) <= 3:
-                    logger.info(f"  NO_PROXY: {settings.NO_PROXY}")
+                    logger.info(f"  NO_PROXY: {SETTINGS.NO_PROXY}")
                 else:
                     logger.info(f"  NO_PROXY: {','.join(no_proxy_list[:3])}... ({len(no_proxy_list)} domains)")
             logger.info(f"  ✅ Proxy environment variables set successfully")
@@ -258,7 +258,7 @@ async def lifespan(app: FastAPI):
     logger.info("TradingAgents FastAPI backend started")
 
     #Start-up period: If necessary, a closing snapshot of the previous trading date should be added at the break
-    if settings.QUOTES_BACKFILL_ON_STARTUP:
+    if SETTINGS.QUOTES_BACKFILL_ON_STARTUP:
         try:
             qi = QuotesIngestionService()
             await qi.ensure_indexes()
@@ -273,7 +273,7 @@ async def lifespan(app: FastAPI):
     except Exception:
         croniter = None  #Optional Dependencies
     try:
-        scheduler = AsyncIOScheduler(timezone=settings.TIMEZONE)
+        scheduler = AsyncIOScheduler(timezone=SETTINGS.TIMEZONE)
 
         #Use multiple data source sync service (support automatic switching)
         multi_source_service = MultiSourceBasicsSyncService()
@@ -282,7 +282,7 @@ async def lifespan(app: FastAPI):
         #If Tushare is disabled, the system will automatically use other available data sources (AKshare/ BaoStock)
         preferred_sources = None  #None means to use default priority order
 
-        if settings.TUSHARE_ENABLED:
+        if SETTINGS.TUSHARE_ENABLED:
             #Use Tushare first when Tushare is enabled
             preferred_sources = ["tushare", "akshare", "baostock"]
             logger.info(f"📊Smart priority data source: Tushare > AKshare > BaoStock")
@@ -298,37 +298,37 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(run_sync_with_sources())
 
         #Configure Schedule: Prioritize Cron, followed by HH:MM
-        if settings.SYNC_STOCK_BASICS_ENABLED:
-            if settings.SYNC_STOCK_BASICS_CRON:
+        if SETTINGS.SYNC_STOCK_BASICS_ENABLED:
+            if SETTINGS.SYNC_STOCK_BASICS_CRON:
                 #If a cron expression is provided
                 scheduler.add_job(
                     lambda: multi_source_service.run_full_sync(force=False, preferred_sources=preferred_sources),
-                    CronTrigger.from_crontab(settings.SYNC_STOCK_BASICS_CRON, timezone=settings.TIMEZONE),
+                    CronTrigger.from_crontab(SETTINGS.SYNC_STOCK_BASICS_CRON, timezone=SETTINGS.TIMEZONE),
                     id="basics_sync_service",
                     name="股票基础信息同步（多数据源）"
                 )
-                logger.info(f"📅 Stock basics sync scheduled by CRON: {settings.SYNC_STOCK_BASICS_CRON} ({settings.TIMEZONE})")
+                logger.info(f"📅 Stock basics sync scheduled by CRON: {SETTINGS.SYNC_STOCK_BASICS_CRON} ({SETTINGS.TIMEZONE})")
             else:
-                hh, mm = (settings.SYNC_STOCK_BASICS_TIME or "06:30").split(":")
+                hh, mm = (SETTINGS.SYNC_STOCK_BASICS_TIME or "06:30").split(":")
                 scheduler.add_job(
                     lambda: multi_source_service.run_full_sync(force=False, preferred_sources=preferred_sources),
-                    CronTrigger(hour=int(hh), minute=int(mm), timezone=settings.TIMEZONE),
+                    CronTrigger(hour=int(hh), minute=int(mm), timezone=SETTINGS.TIMEZONE),
                     id="basics_sync_service",
                     name="股票基础信息同步（多数据源）"
                 )
-                logger.info(f"📅 Stock basics sync scheduled daily at {settings.SYNC_STOCK_BASICS_TIME} ({settings.TIMEZONE})")
+                logger.info(f"📅 Stock basics sync scheduled daily at {SETTINGS.SYNC_STOCK_BASICS_TIME} ({SETTINGS.TIMEZONE})")
 
         #Real-time database tasks (per N-s), internal self-determination period
-        if settings.QUOTES_INGEST_ENABLED:
+        if SETTINGS.QUOTES_INGEST_ENABLED:
             quotes_ingestion = QuotesIngestionService()
             await quotes_ingestion.ensure_indexes()
             scheduler.add_job(
                 quotes_ingestion.run_once,  # coroutine function; AsyncIOScheduler will await it
-                IntervalTrigger(seconds=settings.QUOTES_INGEST_INTERVAL_SECONDS, timezone=settings.TIMEZONE),
+                IntervalTrigger(seconds=SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS, timezone=SETTINGS.TIMEZONE),
                 id="quotes_ingestion_service",
                 name="实时行情入库服务"
             )
-            logger.info(f"Real-time database mission started:{settings.QUOTES_INGEST_INTERVAL_SECONDS}s")
+            logger.info(f"Real-time database mission started:{SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS}s")
 
         #Tushare Unified Data Sync Task Configuration
         logger.info("Configure the Tushare Unified Data Sync Task...")
@@ -336,69 +336,69 @@ async def lifespan(app: FastAPI):
         #Synchronise Action
         scheduler.add_job(
             run_tushare_basic_info_sync,
-            CronTrigger.from_crontab(settings.TUSHARE_BASIC_INFO_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="tushare_basic_info_sync",
             name="股票基础信息同步（Tushare）",
             kwargs={"force_update": False}
         )
-        if not (settings.TUSHARE_UNIFIED_ENABLED and settings.TUSHARE_BASIC_INFO_SYNC_ENABLED):
+        if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_BASIC_INFO_SYNC_ENABLED):
             scheduler.pause_job("tushare_basic_info_sync")
-            logger.info(f"⏸️Tushare Basic Information Synchronization has been added but suspended:{settings.TUSHARE_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"⏸️Tushare Basic Information Synchronization has been added but suspended:{SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON}")
         else:
-            logger.info(f"Tushare Basic Information Synchronized:{settings.TUSHARE_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"Tushare Basic Information Synchronized:{SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON}")
 
         #Other Organiser
         scheduler.add_job(
             run_tushare_quotes_sync,
-            CronTrigger.from_crontab(settings.TUSHARE_QUOTES_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.TUSHARE_QUOTES_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="tushare_quotes_sync",
             name="实时行情同步（Tushare）"
         )
-        if not (settings.TUSHARE_UNIFIED_ENABLED and settings.TUSHARE_QUOTES_SYNC_ENABLED):
+        if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_QUOTES_SYNC_ENABLED):
             scheduler.pause_job("tushare_quotes_sync")
-            logger.info(f"Tushare line sync has been added but suspended:{settings.TUSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"Tushare line sync has been added but suspended:{SETTINGS.TUSHARE_QUOTES_SYNC_CRON}")
         else:
-            logger.info(f"Tushare line syncs configured:{settings.TUSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"Tushare line syncs configured:{SETTINGS.TUSHARE_QUOTES_SYNC_CRON}")
 
         #Synchronise Action
         scheduler.add_job(
             run_tushare_historical_sync,
-            CronTrigger.from_crontab(settings.TUSHARE_HISTORICAL_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="tushare_historical_sync",
             name="历史数据同步（Tushare）",
             kwargs={"incremental": True}
         )
-        if not (settings.TUSHARE_UNIFIED_ENABLED and settings.TUSHARE_HISTORICAL_SYNC_ENABLED):
+        if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_HISTORICAL_SYNC_ENABLED):
             scheduler.pause_job("tushare_historical_sync")
-            logger.info(f"Tushare's historical data sync has been added but is suspended:{settings.TUSHARE_HISTORICAL_SYNC_CRON}")
+            logger.info(f"Tushare's historical data sync has been added but is suspended:{SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON}")
         else:
-            logger.info(f"📊Tusharehistorical data synchronization configured:{settings.TUSHARE_HISTORICAL_SYNC_CRON}")
+            logger.info(f"📊Tusharehistorical data synchronization configured:{SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON}")
 
         #Financial Data Sync Task
         scheduler.add_job(
             run_tushare_financial_sync,
-            CronTrigger.from_crontab(settings.TUSHARE_FINANCIAL_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="tushare_financial_sync",
             name="财务数据同步（Tushare）"
         )
-        if not (settings.TUSHARE_UNIFIED_ENABLED and settings.TUSHARE_FINANCIAL_SYNC_ENABLED):
+        if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_FINANCIAL_SYNC_ENABLED):
             scheduler.pause_job("tushare_financial_sync")
-            logger.info(f"⏸️Tushare Financial Data Synchronization has been added but suspended:{settings.TUSHARE_FINANCIAL_SYNC_CRON}")
+            logger.info(f"⏸️Tushare Financial Data Synchronization has been added but suspended:{SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON}")
         else:
-            logger.info(f"Tushare financial data synchronised:{settings.TUSHARE_FINANCIAL_SYNC_CRON}")
+            logger.info(f"Tushare financial data synchronised:{SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON}")
 
         #Status check task
         scheduler.add_job(
             run_tushare_status_check,
-            CronTrigger.from_crontab(settings.TUSHARE_STATUS_CHECK_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.TUSHARE_STATUS_CHECK_CRON, timezone=SETTINGS.TIMEZONE),
             id="tushare_status_check",
             name="数据源状态检查（Tushare）"
         )
-        if not (settings.TUSHARE_UNIFIED_ENABLED and settings.TUSHARE_STATUS_CHECK_ENABLED):
+        if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_STATUS_CHECK_ENABLED):
             scheduler.pause_job("tushare_status_check")
-            logger.info(f"Tushare status check added but suspended:{settings.TUSHARE_STATUS_CHECK_CRON}")
+            logger.info(f"Tushare status check added but suspended:{SETTINGS.TUSHARE_STATUS_CHECK_CRON}")
         else:
-            logger.info(f"Tushare status check configured:{settings.TUSHARE_STATUS_CHECK_CRON}")
+            logger.info(f"Tushare status check configured:{SETTINGS.TUSHARE_STATUS_CHECK_CRON}")
 
         #AKShare Unified Data Sync Task Configuration
         logger.info("Configure AKShare Unified Data Synchronization...")
@@ -406,69 +406,69 @@ async def lifespan(app: FastAPI):
         #Synchronise Action
         scheduler.add_job(
             run_akshare_basic_info_sync,
-            CronTrigger.from_crontab(settings.AKSHARE_BASIC_INFO_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.AKSHARE_BASIC_INFO_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="akshare_basic_info_sync",
             name="股票基础信息同步（AKShare）",
             kwargs={"force_update": False}
         )
-        if not (settings.AKSHARE_UNIFIED_ENABLED and settings.AKSHARE_BASIC_INFO_SYNC_ENABLED):
+        if not (SETTINGS.AKSHARE_UNIFIED_ENABLED and SETTINGS.AKSHARE_BASIC_INFO_SYNC_ENABLED):
             scheduler.pause_job("akshare_basic_info_sync")
-            logger.info(f"⏸️AKShare Basic Information Synchronization has been added but suspended:{settings.AKSHARE_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"⏸️AKShare Basic Information Synchronization has been added but suspended:{SETTINGS.AKSHARE_BASIC_INFO_SYNC_CRON}")
         else:
-            logger.info(f"AKShare's basic information is synchronised:{settings.AKSHARE_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"AKShare's basic information is synchronised:{SETTINGS.AKSHARE_BASIC_INFO_SYNC_CRON}")
 
         #Other Organiser
         scheduler.add_job(
             run_akshare_quotes_sync,
-            CronTrigger.from_crontab(settings.AKSHARE_QUOTES_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.AKSHARE_QUOTES_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="akshare_quotes_sync",
             name="实时行情同步（AKShare）"
         )
-        if not (settings.AKSHARE_UNIFIED_ENABLED and settings.AKSHARE_QUOTES_SYNC_ENABLED):
+        if not (SETTINGS.AKSHARE_UNIFIED_ENABLED and SETTINGS.AKSHARE_QUOTES_SYNC_ENABLED):
             scheduler.pause_job("akshare_quotes_sync")
-            logger.info(f"The AKShare line sync has been added but suspended:{settings.AKSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"The AKShare line sync has been added but suspended:{SETTINGS.AKSHARE_QUOTES_SYNC_CRON}")
         else:
-            logger.info(f"The AKShare line is configured:{settings.AKSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"The AKShare line is configured:{SETTINGS.AKSHARE_QUOTES_SYNC_CRON}")
 
         #Synchronise Action
         scheduler.add_job(
             run_akshare_historical_sync,
-            CronTrigger.from_crontab(settings.AKSHARE_HISTORICAL_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.AKSHARE_HISTORICAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="akshare_historical_sync",
             name="历史数据同步（AKShare）",
             kwargs={"incremental": True}
         )
-        if not (settings.AKSHARE_UNIFIED_ENABLED and settings.AKSHARE_HISTORICAL_SYNC_ENABLED):
+        if not (SETTINGS.AKSHARE_UNIFIED_ENABLED and SETTINGS.AKSHARE_HISTORICAL_SYNC_ENABLED):
             scheduler.pause_job("akshare_historical_sync")
-            logger.info(f"⏸️HistoryShareSync has been added but suspended:{settings.AKSHARE_HISTORICAL_SYNC_CRON}")
+            logger.info(f"⏸️HistoryShareSync has been added but suspended:{SETTINGS.AKSHARE_HISTORICAL_SYNC_CRON}")
         else:
-            logger.info(f"AKShare's historical data synchronisation is configured:{settings.AKSHARE_HISTORICAL_SYNC_CRON}")
+            logger.info(f"AKShare's historical data synchronisation is configured:{SETTINGS.AKSHARE_HISTORICAL_SYNC_CRON}")
 
         #Financial Data Sync Task
         scheduler.add_job(
             run_akshare_financial_sync,
-            CronTrigger.from_crontab(settings.AKSHARE_FINANCIAL_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.AKSHARE_FINANCIAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="akshare_financial_sync",
             name="财务数据同步（AKShare）"
         )
-        if not (settings.AKSHARE_UNIFIED_ENABLED and settings.AKSHARE_FINANCIAL_SYNC_ENABLED):
+        if not (SETTINGS.AKSHARE_UNIFIED_ENABLED and SETTINGS.AKSHARE_FINANCIAL_SYNC_ENABLED):
             scheduler.pause_job("akshare_financial_sync")
-            logger.info(f"Synchronization of AKshare financial data has been added but suspended:{settings.AKSHARE_FINANCIAL_SYNC_CRON}")
+            logger.info(f"Synchronization of AKshare financial data has been added but suspended:{SETTINGS.AKSHARE_FINANCIAL_SYNC_CRON}")
         else:
-            logger.info(f"💰AKShare ' s financial data synchronized:{settings.AKSHARE_FINANCIAL_SYNC_CRON}")
+            logger.info(f"💰AKShare ' s financial data synchronized:{SETTINGS.AKSHARE_FINANCIAL_SYNC_CRON}")
 
         #Status check task
         scheduler.add_job(
             run_akshare_status_check,
-            CronTrigger.from_crontab(settings.AKSHARE_STATUS_CHECK_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.AKSHARE_STATUS_CHECK_CRON, timezone=SETTINGS.TIMEZONE),
             id="akshare_status_check",
             name="数据源状态检查（AKShare）"
         )
-        if not (settings.AKSHARE_UNIFIED_ENABLED and settings.AKSHARE_STATUS_CHECK_ENABLED):
+        if not (SETTINGS.AKSHARE_UNIFIED_ENABLED and SETTINGS.AKSHARE_STATUS_CHECK_ENABLED):
             scheduler.pause_job("akshare_status_check")
-            logger.info(f"AKShare status check added but suspended:{settings.AKSHARE_STATUS_CHECK_CRON}")
+            logger.info(f"AKShare status check added but suspended:{SETTINGS.AKSHARE_STATUS_CHECK_CRON}")
         else:
-            logger.info(f"AKShare status check configured:{settings.AKSHARE_STATUS_CHECK_CRON}")
+            logger.info(f"AKShare status check configured:{SETTINGS.AKSHARE_STATUS_CHECK_CRON}")
 
         #BaoStock Unified Data Sync Task Configuration
         logger.info("Configure the BaoStock Unified Data Sync Task...")
@@ -476,54 +476,54 @@ async def lifespan(app: FastAPI):
         #Synchronise Action
         scheduler.add_job(
             run_baostock_basic_info_sync,
-            CronTrigger.from_crontab(settings.BAOSTOCK_BASIC_INFO_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.BAOSTOCK_BASIC_INFO_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="baostock_basic_info_sync",
             name="股票基础信息同步（BaoStock）"
         )
-        if not (settings.BAOSTOCK_UNIFIED_ENABLED and settings.BAOSTOCK_BASIC_INFO_SYNC_ENABLED):
+        if not (SETTINGS.BAOSTOCK_UNIFIED_ENABLED and SETTINGS.BAOSTOCK_BASIC_INFO_SYNC_ENABLED):
             scheduler.pause_job("baostock_basic_info_sync")
-            logger.info(f"⏸️ BaoStock Basic Information Synchronization has been added but suspended:{settings.BAOSTOCK_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"⏸️ BaoStock Basic Information Synchronization has been added but suspended:{SETTINGS.BAOSTOCK_BASIC_INFO_SYNC_CRON}")
         else:
-            logger.info(f"BaoStock Basic Information Synchronized:{settings.BAOSTOCK_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"BaoStock Basic Information Synchronized:{SETTINGS.BAOSTOCK_BASIC_INFO_SYNC_CRON}")
 
         #DayKline Sync Task (note: BaoStock does not support real-time lines)
         scheduler.add_job(
             run_baostock_daily_quotes_sync,
-            CronTrigger.from_crontab(settings.BAOSTOCK_DAILY_QUOTES_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.BAOSTOCK_DAILY_QUOTES_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="baostock_daily_quotes_sync",
             name="日K线数据同步（BaoStock）"
         )
-        if not (settings.BAOSTOCK_UNIFIED_ENABLED and settings.BAOSTOCK_DAILY_QUOTES_SYNC_ENABLED):
+        if not (SETTINGS.BAOSTOCK_UNIFIED_ENABLED and SETTINGS.BAOSTOCK_DAILY_QUOTES_SYNC_ENABLED):
             scheduler.pause_job("baostock_daily_quotes_sync")
-            logger.info(f"BaoStockK-line sync has been added but is suspended:{settings.BAOSTOCK_DAILY_QUOTES_SYNC_CRON}")
+            logger.info(f"BaoStockK-line sync has been added but is suspended:{SETTINGS.BAOSTOCK_DAILY_QUOTES_SYNC_CRON}")
         else:
-            logger.info(f"BaoStockKline is configured:{settings.BAOSTOCK_DAILY_QUOTES_SYNC_CRON}(Note: BaoStock does not support real time.)")
+            logger.info(f"BaoStockKline is configured:{SETTINGS.BAOSTOCK_DAILY_QUOTES_SYNC_CRON}(Note: BaoStock does not support real time.)")
 
         #Synchronise Action
         scheduler.add_job(
             run_baostock_historical_sync,
-            CronTrigger.from_crontab(settings.BAOSTOCK_HISTORICAL_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.BAOSTOCK_HISTORICAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="baostock_historical_sync",
             name="历史数据同步（BaoStock）"
         )
-        if not (settings.BAOSTOCK_UNIFIED_ENABLED and settings.BAOSTOCK_HISTORICAL_SYNC_ENABLED):
+        if not (SETTINGS.BAOSTOCK_UNIFIED_ENABLED and SETTINGS.BAOSTOCK_HISTORICAL_SYNC_ENABLED):
             scheduler.pause_job("baostock_historical_sync")
-            logger.info(f"BaoStock historical data sync has been added but is suspended:{settings.BAOSTOCK_HISTORICAL_SYNC_CRON}")
+            logger.info(f"BaoStock historical data sync has been added but is suspended:{SETTINGS.BAOSTOCK_HISTORICAL_SYNC_CRON}")
         else:
-            logger.info(f"BaoStock has been configured:{settings.BAOSTOCK_HISTORICAL_SYNC_CRON}")
+            logger.info(f"BaoStock has been configured:{SETTINGS.BAOSTOCK_HISTORICAL_SYNC_CRON}")
 
         #Status check task
         scheduler.add_job(
             run_baostock_status_check,
-            CronTrigger.from_crontab(settings.BAOSTOCK_STATUS_CHECK_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.BAOSTOCK_STATUS_CHECK_CRON, timezone=SETTINGS.TIMEZONE),
             id="baostock_status_check",
             name="数据源状态检查（BaoStock）"
         )
-        if not (settings.BAOSTOCK_UNIFIED_ENABLED and settings.BAOSTOCK_STATUS_CHECK_ENABLED):
+        if not (SETTINGS.BAOSTOCK_UNIFIED_ENABLED and SETTINGS.BAOSTOCK_STATUS_CHECK_ENABLED):
             scheduler.pause_job("baostock_status_check")
-            logger.info(f"BaoStock status check added but suspended:{settings.BAOSTOCK_STATUS_CHECK_CRON}")
+            logger.info(f"BaoStock status check added but suspended:{SETTINGS.BAOSTOCK_STATUS_CHECK_CRON}")
         else:
-            logger.info(f"BaoStock status check configured:{settings.BAOSTOCK_STATUS_CHECK_CRON}")
+            logger.info(f"BaoStock status check configured:{SETTINGS.BAOSTOCK_STATUS_CHECK_CRON}")
 
         #Synchronization of news data tasking (using AKShare to synchronize all stock news)
         logger.info("Configure news synchronisation...")
@@ -537,7 +537,7 @@ async def lifespan(app: FastAPI):
                 service = await get_akshare_sync_service()
                 result = await service.sync_news_data(
                     symbols=None,  #None + options only=True
-                    max_news_per_stock=settings.NEWS_SYNC_MAX_PER_SOURCE,
+                    max_news_per_stock=SETTINGS.NEWS_SYNC_MAX_PER_SOURCE,
                     favorites_only=True  #Synchronization of selected units only
                 )
                 logger.info(
@@ -558,15 +558,15 @@ async def lifespan(app: FastAPI):
 
         scheduler.add_job(
             run_news_sync,
-            CronTrigger.from_crontab(settings.NEWS_SYNC_CRON, timezone=settings.TIMEZONE),
+            CronTrigger.from_crontab(SETTINGS.NEWS_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
             id="news_sync",
             name="新闻数据同步（AKShare - 仅自选股）"
         )
-        if not settings.NEWS_SYNC_ENABLED:
+        if not SETTINGS.NEWS_SYNC_ENABLED:
             scheduler.pause_job("news_sync")
-            logger.info(f"Synchronization of news data has been added but suspended:{settings.NEWS_SYNC_CRON}")
+            logger.info(f"Synchronization of news data has been added but suspended:{SETTINGS.NEWS_SYNC_CRON}")
         else:
-            logger.info(f"📰Syncs of news data configured (selected units only):{settings.NEWS_SYNC_CRON}")
+            logger.info(f"📰Syncs of news data configured (selected units only):{SETTINGS.NEWS_SYNC_CRON}")
 
         scheduler.start()
 
@@ -604,22 +604,22 @@ app = FastAPI(
     title="TradingAgents-CN API",
     description="股票分析与批量队列系统 API",
     version=get_version(),
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
+    docs_url="/docs" if SETTINGS.DEBUG else None,
+    redoc_url="/redoc" if SETTINGS.DEBUG else None,
     lifespan=lifespan
 )
 
 #Security middle
-if not settings.DEBUG:
+if not SETTINGS.DEBUG:
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=settings.ALLOWED_HOSTS
+        allowed_hosts=SETTINGS.ALLOWED_HOSTS
     )
 
 #CORS Middle
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=SETTINGS.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -737,18 +737,18 @@ async def root():
         "name": "TradingAgents-CN API",
         "version": get_version(),
         "status": "running",
-        "docs_url": "/docs" if settings.DEBUG else None
+        "docs_url": "/docs" if SETTINGS.DEBUG else None
     }
 
 
 if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG,
+        host=SETTINGS.HOST,
+        port=SETTINGS.PORT,
+        reload=SETTINGS.DEBUG,
         log_level="info",
-        reload_dirs=["app"] if settings.DEBUG else None,
+        reload_dirs=["app"] if SETTINGS.DEBUG else None,
         reload_excludes=[
             "__pycache__",
             "*.pyc",
@@ -758,6 +758,6 @@ if __name__ == "__main__":
             ".pytest_cache",
             "*.log",
             "*.tmp"
-        ] if settings.DEBUG else None,
-        reload_includes=["*.py"] if settings.DEBUG else None
+        ] if SETTINGS.DEBUG else None,
+        reload_includes=["*.py"] if SETTINGS.DEBUG else None
     )

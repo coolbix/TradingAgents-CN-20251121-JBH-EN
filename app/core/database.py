@@ -11,7 +11,7 @@ from pymongo.database import Database
 from redis.asyncio import Redis, ConnectionPool
 from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from redis.exceptions import ConnectionError as RedisConnectionError
-from .config import settings
+from .config import SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -48,26 +48,26 @@ class DatabaseManager:
             #Create 'asynchronous' MongoDB client and configure connect pool
             #NOTE: there is 'synchronous' version of MongoClient created in get_mongo_db_sync()
             self.mongo_client = AsyncIOMotorClient(
-                settings.MONGO_URI,
-                maxPoolSize=settings.MONGO_MAX_CONNECTIONS,
-                minPoolSize=settings.MONGO_MIN_CONNECTIONS,
+                SETTINGS.MONGO_URI,
+                maxPoolSize=SETTINGS.MONGO_MAX_CONNECTIONS,
+                minPoolSize=SETTINGS.MONGO_MIN_CONNECTIONS,
                 maxIdleTimeMS=30000,  #30 seconds of free time.
-                serverSelectionTimeoutMS=settings.MONGO_SERVER_SELECTION_TIMEOUT_MS,  #Server Select Timeout
-                connectTimeoutMS=settings.MONGO_CONNECT_TIMEOUT_MS,  #Connection timed out
-                socketTimeoutMS=settings.MONGO_SOCKET_TIMEOUT_MS,  #Socket Timeout
+                serverSelectionTimeoutMS=SETTINGS.MONGO_SERVER_SELECTION_TIMEOUT_MS,  #Server Select Timeout
+                connectTimeoutMS=SETTINGS.MONGO_CONNECT_TIMEOUT_MS,  #Connection timed out
+                socketTimeoutMS=SETTINGS.MONGO_SOCKET_TIMEOUT_MS,  #Socket Timeout
             )
 
             #Access to database examples
-            self.mongo_db = self.mongo_client[settings.MONGO_DB]
+            self.mongo_db = self.mongo_client[SETTINGS.MONGO_DB]
 
             #Test Connection
             await self.mongo_client.admin.command('ping')
             self._mongo_healthy = True
 
             logger.info("MongoDB connection successfully established")
-            logger.info(f"Database:{settings.MONGO_DB}")
-            logger.info(f"Connecting pool:{settings.MONGO_MIN_CONNECTIONS}-{settings.MONGO_MAX_CONNECTIONS}")
-            logger.info(f"Timeout configuration: confect Timeout={settings.MONGO_CONNECT_TIMEOUT_MS}ms, socketTimeout={settings.MONGO_SOCKET_TIMEOUT_MS}ms")
+            logger.info(f"Database:{SETTINGS.MONGO_DB}")
+            logger.info(f"Connecting pool:{SETTINGS.MONGO_MIN_CONNECTIONS}-{SETTINGS.MONGO_MAX_CONNECTIONS}")
+            logger.info(f"Timeout configuration: confect Timeout={SETTINGS.MONGO_CONNECT_TIMEOUT_MS}ms, socketTimeout={SETTINGS.MONGO_SOCKET_TIMEOUT_MS}ms")
 
         except Exception as e:
             logger.error(f"There's no connection to MongoDB:{e}")
@@ -81,9 +81,9 @@ class DatabaseManager:
 
             #Create 'asynchronous' Redis Connect Pool
             self.redis_pool = ConnectionPool.from_url(
-                settings.REDIS_URL,
-                max_connections=settings.REDIS_MAX_CONNECTIONS,
-                retry_on_timeout=settings.REDIS_RETRY_ON_TIMEOUT,
+                SETTINGS.REDIS_URL,
+                max_connections=SETTINGS.REDIS_MAX_CONNECTIONS,
+                retry_on_timeout=SETTINGS.REDIS_RETRY_ON_TIMEOUT,
                 decode_responses=True,
                 socket_connect_timeout=5,  #Five seconds connection timed out.
                 socket_timeout=10,  #Ten seconds to fit.
@@ -97,7 +97,7 @@ class DatabaseManager:
             self._redis_healthy = True
 
             logger.info("Redis connection successfully established")
-            logger.info(f"Connect pool size:{settings.REDIS_MAX_CONNECTIONS}")
+            logger.info(f"Connect pool size:{SETTINGS.REDIS_MAX_CONNECTIONS}")
 
         except Exception as e:
             logger.error(f"Redis connection failed:{e}")
@@ -147,7 +147,7 @@ class DatabaseManager:
                 result = await self.mongo_client.admin.command('ping')
                 health_status["mongodb"] = {
                     "status": "healthy",
-                    "details": {"ping": result, "database": settings.MONGO_DB}
+                    "details": {"ping": result, "database": SETTINGS.MONGO_DB}
                 }
                 self._mongo_healthy = True
             else:
@@ -420,7 +420,7 @@ def get_database():
     if DB_MANAGER.mongo_client is None:
         raise RuntimeError("MongoDB客户端未初始化")
     #JBH  return db_manager.mongo_client.tradingagents
-    return DB_MANAGER.mongo_client[settings.MONGO_DB]
+    return DB_MANAGER.mongo_client[SETTINGS.MONGO_DB]
 
 
 #=================== Synchronous MongoDB Access ===================
@@ -439,12 +439,12 @@ def get_mongo_db_synchronous() -> Database:
     #Create a 'synchronous' MongoDB client
     if _synchronous_mongo_client is None:
         _synchronous_mongo_client = MongoClient(
-            settings.MONGO_URI,
-            maxPoolSize=settings.MONGO_MAX_CONNECTIONS,
-            minPoolSize=settings.MONGO_MIN_CONNECTIONS,
+            SETTINGS.MONGO_URI,
+            maxPoolSize=SETTINGS.MONGO_MAX_CONNECTIONS,
+            minPoolSize=SETTINGS.MONGO_MIN_CONNECTIONS,
             maxIdleTimeMS=30000,
             serverSelectionTimeoutMS=5000
         )
 
-    _synchronous_mongo_db = _synchronous_mongo_client[settings.MONGO_DB]
+    _synchronous_mongo_db = _synchronous_mongo_client[SETTINGS.MONGO_DB]
     return _synchronous_mongo_db

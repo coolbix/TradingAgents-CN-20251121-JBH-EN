@@ -14,7 +14,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.core.database import get_mongo_db_synchronous
-from app.core.config import settings
+from app.core.config import SETTINGS
 import logging
 
 logging.basicConfig(level=logging.INFO)

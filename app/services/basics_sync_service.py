@@ -20,7 +20,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import UpdateOne
 
 from app.core.database import get_mongo_db
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 from app.services.basics_sync import (
     fetch_stock_basic_df as _fetch_stock_basic_df_util,
@@ -191,7 +191,7 @@ class BasicsSyncService:
 
         try:
             # Step 0: Check if Tushare is enabled
-            if not settings.TUSHARE_ENABLED:
+            if not SETTINGS.TUSHARE_ENABLED:
                 error_msg = (
                     "❌ Tushare 数据源已禁用 (TUSHARE_ENABLED=false)\n"
                     "💡 此服务仅支持 Tushare 数据源\n"

@@ -27,9 +27,9 @@ async def test_mongodb_query():
     print("=" * 80)
     
     # 连接 MongoDB
-    from app.core.config import settings
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    from app.core.config import SETTINGS
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     collection = db.stock_daily_quotes
     
     symbol = "601288"

@@ -28,7 +28,7 @@ if str(ROOT) not in sys.path:
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def _tname(v: Any) -> str:
@@ -39,8 +39,8 @@ def _tname(v: Any) -> str:
 
 
 async def main():
-    uri = settings.MONGO_URI
-    dbname = settings.MONGO_DB
+    uri = SETTINGS.MONGO_URI
+    dbname = SETTINGS.MONGO_DB
     print(f"Mongo URI: {uri}")
     print(f"Mongo DB : {dbname}")
 

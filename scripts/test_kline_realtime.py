@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.core.database import init_database, get_mongo_db
 
 
@@ -58,7 +58,7 @@ async def test_kline_realtime():
     print("\n📊 步骤2：检查 stock_daily_quotes 集合中的历史数据")
     stock_daily_quotes_coll = db["stock_daily_quotes"]
     
-    tz = ZoneInfo(settings.TIMEZONE)
+    tz = ZoneInfo(SETTINGS.TIMEZONE)
     now = datetime.now(tz)
     today_str = now.strftime("%Y%m%d")
     

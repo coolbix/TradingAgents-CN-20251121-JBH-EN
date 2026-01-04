@@ -11,7 +11,7 @@ from app.services.stock_data_service import get_stock_data_service
 from app.services.historical_data_service import get_historical_data_service
 from app.services.news_data_service import get_news_data_service
 from app.core.database import get_mongo_db
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.core.rate_limiter import get_tushare_rate_limiter
 from app.utils.timezone import now_tz
 
@@ -41,7 +41,7 @@ class TushareSyncService:
         self.historical_service = None  #Delay Initialization
         self.news_service = None  #Delay Initialization
         self.db = get_mongo_db()
-        self.settings = settings
+        self.settings = SETTINGS
 
         #Sync Configuration
         self.batch_size = 100  #Batch size
@@ -49,8 +49,8 @@ class TushareSyncService:
         self.max_retries = 3  #Maximum number of retries
 
         #Speed Limiter (read configuration from environmental variables)
-        tushare_tier = getattr(settings, "TUSHARE_TIER", "standard")  # free/basic/standard/premium/vip
-        safety_margin = float(getattr(settings, "TUSHARE_RATE_LIMIT_SAFETY_MARGIN", "0.8"))
+        tushare_tier = getattr(SETTINGS, "TUSHARE_TIER", "standard")  # free/basic/standard/premium/vip
+        safety_margin = float(getattr(SETTINGS, "TUSHARE_RATE_LIMIT_SAFETY_MARGIN", "0.8"))
         self.rate_limiter = get_tushare_rate_limiter(tier=tushare_tier, safety_margin=safety_margin)
     
     async def initialize(self):
@@ -1200,13 +1200,13 @@ class TushareSyncService:
         try:
             from app.services.scheduler_service import TaskCancelledException
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
 
             logger.info(f"[Progress update]{job_id}Progress:{progress}% - {message}")
 
             #Use sync PyMongo client (avoiding event cycle conflicts)
-            sync_client = MongoClient(settings.MONGO_URI)
-            sync_db = sync_client[settings.MONGODB_DATABASE]
+            sync_client = MongoClient(SETTINGS.MONGO_URI)
+            sync_db = sync_client[SETTINGS.MONGODB_DATABASE]
 
             #Find the latest running record
             execution = sync_db.scheduler_executions.find_one(

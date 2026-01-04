@@ -7,7 +7,7 @@ import time
 
 from app.routers.auth_db import get_current_user
 from app.core.database import get_redis_client
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 from app.services.queue_service import get_queue_service, QueueService
 
@@ -30,9 +30,9 @@ async def task_progress_generator(task_id: str, user_id: str):
             heartbeat_every = int(eff.get("sse_heartbeat_interval_seconds", 10))
             max_idle_seconds = int(eff.get("sse_task_max_idle_seconds", 300))
         except Exception:
-            poll_timeout = float(getattr(settings, "SSE_POLL_TIMEOUT_SECONDS", 1.0))
-            heartbeat_every = int(getattr(settings, "SSE_HEARTBEAT_INTERVAL_SECONDS", 10))
-            max_idle_seconds = int(getattr(settings, "SSE_TASK_MAX_IDLE_SECONDS", 300))
+            poll_timeout = float(getattr(SETTINGS, "SSE_POLL_TIMEOUT_SECONDS", 1.0))
+            heartbeat_every = int(getattr(SETTINGS, "SSE_HEARTBEAT_INTERVAL_SECONDS", 10))
+            max_idle_seconds = int(getattr(SETTINGS, "SSE_TASK_MAX_IDLE_SECONDS", 300))
 
         #Fix: Create PubSub Connection
         pubsub = r.pubsub()
@@ -122,8 +122,8 @@ async def batch_progress_generator(batch_id: str, user_id: str):
             batch_poll_interval = float(eff.get("sse_batch_poll_interval_seconds", 2))
             batch_max_idle_seconds = int(eff.get("sse_batch_max_idle_seconds", 600))
         except Exception:
-            batch_poll_interval = float(getattr(settings, "SSE_BATCH_POLL_INTERVAL_SECONDS", 2.0))
-            batch_max_idle_seconds = int(getattr(settings, "SSE_BATCH_MAX_IDLE_SECONDS", 600))
+            batch_poll_interval = float(getattr(SETTINGS, "SSE_BATCH_POLL_INTERVAL_SECONDS", 2.0))
+            batch_max_idle_seconds = int(getattr(SETTINGS, "SSE_BATCH_MAX_IDLE_SECONDS", 600))
 
         # Send initial connection confirmation
         yield f"event: connected\ndata: {{\"batch_id\": \"{batch_id}\", \"message\": \"已连接批次进度流\"}}\n\n"

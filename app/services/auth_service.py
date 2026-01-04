@@ -4,7 +4,7 @@ from app.utils.timezone import now_tz
 from typing import Optional
 import jwt
 from pydantic import BaseModel
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 class TokenData(BaseModel):
     sub: str
@@ -18,9 +18,9 @@ class AuthService:
             expire = now_tz() + timedelta(seconds=expires_delta)
         else:
             #Use minutes otherwise
-            expire = now_tz() + timedelta(minutes=expires_minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = now_tz() + timedelta(minutes=expires_minutes or SETTINGS.ACCESS_TOKEN_EXPIRE_MINUTES)
         payload = {"sub": sub, "exp": expire}
-        token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+        token = jwt.encode(payload, SETTINGS.JWT_SECRET, algorithm=SETTINGS.JWT_ALGORITHM)
         return token
 
     @staticmethod
@@ -31,10 +31,10 @@ class AuthService:
         try:
             logger.debug(f"Start checking token.")
             logger.debug(f"Token length:{len(token)}")
-            logger.debug(f"JWT key:{settings.JWT_SECRET[:10]}...")
-            logger.debug(f"JWT algorithm:{settings.JWT_ALGORITHM}")
+            logger.debug(f"JWT key:{SETTINGS.JWT_SECRET[:10]}...")
+            logger.debug(f"JWT algorithm:{SETTINGS.JWT_ALGORITHM}")
 
-            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+            payload = jwt.decode(token, SETTINGS.JWT_SECRET, algorithms=[SETTINGS.JWT_ALGORITHM])
             logger.debug(f"Token decoded successfully.")
             logger.debug(f"📋 Payload: {payload}")
 

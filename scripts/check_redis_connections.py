@@ -14,7 +14,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 import redis.asyncio as redis
 
 
@@ -27,7 +27,7 @@ async def check_redis_connections():
 
     # 创建 Redis 客户端
     r = redis.from_url(
-        settings.REDIS_URL,
+        SETTINGS.REDIS_URL,
         decode_responses=True
     )
 
@@ -104,8 +104,8 @@ async def check_redis_connections():
         # 5. 检查连接池配置
         print("5️⃣ 应用配置:")
         print("-" * 80)
-        print(f"   REDIS_MAX_CONNECTIONS: {settings.REDIS_MAX_CONNECTIONS}")
-        print(f"   REDIS_RETRY_ON_TIMEOUT: {settings.REDIS_RETRY_ON_TIMEOUT}")
+        print(f"   REDIS_MAX_CONNECTIONS: {SETTINGS.REDIS_MAX_CONNECTIONS}")
+        print(f"   REDIS_RETRY_ON_TIMEOUT: {SETTINGS.REDIS_RETRY_ON_TIMEOUT}")
         print()
 
         # 6. 警告和建议
@@ -164,7 +164,7 @@ async def kill_idle_pubsub_connections(idle_threshold: int = 300):
     print()
 
     r = redis.from_url(
-        settings.REDIS_URL,
+        SETTINGS.REDIS_URL,
         decode_responses=True
     )
 

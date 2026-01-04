@@ -22,9 +22,9 @@ async def update_historical_data_indexes():
     """更新历史数据集合索引"""
     try:
         # 连接MongoDB（使用配置）
-        from app.core.config import settings
-        client = AsyncIOMotorClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        from app.core.config import SETTINGS
+        client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+        db = client[SETTINGS.MONGO_DB]
         
         logger.info("🚀 开始更新历史数据集合索引...")
         

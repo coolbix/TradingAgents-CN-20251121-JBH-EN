@@ -10,13 +10,13 @@ sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
 import asyncio
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 async def check_report_fields():
     """检查报告字段"""
     # 使用配置中的 MongoDB URI
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     # 获取最新的一条报告
     doc = await db.analysis_reports.find_one(

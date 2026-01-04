@@ -22,9 +22,9 @@ async def create_historical_data_collection():
     """创建股票历史数据集合和索引"""
     try:
         # 连接MongoDB（使用配置）
-        from app.core.config import settings
-        client = AsyncIOMotorClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        from app.core.config import SETTINGS
+        client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+        db = client[SETTINGS.MONGO_DB]
         
         logger.info("🚀 开始创建股票历史数据集合...")
         

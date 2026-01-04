@@ -284,18 +284,18 @@ class Settings(BaseSettings):
     # Ignore any extra environment variables present in .env or process env
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-settings = Settings()
+SETTINGS = Settings()
 
 #Automatically set proxy configuration to environment variable
 #This way, requests libraries can read directly to os.environ ['NO PROXY']
-if settings.HTTP_PROXY:
-    os.environ['HTTP_PROXY'] = settings.HTTP_PROXY
-if settings.HTTPS_PROXY:
-    os.environ['HTTPS_PROXY'] = settings.HTTPS_PROXY
-if settings.NO_PROXY:
-    os.environ['NO_PROXY'] = settings.NO_PROXY
+if SETTINGS.HTTP_PROXY:
+    os.environ['HTTP_PROXY'] = SETTINGS.HTTP_PROXY
+if SETTINGS.HTTPS_PROXY:
+    os.environ['HTTPS_PROXY'] = SETTINGS.HTTPS_PROXY
+if SETTINGS.NO_PROXY:
+    os.environ['NO_PROXY'] = SETTINGS.NO_PROXY
 
 
 def get_settings() -> Settings:
     """Get Profile Examples"""
-    return settings
+    return SETTINGS

@@ -106,11 +106,11 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
     try:
         #Direct query using Sync MongoDB client
         from pymongo import MongoClient
-        from app.core.config import settings
+        from app.core.config import SETTINGS
         import os
 
-        client = MongoClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        client = MongoClient(SETTINGS.MONGO_URI)
+        db = client[SETTINGS.MONGO_DB]
 
         #Query the latest active configuration
         configs_collection = db.system_configs
@@ -175,8 +175,8 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
 
         #Try fetching data base url and API Key from the vendor configuration
         try:
-            client = MongoClient(settings.MONGO_URI)
-            db = client[settings.MONGO_DB]
+            client = MongoClient(SETTINGS.MONGO_URI)
+            db = client[SETTINGS.MONGO_DB]
             providers_collection = db.llm_providers
             provider_doc = providers_collection.find_one({"name": provider})
 
@@ -223,10 +223,10 @@ def get_provider_and_url_by_model_sync(model_name: str) -> dict:
         #Try fetching data base url and API Key from the vendor configuration
         try:
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
 
-            client = MongoClient(settings.MONGO_URI)
-            db = client[settings.MONGO_DB]
+            client = MongoClient(SETTINGS.MONGO_URI)
+            db = client[SETTINGS.MONGO_DB]
             providers_collection = db.llm_providers
             provider_doc = providers_collection.find_one({"name": provider})
 
@@ -522,10 +522,10 @@ def create_analysis_config(
             logger.warning(f"Unknown manufacturer{llm_provider}, try to get configuration from the database")
             try:
                 from pymongo import MongoClient
-                from app.core.config import settings
+                from app.core.config import SETTINGS
 
-                client = MongoClient(settings.MONGO_URI)
-                db = client[settings.MONGO_DB]
+                client = MongoClient(SETTINGS.MONGO_URI)
+                db = client[SETTINGS.MONGO_DB]
                 providers_collection = db.llm_providers
                 provider_doc = providers_collection.find_one({"name": llm_provider})
 
@@ -1127,11 +1127,11 @@ class SimpleAnalysisService:
 
                     #Update MongoDB (use synchronisation of client, avoiding incident cycle conflicts)
                     from pymongo import MongoClient
-                    from app.core.config import settings
+                    from app.core.config import SETTINGS
                     from datetime import datetime
 
-                    sync_client = MongoClient(settings.MONGO_URI)
-                    sync_db = sync_client[settings.MONGO_DB]
+                    sync_client = MongoClient(SETTINGS.MONGO_URI)
+                    sync_db = sync_client[SETTINGS.MONGO_DB]
 
                     sync_db.analysis_tasks.update_one(
                         {"task_id": task_id},
@@ -1433,11 +1433,11 @@ class SimpleAnalysisService:
                                 except RuntimeError:
                                     #No running cycle, update MongoDB using sync
                                     from pymongo import MongoClient
-                                    from app.core.config import settings
+                                    from app.core.config import SETTINGS
 
                                     #Create a simultaneous MongoDB client
-                                    sync_client = MongoClient(settings.MONGO_URI)
-                                    sync_db = sync_client[settings.MONGO_DB]
+                                    sync_client = MongoClient(SETTINGS.MONGO_URI)
+                                    sync_db = sync_client[SETTINGS.MONGO_DB]
 
                                     #Synchronize MongoDB
                                     sync_db.analysis_tasks.update_one(

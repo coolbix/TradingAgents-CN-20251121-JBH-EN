@@ -36,12 +36,12 @@ def test_parse_mongodb_financial_data(code: str):
     logger.info("=" * 80)
     
     from pymongo import MongoClient
-    from app.core.config import settings
+    from app.core.config import SETTINGS
     from tradingagents.dataflows.optimized_china_data import OptimizedChinaDataProvider
     
     # 连接数据库
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     code6 = str(code).zfill(6)
     
@@ -99,14 +99,14 @@ def test_realtime_metrics(code: str):
     
     from tradingagents.dataflows.realtime_metrics import get_pe_pb_with_fallback
     from pymongo import MongoClient
-    from app.core.config import settings
+    from app.core.config import SETTINGS
     
     code6 = str(code).zfill(6)
     
     # 测试 1: 使用同步客户端
     logger.info(f"\n🔧 测试 1: 使用同步客户端")
     try:
-        sync_client = MongoClient(settings.MONGO_URI)
+        sync_client = MongoClient(SETTINGS.MONGO_URI)
         metrics = get_pe_pb_with_fallback(code6, sync_client)
         
         if metrics:
@@ -127,7 +127,7 @@ def test_realtime_metrics(code: str):
     logger.info(f"\n🔧 测试 2: 使用异步客户端")
     try:
         from motor.motor_asyncio import AsyncIOMotorClient
-        async_client = AsyncIOMotorClient(settings.MONGO_URI)
+        async_client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
         
         metrics = get_pe_pb_with_fallback(code6, async_client)
         

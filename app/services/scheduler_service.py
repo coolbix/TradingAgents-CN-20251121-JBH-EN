@@ -1055,11 +1055,11 @@ async def update_job_progress(
     """
     try:
         from pymongo import MongoClient
-        from app.core.config import settings
+        from app.core.config import SETTINGS
 
         #Use sync client to avoid recurring conflict of events
-        sync_client = MongoClient(settings.MONGO_URI)
-        sync_db = sync_client[settings.MONGO_DB]
+        sync_client = MongoClient(SETTINGS.MONGO_URI)
+        sync_db = sync_client[SETTINGS.MONGO_DB]
 
         #Find Recent Implementation Records
         latest_execution = sync_db.scheduler_executions.find_one(

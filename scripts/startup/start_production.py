@@ -13,22 +13,22 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def main():
     """生产环境启动函数"""
     print("🚀 Starting TradingAgents-CN Backend (Production Mode)")
-    print(f"📍 Host: {settings.HOST}")
-    print(f"🔌 Port: {settings.PORT}")
+    print(f"📍 Host: {SETTINGS.HOST}")
+    print(f"🔌 Port: {SETTINGS.PORT}")
     print("🔒 Production Mode: Enabled")
     print("-" * 50)
     
     try:
         uvicorn.run(
             "app.main:app",
-            host=settings.HOST,
-            port=settings.PORT,
+            host=SETTINGS.HOST,
+            port=SETTINGS.PORT,
             reload=False,
             log_level="warning",
             access_log=False,

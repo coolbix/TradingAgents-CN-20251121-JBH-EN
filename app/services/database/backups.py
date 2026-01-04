@@ -16,7 +16,7 @@ import logging
 from bson import ObjectId
 
 from app.core.database import get_mongo_db
-from app.core.config import settings
+from app.core.config import SETTINGS
 from .serialization import serialize_document
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
     #Build Mongodump command
     cmd = [
         "mongodump",
-        "--uri", settings.MONGO_URI,
+        "--uri", SETTINGS.MONGO_URI,
         "--out", backup_path,
         "--gzip"  #Enable compression
     ]

@@ -21,7 +21,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.core.logging_config import logger
 
 
@@ -254,13 +254,13 @@ async def test_query_performance(collection):
 async def main():
     """主函数"""
     logger.info("🚀 开始 MongoDB 索引优化...")
-    logger.info(f"📍 数据库: {settings.MONGO_DB}")
+    logger.info(f"📍 数据库: {SETTINGS.MONGO_DB}")
     logger.info(f"📍 集合: stock_daily_quotes")
     
     try:
         # 连接 MongoDB
-        client = AsyncIOMotorClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB]
+        client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+        db = client[SETTINGS.MONGO_DB]
         collection = db.stock_daily_quotes
         
         # 1. 分析现有索引

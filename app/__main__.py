@@ -97,7 +97,7 @@ def check_env_file():
     logger.info("-" * 50)
 
 try:
-    from app.core.config import settings
+    from app.core.config import SETTINGS
     from app.core.dev_config import DEV_CONFIG
 except Exception as e:
     import traceback
@@ -115,27 +115,27 @@ def main():
     logger = logging.getLogger("app.startup")
     
     logger.info("🚀 Starting TradingAgents-CN Backend...")
-    logger.info(f"📍 Host: {settings.HOST}")
-    logger.info(f"🔌 Port: {settings.PORT}")
-    logger.info(f"🐛 Debug Mode: {settings.DEBUG}")
-    logger.info(f"📚 API Docs: http://{settings.HOST}:{settings.PORT}/docs" if settings.DEBUG else "📚 API Docs: Disabled in production")
+    logger.info(f"📍 Host: {SETTINGS.HOST}")
+    logger.info(f"🔌 Port: {SETTINGS.PORT}")
+    logger.info(f"🐛 Debug Mode: {SETTINGS.DEBUG}")
+    logger.info(f"📚 API Docs: http://{SETTINGS.HOST}:{SETTINGS.PORT}/docs" if SETTINGS.DEBUG else "📚 API Docs: Disabled in production")
     
     #Print key configuration information
     logger.info("Key configuration information:")
-    logger.info(f"  📊 MongoDB: {settings.MONGODB_HOST}:{settings.MONGODB_PORT}/{settings.MONGODB_DATABASE}")
-    logger.info(f"  🔴 Redis: {settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}")
-    logger.info(f"  🔐 JWT Secret: {'Configured' if settings.JWT_SECRET != 'change-me-in-production' else 'Use default value'}")
-    logger.info(f"Log level:{settings.LOG_LEVEL}")
+    logger.info(f"  📊 MongoDB: {SETTINGS.MONGODB_HOST}:{SETTINGS.MONGODB_PORT}/{SETTINGS.MONGODB_DATABASE}")
+    logger.info(f"  🔴 Redis: {SETTINGS.REDIS_HOST}:{SETTINGS.REDIS_PORT}/{SETTINGS.REDIS_DB}")
+    logger.info(f"  🔐 JWT Secret: {'Configured' if SETTINGS.JWT_SECRET != 'change-me-in-production' else 'Use default value'}")
+    logger.info(f"Log level:{SETTINGS.LOG_LEVEL}")
     
     #Check the loading status of environmental variables
     logger.info("State of loading of environmental variables:")
     env_vars_to_check = [
-        ('MONGODB_HOST', settings.MONGODB_HOST, 'localhost'),
-        ('MONGODB_PORT', str(settings.MONGODB_PORT), '27017'),
-        ('MONGODB_DATABASE', settings.MONGODB_DATABASE, 'tradingagents'),
-        ('REDIS_HOST', settings.REDIS_HOST, 'localhost'),
-        ('REDIS_PORT', str(settings.REDIS_PORT), '6379'),
-        ('JWT_SECRET', '***' if settings.JWT_SECRET != 'change-me-in-production' else settings.JWT_SECRET, 'change-me-in-production')
+        ('MONGODB_HOST', SETTINGS.MONGODB_HOST, 'localhost'),
+        ('MONGODB_PORT', str(SETTINGS.MONGODB_PORT), '27017'),
+        ('MONGODB_DATABASE', SETTINGS.MONGODB_DATABASE, 'tradingagents'),
+        ('REDIS_HOST', SETTINGS.REDIS_HOST, 'localhost'),
+        ('REDIS_PORT', str(SETTINGS.REDIS_PORT), '6379'),
+        ('JWT_SECRET', '***' if SETTINGS.JWT_SECRET != 'change-me-in-production' else SETTINGS.JWT_SECRET, 'change-me-in-production')
     ]
     
     for env_name, current_value, default_value in env_vars_to_check:
@@ -145,16 +145,16 @@ def main():
     logger.info("-" * 50)
 
     #Can not open message
-    uvicorn_config = DEV_CONFIG.get_uvicorn_config(settings.DEBUG)
+    uvicorn_config = DEV_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
 
     #Set a simplified log configuration
     logger.info("Setting up log configuration...")
     try:
         from app.core.logging_config import setup_logging as app_setup_logging
-        app_setup_logging(settings.LOG_LEVEL)
+        app_setup_logging(SETTINGS.LOG_LEVEL)
     except Exception:
         #Back to development environment simplified log configuration
-        DEV_CONFIG.setup_logging(settings.DEBUG)
+        DEV_CONFIG.setup_logging(SETTINGS.DEBUG)
     logger.info("Log configuration complete")
 
     #Check .env files after initialization of log system
@@ -164,8 +164,8 @@ def main():
     try:
         uvicorn.run(
             "app.main:app",
-            host=settings.HOST,
-            port=settings.PORT,
+            host=SETTINGS.HOST,
+            port=SETTINGS.PORT,
             **uvicorn_config
         )
     except KeyboardInterrupt:

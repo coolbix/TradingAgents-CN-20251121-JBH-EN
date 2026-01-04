@@ -16,7 +16,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from pymongo import MongoClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 import json
 from datetime import datetime
 
@@ -28,8 +28,8 @@ def check_and_cleanup():
     print("🔍 MongoDB 集合清理脚本")
     print("=" * 80)
     
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     # 列出所有集合
     print(f"\n📋 数据库中的集合：")

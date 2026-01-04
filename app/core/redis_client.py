@@ -4,7 +4,7 @@
 import redis.asyncio as redis
 import logging
 from typing import Optional
-from .config import settings
+from .config import SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +20,9 @@ async def init_redis():
     try:
         #Create Connection Pool
         redis_pool = redis.ConnectionPool.from_url(
-            settings.REDIS_URL,
-            max_connections=settings.REDIS_MAX_CONNECTIONS,  #Use the value in the configuration file
-            retry_on_timeout=settings.REDIS_RETRY_ON_TIMEOUT,
+            SETTINGS.REDIS_URL,
+            max_connections=SETTINGS.REDIS_MAX_CONNECTIONS,  #Use the value in the configuration file
+            retry_on_timeout=SETTINGS.REDIS_RETRY_ON_TIMEOUT,
             decode_responses=True,
             socket_keepalive=True,  #Enable TCP keepalive
             socket_keepalive_options={
@@ -38,7 +38,7 @@ async def init_redis():
 
         #Test Connection
         await redis_client.ping()
-        logger.info(f"Redis connection successfully created (max conventions=){settings.REDIS_MAX_CONNECTIONS})")
+        logger.info(f"Redis connection successfully created (max conventions=){SETTINGS.REDIS_MAX_CONNECTIONS})")
 
     except Exception as e:
         logger.error(f"Redis connection failed:{e}")

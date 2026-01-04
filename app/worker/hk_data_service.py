@@ -27,7 +27,7 @@ sys.path.insert(0, str(project_root))
 from tradingagents.dataflows.providers.hk.hk_stock import HKStockProvider
 from tradingagents.dataflows.providers.hk.improved_hk import ImprovedHKStockProvider
 from app.core.database import get_mongo_db
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class HKDataService:
 
     def __init__(self):
         self.db = get_mongo_db()
-        self.settings = settings
+        self.settings = SETTINGS
 
         #Data Provider Map
         self.providers = {
@@ -46,8 +46,8 @@ class HKDataService:
         }
         
         #Cache Configuration
-        self.cache_hours = getattr(settings, 'HK_DATA_CACHE_HOURS', 24)
-        self.default_source = getattr(settings, 'HK_DEFAULT_DATA_SOURCE', 'yfinance')
+        self.cache_hours = getattr(SETTINGS, 'HK_DATA_CACHE_HOURS', 24)
+        self.default_source = getattr(SETTINGS, 'HK_DEFAULT_DATA_SOURCE', 'yfinance')
 
     async def initialize(self):
         """Initializing data services"""

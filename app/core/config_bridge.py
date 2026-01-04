@@ -57,12 +57,12 @@ def bridge_config_to_env():
         try:
             #Read the manufacturer configuration using the sync MongoDB client
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
             from app.models.config import LLMProvider
 
             #Create a simultaneous MongoDB client
-            client = MongoClient(settings.MONGO_URI)
-            db = client[settings.MONGO_DB]
+            client = MongoClient(SETTINGS.MONGO_URI)
+            db = client[SETTINGS.MONGO_DB]
             providers_collection = db.llm_providers
 
             #Query All Plant Configurations
@@ -145,12 +145,12 @@ def bridge_config_to_env():
         try:
             #Use sync MongoDB client reading system configuration
             from pymongo import MongoClient
-            from app.core.config import settings
+            from app.core.config import SETTINGS
             from app.models.config import SystemConfig
 
             #Create a simultaneous MongoDB client
-            client = MongoClient(settings.MONGO_URI)
-            db = client[settings.MONGO_DB]
+            client = MongoClient(SETTINGS.MONGO_URI)
+            db = client[SETTINGS.MONGO_DB]
             config_collection = db.system_configs
 
             #Query the latest system configuration
@@ -358,17 +358,17 @@ def _bridge_system_settings() -> int:
     try:
         #Use synchronized MongoDB client
         from pymongo import MongoClient
-        from app.core.config import settings
+        from app.core.config import SETTINGS
 
         #Create Sync client
         client = MongoClient(
-            settings.MONGO_URI,
+            SETTINGS.MONGO_URI,
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000
         )
 
         try:
-            db = client[settings.MONGO_DB]
+            db = client[SETTINGS.MONGO_DB]
             #Read activated configuration from system configs
             config_doc = db.system_configs.find_one({"is_active": True})
 

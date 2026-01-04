@@ -10,7 +10,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from pymongo import MongoClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 def test_direct():
@@ -21,11 +21,11 @@ def test_direct():
     print("=" * 80)
     
     print(f"\n📊 连接信息：")
-    print(f"  MONGO_URI: {settings.MONGO_URI}")
-    print(f"  MONGO_DB: {settings.MONGO_DB}")
+    print(f"  MONGO_URI: {SETTINGS.MONGO_URI}")
+    print(f"  MONGO_DB: {SETTINGS.MONGO_DB}")
     
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     collection = db.system_configs
     
     print(f"\n🔍 查询 system_configs 集合（所有文档）...")

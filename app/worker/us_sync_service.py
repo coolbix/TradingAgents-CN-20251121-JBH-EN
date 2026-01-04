@@ -27,7 +27,7 @@ sys.path.insert(0, str(project_root))
 
 from tradingagents.dataflows.providers.us.yfinance import YFinanceUtils
 from app.core.database import get_mongo_db
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class USSyncService:
 
     def __init__(self):
         self.db = get_mongo_db()
-        self.settings = settings
+        self.settings = SETTINGS
 
         #Data provider
         self.yfinance_provider = YFinanceUtils()

@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from pymongo import MongoClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 def main():
     print("=" * 80)
@@ -14,8 +14,8 @@ def main():
     print("=" * 80)
     
     # 连接数据库
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     # 1. 检查厂家配置
     print("\n📊 1. 检查厂家配置（llm_providers）")

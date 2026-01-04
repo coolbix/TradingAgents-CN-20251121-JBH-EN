@@ -20,7 +20,7 @@ from app.services.queue_service import get_queue_service
 from app.services.analysis_service import get_analysis_service
 from app.core.database import init_database, close_database
 from app.core.redis_client import init_redis, close_redis
-from app.core.config import settings
+from app.core.config import SETTINGS
 from app.models.analysis import AnalysisTask, AnalysisParameters
 from app.services.config_provider import provider as config_provider
 from app.services.queue import DEFAULT_USER_CONCURRENT_LIMIT, GLOBAL_CONCURRENT_LIMIT, VISIBILITY_TIMEOUT_SECONDS
@@ -38,10 +38,10 @@ class AnalysisWorker:
         self.current_task = None
 
         #Configure Parameters (can be covered by system settings)
-        self.heartbeat_interval = int(getattr(settings, 'WORKER_HEARTBEAT_INTERVAL', 30))
-        self.max_retries = int(getattr(settings, 'QUEUE_MAX_RETRIES', 3))
-        self.poll_interval = float(getattr(settings, 'QUEUE_POLL_INTERVAL_SECONDS', 1))  #Queue Query interval (seconds)
-        self.cleanup_interval = float(getattr(settings, 'QUEUE_CLEANUP_INTERVAL_SECONDS', 60))
+        self.heartbeat_interval = int(getattr(SETTINGS, 'WORKER_HEARTBEAT_INTERVAL', 30))
+        self.max_retries = int(getattr(SETTINGS, 'QUEUE_MAX_RETRIES', 3))
+        self.poll_interval = float(getattr(SETTINGS, 'QUEUE_POLL_INTERVAL_SECONDS', 1))  #Queue Query interval (seconds)
+        self.cleanup_interval = float(getattr(SETTINGS, 'QUEUE_CLEANUP_INTERVAL_SECONDS', 60))
 
         #Registered signal processor
         signal.signal(signal.SIGINT, self._signal_handler)

@@ -9,15 +9,15 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 
 async def check_stock_daily_data(symbol: str = "000001"):
     """检查指定股票的 daily 数据"""
     
     # 连接 MongoDB
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = AsyncIOMotorClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     collection = db.stock_daily_quotes
     
     code6 = symbol.zfill(6)

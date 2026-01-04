@@ -15,7 +15,7 @@ import redis.asyncio as redis
 from pymongo.errors import ServerSelectionTimeoutError
 
 from app.core.database import get_mongo_db, get_redis_client, DB_MANAGER
-from app.core.config import settings
+from app.core.config import SETTINGS
 
 from app.services.database import status_checks as _db_status
 from app.services.database import cleanup as _db_cleanup
@@ -29,8 +29,8 @@ class DatabaseService:
     """Database management services"""
 
     def __init__(self):
-        self.backup_dir = os.path.join(settings.TRADINGAGENTS_DATA_DIR, "backups")
-        self.export_dir = os.path.join(settings.TRADINGAGENTS_DATA_DIR, "exports")
+        self.backup_dir = os.path.join(SETTINGS.TRADINGAGENTS_DATA_DIR, "backups")
+        self.export_dir = os.path.join(SETTINGS.TRADINGAGENTS_DATA_DIR, "exports")
 
         #Ensure directory exists
         os.makedirs(self.backup_dir, exist_ok=True)

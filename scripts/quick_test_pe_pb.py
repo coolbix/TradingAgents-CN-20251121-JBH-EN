@@ -31,12 +31,12 @@ def test_pe_pb_from_basic_info(code: str):
     logger.info("=" * 80)
     
     from pymongo import MongoClient
-    from app.core.config import settings
+    from app.core.config import SETTINGS
     from tradingagents.dataflows.optimized_china_data import OptimizedChinaDataProvider
     
     # 连接数据库
-    client = MongoClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB]
+    client = MongoClient(SETTINGS.MONGO_URI)
+    db = client[SETTINGS.MONGO_DB]
     
     code6 = str(code).zfill(6)
     
