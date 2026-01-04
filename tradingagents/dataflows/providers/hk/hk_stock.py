@@ -47,14 +47,14 @@ class HKStockProvider:
     def get_stock_data(self, symbol: str, start_date: str = None, end_date: str = None) -> Optional[pd.DataFrame]:
         """Access to historical data on port units
 
-Args:
-Symbol: Port Unit Code (e.g. 0700.HK)
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
+        Args:
+            Symbol: Port Unit Code (e.g. 0700.HK)
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
 
-Returns:
-DataFrame: Stock history data
-"""
+        Returns:
+            DataFrame: Stock history data
+        """
         try:
             #Standardized port unit code
             symbol = self._normalize_hk_symbol(symbol)
@@ -116,12 +116,12 @@ DataFrame: Stock history data
     def get_stock_info(self, symbol: str) -> Dict[str, Any]:
         """Access to basic information on port units
 
-Args:
-Symbol: Port Unit Code
+        Args:
+            Symbol: Port Unit Code
 
-Returns:
-Dict: Stock Basic Information
-"""
+        Returns:
+            Dict: Stock Basic Information
+        """
         try:
             symbol = self._normalize_hk_symbol(symbol)
 
@@ -166,12 +166,12 @@ Dict: Stock Basic Information
     def get_real_time_price(self, symbol: str) -> Optional[Dict]:
         """Real-time prices for the acquisition of port shares
 
-Args:
-Symbol: Port Unit Code
+        Args:
+            Symbol: Port Unit Code
 
-Returns:
-Dict: Real-time price information
-"""
+        Returns:
+            Dict: Real-time price information
+        """
         try:
             symbol = self._normalize_hk_symbol(symbol)
 
@@ -204,15 +204,15 @@ Dict: Real-time price information
     def _normalize_hk_symbol(self, symbol: str) -> str:
         """Standardized port unit code format
 
-Yahoo Finance Expected Format: 0700.HK (4-digit)
-Enter a possible format: 007000, 700, 07000.HK, 007000.HK
+        Yahoo Finance Expected Format: 0700.HK (4-digit)
+        Enter a possible format: 007000, 700, 07000.HK, 007000.HK
 
-Args:
-Symbol: Original Port Unit Code
+        Args:
+            Symbol: Original Port Unit Code
 
-Returns:
-str: Standardized Port Unit Code (format: 0700.HK)
-"""
+        Returns:
+            str: Standardized Port Unit Code (format: 0700.HK)
+        """
         if not symbol:
             return symbol
 
@@ -234,15 +234,15 @@ str: Standardized Port Unit Code (format: 0700.HK)
     def format_stock_data(self, symbol: str, data: pd.DataFrame, start_date: str, end_date: str) -> str:
         """Formatting Port Unit data into text format (including technical indicators)
 
-Args:
-symbol: stock code
-Data: Stock data DataFrame
-Start date: Start date
-End date: End date
+        Args:
+            symbol: stock code
+            Data: Stock data DataFrame
+            Start date: Start date
+            End date: End date
 
-Returns:
-str: Formatted stock data text (including technical indicators)
-"""
+        Returns:
+            str: Formatted stock data text (including technical indicators)
+        """
         if data is None or data.empty:
             return f"❌ 无法获取港股 {symbol} 的数据"
 
@@ -483,14 +483,14 @@ def get_hk_stock_provider() -> HKStockProvider:
 def get_hk_stock_data(symbol: str, start_date: str = None, end_date: str = None) -> str:
     """Easy function to access port stock data
 
-Args:
-Symbol: Port Unit Code
-Start date: Start date
-End date: End date
+    Args:
+        Symbol: Port Unit Code
+        Start date: Start date
+        End date: End date
 
-Returns:
-str: Formatted Port Unit data
-"""
+    Returns:
+        str: Formatted Port Unit data
+    """
     provider = get_hk_stock_provider()
     data = provider.get_stock_data(symbol, start_date, end_date)
     return provider.format_stock_data(symbol, data, start_date, end_date)
@@ -499,11 +499,11 @@ str: Formatted Port Unit data
 def get_hk_stock_info(symbol: str) -> Dict:
     """A convenient function to access information on port shares
 
-Args:
-Symbol: Port Unit Code
+    Args:
+        Symbol: Port Unit Code
 
-Returns:
-Dict: Port Unit Information
-"""
+    Returns:
+        Dict: Port Unit Information
+    """
     provider = get_hk_stock_provider()
     return provider.get_stock_info(symbol)

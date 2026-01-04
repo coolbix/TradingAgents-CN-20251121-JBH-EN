@@ -8,7 +8,7 @@
 - symbol 字段应该等于 code 字段
 
 使用方法：
-    python scripts/migrations/add_symbol_field_to_stock_basic_info.py
+python scripts/migrations/add_symbol_field_to_stock_basic_info.py
 """
 
 import asyncio

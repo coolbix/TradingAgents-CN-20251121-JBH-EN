@@ -25,14 +25,14 @@ def _require_cols(df: pd.DataFrame, cols: Iterable[str]):
 def ma(close: pd.Series, n: int, min_periods: int = None) -> pd.Series:
     """Calculate moving average line (Moving Age)
 
-Args:
-close: close price sequence
-n: Cycle
-Min periods: Minimal number of cycles, default 1 (allowing calculation of previous period data when insufficient)
+    Args:
+        close: close price sequence
+        n: Cycle
+        Min periods: Minimal number of cycles, default 1 (allowing calculation of previous period data when insufficient)
 
-Returns:
-Move the average line sequence
-"""
+    Returns:
+        Move the average line sequence
+    """
     if min_periods is None:
         min_periods = 1  #Default is 1, consistent with existing code
     return close.rolling(window=int(n), min_periods=min_periods).mean()
@@ -41,31 +41,31 @@ Move the average line sequence
 def ema(close: pd.Series, n: int) -> pd.Series:
     """Compute index moving average line (Exponential Moving Age)
 
-Args:
-close: close price sequence
-n: Cycle
+    Args:
+        close: close price sequence
+        n: Cycle
 
-Returns:
-Index moving average line sequence
-"""
+    Returns:
+        Index moving average line sequence
+    """
     return close.ewm(span=int(n), adjust=False).mean()
 
 
 def macd(close: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9) -> pd.DataFrame:
     """Calculating MACD Indicators
 
-Args:
-close: close price sequence
-Fast-line cycle, default 12
-slow: slow-line cycle, default 26
-Signal: signal line cycle, default 9
+    Args:
+        close: close price sequence
+        Fast-line cycle, default 12
+        slow: slow-line cycle, default 26
+        Signal: signal line cycle, default 9
 
-Returns:
-DataFrame with dif, dea, macd hist
--dif: Difference between fast and slow lines (DIF)
-- dea: DIF signal lines (DEA)
-- Macd hist: MACD column map (DIF-DEA)
-"""
+    Returns:
+        DataFrame with dif, dea, macd hist
+        -dif: Difference between fast and slow lines (DIF)
+        - dea: DIF signal lines (DEA)
+        - Macd hist: MACD column map (DIF-DEA)
+    """
     dif = ema(close, fast) - ema(close, slow)
     dea = dif.ewm(span=int(signal), adjust=False).mean()
     hist = dif - dea
@@ -75,22 +75,22 @@ DataFrame with dif, dea, macd hist
 def rsi(close: pd.Series, n: int = 14, method: str = 'ema') -> pd.Series:
     """Calculating RSI Indicators
 
-Args:
-close: close price sequence
-n: Cycle, default 14
-method: Calculator
-- 'ema': index movement average (international standard, Wilder's method)
-Simple moving average
-- 'china': Chinese SMA.
+    Args:
+        close: close price sequence
+        n: Cycle, default 14
+        method: Calculator
+        - 'ema': index movement average (international standard, Wilder's method)
+        Simple moving average
+        - 'china': Chinese SMA.
 
-Returns:
-RSI sequence (0-100)
+    Returns:
+        RSI sequence (0-100)
 
-Note:
-- 'ema': use ewm (alpha=1/n, adjust=False) for international markets
-- 'sma': simple moving average using rolling (window=n).
-- 'china': using ewm(com=n-1, adjust=True) in line with Hansu/Tunta
-"""
+    Note:
+    - 'ema': use ewm (alpha=1/n, adjust=False) for international markets
+    - 'sma': simple moving average using rolling (window=n).
+    - 'china': using ewm(com=n-1, adjust=True) in line with Hansu/Tunta
+    """
     delta = close.diff()
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
@@ -120,18 +120,18 @@ Note:
 def boll(close: pd.Series, n: int = 20, k: float = 2.0, min_periods: int = None) -> pd.DataFrame:
     """Calculating the Bollinger Bands
 
-Args:
-close: close price sequence
-n: Cycle, default 20
-k: Standard difference, default 2.0
-Min periods: Minimal number of cycles, default 1 (allowing calculation of previous period data when insufficient)
+    Args:
+        close: close price sequence
+        n: Cycle, default 20
+        k: Standard difference, default 2.0
+        Min periods: Minimal number of cycles, default 1 (allowing calculation of previous period data when insufficient)
 
-Returns:
-DataFrame with boll mid, boll upper, boll lower
-- boll mid: medium track (n-day moving average)
-- boll upper: on-orbit (middle track + k times standard deviation)
--Boll lower: De-orbit (medium track - k times standard deviation)
-"""
+    Returns:
+        DataFrame with boll mid, boll upper, boll lower
+        - boll mid: medium track (n-day moving average)
+        - boll upper: on-orbit (middle track + k times standard deviation)
+        -Boll lower: De-orbit (medium track - k times standard deviation)
+    """
     if min_periods is None:
         min_periods = 1  #Default is 1, consistent with existing code
     mid = close.rolling(window=int(n), min_periods=min_periods).mean()
@@ -276,37 +276,37 @@ def add_all_indicators(df: pd.DataFrame, close_col: str = 'close',
                        rsi_style: str = 'international') -> pd.DataFrame:
     """Add all commonly used technical indicators to DataFrame
 
-This is a unified technical indicator calculation function that replaces duplicated computing codes in each data source module.
+    This is a unified technical indicator calculation function that replaces duplicated computing codes in each data source module.
 
-Args:
-df: DataFrame with price data
-close col: close price listing, default 'close'
-High col: Best price listing, default 'high ' (reserved, not used)
-Low col: Minimum price listing, default 'low' (set aside, not used)
-rsi style: RSI computing style
-- 'international': international standards (RSI14, use EMA)
-- 'china': Chinese style (RSI 6/12/24 + RSI14, using Chinese-style SMA)
+    Args:
+        df: DataFrame with price data
+        close col: close price listing, default 'close'
+        High col: Best price listing, default 'high ' (reserved, not used)
+        Low col: Minimum price listing, default 'low' (set aside, not used)
+        rsi style: RSI computing style
+        - 'international': international standards (RSI14, use EMA)
+        - 'china': Chinese style (RSI 6/12/24 + RSI14, using Chinese-style SMA)
 
-Returns:
-DataFrame (modified in situ) of the technical indicator column added
+    Returns:
+        DataFrame (modified in situ) of the technical indicator column added
 
-Add indicator columns:
-- Ma5, ma10, ma20, ma60: Move the average line
-- RSI indicator (14 days, international standards)
-- rsi6, rsi12, rsi24: RSI indicator (Chinese style only when rsi style='china')
--rsi14: RSI indicator (14 days, simple moving average, only when rsi style='china')
-- Macd dif, Macd dea, Macd: MACD indicators
-- boll mid, boll upper, boll lower:
+    Add indicator columns:
+    - Ma5, ma10, ma20, ma60: Move the average line
+    - RSI indicator (14 days, international standards)
+    - rsi6, rsi12, rsi24: RSI indicator (Chinese style only when rsi style='china')
+    -rsi14: RSI indicator (14 days, simple moving average, only when rsi style='china')
+    - Macd dif, Macd dea, Macd: MACD indicators
+    - boll mid, boll upper, boll lower:
 
-Example:
-> df = pd. DataFrame(  FMT 0 )
-> df = add all indicators(df)
->print(df[['close', 'ma5', 'rsi'].tail())
-I'm sorry.
-♪ Chinese style
-Df = all indicators
->print(df(['close', 'rsi6', 'rsi12', 'rsi24']]. tail()
-"""
+    Example:
+    > df = pd. DataFrame(  FMT 0 )
+    > df = add all indicators(df)
+    >print(df[['close', 'ma5', 'rsi'].tail())
+    I'm sorry.
+    ♪ Chinese style
+    Df = all indicators
+    >print(df(['close', 'rsi6', 'rsi12', 'rsi24']]. tail()
+    """
     #Check necessary columns
     if close_col not in df.columns:
         raise ValueError(f"DataFrame缺少收盘价列: {close_col}")

@@ -73,16 +73,16 @@ class IntegratedCacheManager:
                        end_date: str = None, data_source: str = "default") -> str:
         """Save stock data to cache
 
-Args:
-symbol: stock code
-Data: Stock data
-Start date: Start date
-End date: End date
-data source: data source
+        Args:
+            symbol: stock code
+            Data: Stock data
+            Start date: Start date
+            End date: End date
+            data source: data source
 
-Returns:
-Cache keys
-"""
+        Returns:
+            Cache keys
+        """
         if self.use_adaptive:
             #Use self-adapted cache system
             return self.adaptive_cache.save_data(
@@ -106,12 +106,12 @@ Cache keys
     def load_stock_data(self, cache_key: str) -> Optional[Any]:
         """Loading stock data from cache
 
-Args:
-Cache key: Cache keys
+        Args:
+            Cache key: Cache keys
 
-Returns:
-Equities or None
-"""
+        Returns:
+            Equities or None
+        """
         if self.use_adaptive:
             #Use self-adapted cache system
             return self.adaptive_cache.load_data(cache_key)
@@ -123,15 +123,15 @@ Equities or None
                               end_date: str = None, data_source: str = "default") -> Optional[str]:
         """Find cached stock data
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-data source: data source
+        Args:
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            data source: data source
 
-Returns:
-Cache keys or None
-"""
+        Returns:
+            Cache keys or None
+        """
         if self.use_adaptive:
             #Use self-adapted cache system
             return self.adaptive_cache.find_cached_data(
@@ -192,14 +192,14 @@ Cache keys or None
                                      max_age_hours: int = None) -> Optional[str]:
         """Find matching base cache data
 
-Args:
-symbol: stock code
-Data source: Data sources (e.g. "openai", "finnhub")
-max age hours: maximum cache time (hours), use smart configuration for None
+        Args:
+            symbol: stock code
+            Data source: Data sources (e.g. "openai", "finnhub")
+            max age hours: maximum cache time (hours), use smart configuration for None
 
-Returns:
-Cache key: return the cache key if a valid cache is found, otherwise return the None
-"""
+        Returns:
+            Cache key: return the cache key if a valid cache is found, otherwise return the None
+        """
         if self.use_adaptive:
             #Unsupported search function for custom cache, downgraded to file cache
             return self.legacy_cache.find_cached_fundamentals_data(symbol, data_source, max_age_hours)
@@ -210,14 +210,14 @@ Cache key: return the cache key if a valid cache is found, otherwise return the 
                                    max_age_hours: int = None) -> bool:
         """Check if the basic face cache is valid
 
-Args:
-symbol: stock code
-data source: data source
-max age hours: maximum cache time (hours)
+        Args:
+            symbol: stock code
+            data source: data source
+            max age hours: maximum cache time (hours)
 
-Returns:
-Bool: Cache validity
-"""
+        Returns:
+            Bool: Cache validity
+        """
         cache_key = self.find_cached_fundamentals_data(symbol, data_source, max_age_hours)
         return cache_key is not None
 
@@ -267,12 +267,12 @@ Bool: Cache validity
     def clear_old_cache(self, max_age_days: int = 7):
         """Clear outdated caches (compatible with old interfaces)
 
-Args:
-max age days: Clean up how many days ago's cache, 0 means clear all caches
+        Args:
+            max age days: Clean up how many days ago's cache, 0 means clear all caches
 
-Returns:
-Number of records cleared
-"""
+        Returns:
+            Number of records cleared
+        """
         cleared_count = 0
 
         #1. Clean-up of the Redis cache

@@ -123,9 +123,9 @@ class DatabaseService:
     async def create_backup(self, name: str, collections: List[str] = None, user_id: str = None) -> Dict[str, Any]:
         """Create database backup (auto-select best method)
 
-- If mongodump is available, use original backup (quick)
-- Otherwise use Python.
-"""
+        - If mongodump is available, use original backup (quick)
+        - Otherwise use Python.
+        """
         #Check if mongodump is available
         if _db_backups._check_mongodump_available():
             logger.info("✅ with original backup from mongodump (recommended)")

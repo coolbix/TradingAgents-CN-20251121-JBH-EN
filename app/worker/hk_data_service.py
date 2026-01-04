@@ -61,14 +61,14 @@ class HKDataService:
     ) -> Optional[Dict[str, Any]]:
         """Access to basic information (as required + cache)
 
-Args:
-Stock code: Stock code (e. g. "00700)
-source: data source (yfinance/akshare), None uses default data source
-Force refresh: whether to forcibly refresh (ignore cache)
+        Args:
+            Stock code: Stock code (e. g. "00700)
+            source: data source (yfinance/akshare), None uses default data source
+            Force refresh: whether to forcibly refresh (ignore cache)
 
-Returns:
-Stock Dictionary, failed to return None
-"""
+        Returns:
+            Stock Dictionary, failed to return None
+        """
         try:
             #Use default data sources
             if source is None:
@@ -146,13 +146,13 @@ Stock Dictionary, failed to return None
     def _normalize_stock_info(self, stock_info: Dict, source: str) -> Dict:
         """Standardized stock information format
 
-Args:
-stock info: raw stock information
-source:
+        Args:
+            stock info: raw stock information
+            source:
 
-Returns:
-Standardized equity information
-"""
+        Returns:
+            Standardized equity information
+        """
         normalized = {
             "name": stock_info.get("name", ""),
             "currency": stock_info.get("currency", "HKD"),

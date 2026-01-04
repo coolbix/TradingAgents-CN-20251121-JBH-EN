@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 class AKShareSyncService:
     """AKShare Data Sync Service
 
-Provide complete data synchronisation:
-- Synchronization of stock base information
-- Real-time line sync
-- Synchronization of historical data
-- Synchronizing financial data
-"""
+    Provide complete data synchronisation:
+    - Synchronization of stock base information
+    - Real-time line sync
+    - Synchronization of historical data
+    - Synchronizing financial data
+    """
     
     def __init__(self):
         self.provider = None
@@ -60,12 +60,12 @@ Provide complete data synchronisation:
     async def sync_stock_basic_info(self, force_update: bool = False) -> Dict[str, Any]:
         """Sync Equation Basic Information
 
-Args:
-Force update
+        Args:
+            Force update
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         logger.info("Start syncing stock base information...")
         
         stats = {
@@ -231,13 +231,13 @@ Sync Results Statistics
     async def sync_realtime_quotes(self, symbols: List[str] = None, force: bool = False) -> Dict[str, Any]:
         """Sync Real Time Line Data
 
-Args:
-symbols: specify a list of stock codes and synchronize all stocks as empty
-force: enforcement ( Skip transaction time check), default False
+        Args:
+            symbols: specify a list of stock codes and synchronize all stocks as empty
+            force: enforcement ( Skip transaction time check), default False
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         #If a list of shares is specified, logs
         if symbols:
             logger.info(f"🔄 Start synchronizing the real-time relationship of specified shares{len(symbols)}Only:{symbols}")
@@ -535,16 +535,16 @@ Sync Results Statistics
     ) -> Dict[str, Any]:
         """Sync Historical Data
 
-Args:
-Start date: Start date
-End date: End date
-symbols: Specify list of stock codes
-increment: Incremental sync
-period: data cycle (daily/weekly/montly)
+        Args:
+            Start date: Start date
+            End date: End date
+            symbols: Specify list of stock codes
+            increment: Incremental sync
+            period: data cycle (daily/weekly/montly)
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         period_name = {"daily": "日线", "weekly": "周线", "monthly": "月线"}.get(period, "日线")
         logger.info(f"Synchronize{period_name}Historical Data...")
 
@@ -693,12 +693,12 @@ Sync Results Statistics
     async def _get_last_sync_date(self, symbol: str = None) -> str:
         """Get Last Sync Date
 
-Args:
-symbol: stock code, due date to return the stock if provided + 1 day
+        Args:
+            symbol: stock code, due date to return the stock if provided + 1 day
 
-Returns:
-Date string (YYYY-MM-DD)
-"""
+        Returns:
+            Date string (YYYY-MM-DD)
+        """
         try:
             if self.historical_service is None:
                 self.historical_service = await get_historical_data_service()
@@ -748,12 +748,12 @@ Date string (YYYY-MM-DD)
     async def sync_financial_data(self, symbols: List[str] = None) -> Dict[str, Any]:
         """Sync Financial Data
 
-Args:
-symbols: Specify list of stock codes
+        Args:
+            symbols: Specify list of stock codes
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         logger.info("Start synchronizing financial data...")
 
         stats = {
@@ -944,11 +944,11 @@ Sync Results Statistics
 
     async def _get_favorite_stocks(self) -> List[str]:
         """Retrieving list of selected shares for all users
-Note: Only the most up-to-date documents are obtained and historical data are avoided
+        Note: Only the most up-to-date documents are obtained and historical data are avoided
 
-Returns:
-List of selected shares
-"""
+        Returns:
+            List of selected shares
+        """
         try:
             favorite_codes = set()
 
@@ -996,15 +996,15 @@ List of selected shares
     ) -> Dict[str, Any]:
         """Sync News Data
 
-Args:
-symbols: list of stock codes to determine the sync range for Noone based on favorites only
-Max news per stock: Maximum number of news per stock
-Force update
-Favorites only: whether to sync only to the selected unit (defaultTrue)
+        Args:
+            symbols: list of stock codes to determine the sync range for Noone based on favorites only
+            Max news per stock: Maximum number of news per stock
+            Force update
+            Favorites only: whether to sync only to the selected unit (defaultTrue)
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         logger.info("Starting syncing AKshare news data...")
 
         stats = {
@@ -1161,9 +1161,9 @@ async def run_akshare_basic_info_sync(force_update: bool = False):
 async def run_akshare_quotes_sync(force: bool = False):
     """APSscheduler mission: Sync real-time patterns
 
-Args:
-force: enforcement ( Skip transaction time check), default False
-"""
+    Args:
+        force: enforcement ( Skip transaction time check), default False
+    """
     try:
         service = await get_akshare_sync_service()
         #Note: AKShare has no transaction time check logic, force parameters only for interface consistency

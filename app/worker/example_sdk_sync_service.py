@@ -22,18 +22,18 @@ logger = logging.getLogger(__name__)
 class ExampleSDKSyncService:
     """Example: SDK Data Sync Service (app layer)
 
-Duties:
-- Calling SDK adapters on the TradingAGents floor for standardized data
-- Implementation of business logic processing and data validation
-- Write data to the MongoDB database
-- Manage synchronization and error processing
-- Provide performance monitoring and statistics
+    Duties:
+    - Calling SDK adapters on the TradingAGents floor for standardized data
+    - Implementation of business logic processing and data validation
+    - Write data to the MongoDB database
+    - Manage synchronization and error processing
+    - Provide performance monitoring and statistics
 
-Structure layer:
--Traditions/dataworks/: Pure data acquisition adapter
--app/worker/: Data Synchronization Service (this category)
--app/services/: Data access services
-"""
+    Structure layer:
+    -Traditions/dataworks/: Pure data acquisition adapter
+    -app/worker/: Data Synchronization Service (this category)
+    -app/services/: Data access services
+    """
 
     def __init__(self):
         #Appendant using trapping layers (pure data acquisition)

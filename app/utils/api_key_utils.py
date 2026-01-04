@@ -10,19 +10,19 @@ from typing import Optional
 def is_valid_api_key(api_key: Optional[str]) -> bool:
     """Determines whether API Key is valid
 
-Effective API Key must satisfy:
-1. Can't be empty
-2. Length must > 10
-3. Not a placeholder (prefix: your , your-)
-4. Not a placeholder (suffix:  here,-here)
-A key that cannot be cut off (includes '...')
+    Effective API Key must satisfy:
+    1. Can't be empty
+    2. Length must > 10
+    3. Not a placeholder (prefix: your , your-)
+    4. Not a placeholder (suffix:  here,-here)
+    A key that cannot be cut off (includes '...')
 
-Args:
-api key: API Key to verify
+    Args:
+        api key: API Key to verify
 
-Returns:
-Bool: Effective
-"""
+    Returns:
+        Bool: Effective
+    """
     if not api_key:
         return False
     
@@ -54,16 +54,16 @@ Bool: Effective
 def truncate_api_key(api_key: Optional[str]) -> Optional[str]:
     """API Key, show top six and bottom six.
 
-Example:
-Enter:'d1el869r01qghj41hgd1el869r01qghj41hai0'
-Output: 'd1el86...j41hai0'
+    Example:
+    Enter:'d1el869r01qghj41hgd1el869r01qghj41hai0'
+    Output: 'd1el86...j41hai0'
 
-Args:
-api key: abbreviated API Key
+    Args:
+        api key: abbreviated API Key
 
-Returns:
-str: API Key after abbreviation returns the original value if the input is empty or long < = 12
-"""
+    Returns:
+        str: API Key after abbreviation returns the original value if the input is empty or long < = 12
+    """
     if not api_key or len(api_key) <= 12:
         return api_key
     
@@ -73,14 +73,14 @@ str: API Key after abbreviation returns the original value if the input is empty
 def get_env_api_key_for_provider(provider_name: str) -> Optional[str]:
     """API Key from a large modeler from an environmental variable
 
-Environmental variable name format:   FMT 0   API KEY
+    Environmental variable name format:   FMT 0   API KEY
 
-Args:
-provider name: manufacturer's name (e. g. 'deepseek', 'dashscope')
+    Args:
+        provider name: manufacturer's name (e. g. 'deepseek', 'dashscope')
 
-Returns:
-str: API Key from the environment variable, returns None if it does not exist or is invalid
-"""
+    Returns:
+        str: API Key from the environment variable, returns None if it does not exist or is invalid
+    """
     env_key_name = f"{provider_name.upper()}_API_KEY"
     env_key = os.getenv(env_key_name)
     
@@ -93,20 +93,20 @@ str: API Key from the environment variable, returns None if it does not exist or
 def get_env_api_key_for_datasource(ds_type: str) -> Optional[str]:
     """API Key for data sources from environmental variables
 
-Map of data source type to environmental variable name:
-- TUSHARE TOKEN
-- Finnhub.
-- Polygon.
-IEX API KEY
-Quindl API KEY
-- Alphavantage — ALPHAVANTAGE API KEY
+    Map of data source type to environmental variable name:
+    - TUSHARE TOKEN
+    - Finnhub.
+    - Polygon.
+    IEX API KEY
+    Quindl API KEY
+    - Alphavantage — ALPHAVANTAGE API KEY
 
-Args:
-ds type: data source type (e.g. 'tushare', 'finnhub')
+    Args:
+        ds type: data source type (e.g. 'tushare', 'finnhub')
 
-Returns:
-str: API Key from the environment variable, returns None if it does not exist or is invalid
-"""
+    Returns:
+        str: API Key from the environment variable, returns None if it does not exist or is invalid
+    """
     #Map of data source type to environmental variable name
     env_key_map = {
         "tushare": "TUSHARE_TOKEN",
@@ -132,16 +132,16 @@ str: API Key from the environment variable, returns None if it does not exist or
 def should_skip_api_key_update(api_key: Optional[str]) -> bool:
     """Judge whether to skip API Key updates
 
-The following should skip the update (main value retained):
-API Key is the cut-off key (includes '...')
-API Key is a placeholder (your *, your-*)
+    The following should skip the update (main value retained):
+    API Key is the cut-off key (includes '...')
+    API Key is a placeholder (your *, your-*)
 
-Args:
-api key: API Key to check
+    Args:
+        api key: API Key to check
 
-Returns:
-Bool: Should Update
-"""
+    Returns:
+        Bool: Should Update
+    """
     if not api_key:
         return False
     

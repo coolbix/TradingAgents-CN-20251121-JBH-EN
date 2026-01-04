@@ -7,9 +7,9 @@
 - 如果用户已存在，可选择覆盖或跳过
 
 使用方法：
-    python scripts/create_default_admin.py
-    python scripts/create_default_admin.py --overwrite
-    python scripts/create_default_admin.py --username myuser --password mypass123
+python scripts/create_default_admin.py
+python scripts/create_default_admin.py --overwrite
+python scripts/create_default_admin.py --username myuser --password mypass123
 """
 
 import sys

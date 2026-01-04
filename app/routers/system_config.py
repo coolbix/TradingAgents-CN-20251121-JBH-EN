@@ -52,8 +52,8 @@ def _build_summary() -> Dict[str, Any]:
 @router.get("/config/summary", tags=["system"], summary="配置概要（已屏蔽敏感项，需管理员）")
 async def get_config_summary(current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
     """Returns the summary of settings that are currently in effect. Sensitive fields will be displayed in *** mask.
-Access control: Administrator status required.
-"""
+    Access control: Administrator status required.
+    """
     if not current_user.get("is_admin", False):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required")
     return {"settings": _build_summary()}
@@ -62,14 +62,14 @@ Access control: Administrator status required.
 @router.get("/config/validate", tags=["system"], summary="验证配置完整性")
 async def validate_config():
     """Validation of the integrity and effectiveness of system configuration.
-Returns the validation results, including missing profiles and invalid configurations.
+    Returns the validation results, including missing profiles and invalid configurations.
 
-Authentication content:
-1. Environmental Variable Configuration (.env file)
-2. Configuration stored in MongoDB (large models, data sources, etc.)
+    Authentication content:
+    1. Environmental Variable Configuration (.env file)
+    2. Configuration stored in MongoDB (large models, data sources, etc.)
 
-Note: This interface is first configured from MongoDB to the environment variable before validation.
-"""
+    Note: This interface is first configured from MongoDB to the environment variable before validation.
+    """
     from app.core.startup_validator import StartupValidator
     from app.core.config_bridge import bridge_config_to_env
     from app.services.config_service import config_service

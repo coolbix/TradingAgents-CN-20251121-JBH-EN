@@ -52,12 +52,12 @@ config_service = ConfigService()
 async def get_provider_by_model_name(model_name: str) -> str:
     """Find the corresponding supplier from the database configuration according to the model name (speech version)
 
-Args:
-Model name: Model names, such as 'qwen-turbo', 'gpt-4', etc.
+    Args:
+        Model name: Model names, such as 'qwen-turbo', 'gpt-4', etc.
 
-Returns:
-st: Name of supplier, e.g. 'dashscope', 'openai', etc.
-"""
+    Returns:
+        st: Name of supplier, e.g. 'dashscope', 'openai', etc.
+    """
     try:
         #Get the system configuration from the configuration service
         system_config = await config_service.get_system_config()
@@ -84,12 +84,12 @@ st: Name of supplier, e.g. 'dashscope', 'openai', etc.
 def get_provider_by_model_name_sync(model_name: str) -> str:
     """Find the corresponding supplier from the database configuration according to the model name (sync version)
 
-Args:
-Model name: Model names, such as 'qwen-turbo', 'gpt-4', etc.
+    Args:
+        Model name: Model names, such as 'qwen-turbo', 'gpt-4', etc.
 
-Returns:
-st: Name of supplier, e.g. 'dashscope', 'openai', etc.
-"""
+    Returns:
+        st: Name of supplier, e.g. 'dashscope', 'openai', etc.
+    """
     provider_info = get_provider_and_url_by_model_sync(model_name)
     return provider_info["provider"]
 
@@ -97,12 +97,12 @@ st: Name of supplier, e.g. 'dashscope', 'openai', etc.
 def get_provider_and_url_by_model_sync(model_name: str) -> dict:
     """Find corresponding suppliers and API URLs from the database configuration according to the model name
 
-Args:
-Model name: Model names, such as 'qwen-turbo', 'gpt-4', etc.
+    Args:
+        Model name: Model names, such as 'qwen-turbo', 'gpt-4', etc.
 
-Returns:
-dict:   FMT 0 
-"""
+    Returns:
+        dict:   FMT 0 
+    """
     try:
         #Direct query using Sync MongoDB client
         from pymongo import MongoClient
@@ -268,12 +268,12 @@ dict:   FMT 0
 def _get_env_api_key_for_provider(provider: str) -> str:
     """API Key from Environmental Variables
 
-Args:
-Provider: Name of supplier, such as 'google', 'dashscope', etc.
+    Args:
+        Provider: Name of supplier, such as 'google', 'dashscope', etc.
 
-Returns:
-str: API Key, return None if not found
-"""
+    Returns:
+        str: API Key, return None if not found
+    """
     import os
 
     env_key_map = {
@@ -300,12 +300,12 @@ str: API Key, return None if not found
 def _get_default_backend_url(provider: str) -> str:
     """Return default backend url by supplier name
 
-Args:
-Provider: Name of supplier, such as 'google', 'dashscope', etc.
+    Args:
+        Provider: Name of supplier, such as 'google', 'dashscope', etc.
 
-Returns:
-str: Default backend url
-"""
+    Returns:
+        str: Default backend url
+    """
     default_urls = {
         "google": "https://generativelanguage.googleapis.com/v1beta",
         "dashscope": "https://dashscope.aliyuncs.com/api/v1",
@@ -324,8 +324,8 @@ str: Default backend url
 
 def _get_default_provider_by_model(model_name: str) -> str:
     """Returns the default vendor map by model name
-This is a backup scheme to be used when database queries fail
-"""
+    This is a backup scheme to be used when database queries fail
+    """
     #Model name to the vendor 's default map
     model_provider_map = {
         #DashScope
@@ -374,19 +374,19 @@ def create_analysis_config(
 ) -> dict:
     """Create Analysis Configuration - Supporting Numerical and Chinese Levels
 
-Args:
-Research depth: Research depth, supporting numbers (1-5) or Chinese ( "quick", "basis", "standard", "deep", "full")
-list of selected analysts
-Quick model: Rapid Analysis Model
-Deep model: Depth Analysis Model
-Ilm provider: LLM supplier
-market type: Market type
-Quick model config: Full configuration of fast models (including max tokens, temperature, timeout etc.)
-Deep model config: complete configuration of depth models (including max tokens, temperature, timeout, etc.)
+    Args:
+        Research depth: Research depth, supporting numbers (1-5) or Chinese ( "quick", "basis", "standard", "deep", "full")
+        list of selected analysts
+        Quick model: Rapid Analysis Model
+        Deep model: Depth Analysis Model
+        Ilm provider: LLM supplier
+        market type: Market type
+        Quick model config: Full configuration of fast models (including max tokens, temperature, timeout etc.)
+        Deep model config: complete configuration of depth models (including max tokens, temperature, timeout, etc.)
 
-Returns:
-dict: Full analytical configuration
-"""
+    Returns:
+        dict: Full analytical configuration
+    """
     #[Debugging]
     logger.info(f"[configuration creates]{research_depth}(Types:{type(research_depth).__name__})")
 
@@ -699,12 +699,12 @@ class SimpleAnalysisService:
     def _get_trading_graph(self, config: Dict[str, Any]) -> TradingAgentsGraph:
         """Fetching or Creating Action Examples
 
-Note: Create new examples each time to avoid data confusion at the time of execution
-It'll add some initialization costs, but it'll make it safe.
+        Note: Create new examples each time to avoid data confusion at the time of execution
+        It'll add some initialization costs, but it'll make it safe.
 
-The example of Trading Agencies Graph includes variable state (self.ticker, self.curr state, etc.).
-If multiple threads share the same example, this can lead to data confusion.
-"""
+        The example of Trading Agencies Graph includes variable state (self.ticker, self.curr state, etc.).
+        If multiple threads share the same example, this can lead to data confusion.
+        """
         #🔧 [Soft Together] Creates new examples each time to avoid multi-wire sharing
         #No more caches because TradingAgentsGraph has variable case variables
         logger.info(f"🔧 Creates a new TradingAgents instance...")
@@ -1392,9 +1392,9 @@ If multiple threads share the same example, this can lead to data confusion.
             def graph_progress_callback(message: str):
                 """Received LangGraph progress update
 
-Ensure that the step weights of RedisProgressTracker are consistent with the percentage of progress directly mapped by node name
-Note: Update only as progress increases and avoid covering the virtual step progress of RedisProgressTracker
-"""
+                Ensure that the step weights of RedisProgressTracker are consistent with the percentage of progress directly mapped by node name
+                Note: Update only as progress increases and avoid covering the virtual step progress of RedisProgressTracker
+                """
                 try:
                     logger.info(f"[Graph progress is called] message={message}")
                     if not progress_tracker:
@@ -1932,9 +1932,9 @@ Note: Update only as progress increases and avoid covering the virtual step prog
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """Other Organiser
-- Merge memory and MongoDB data
-- In reverse at the beginning.
-"""
+        - Merge memory and MongoDB data
+        - In reverse at the beginning.
+        """
         try:
             task_status = None
             if status:
@@ -2018,9 +2018,9 @@ Note: Update only as progress increases and avoid covering the virtual step prog
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """Other Organiser
-- For processing status: priority from memory (real time progress)
-- For completed/failed/all status: merge memory and MongoDB data
-"""
+        - For processing status: priority from memory (real time progress)
+        - For completed/failed/all status: merge memory and MongoDB data
+        """
         try:
             task_status = None
             if status:
@@ -2214,12 +2214,12 @@ Note: Update only as progress increases and avoid covering the virtual step prog
     async def cleanup_zombie_tasks(self, max_running_hours: int = 2) -> Dict[str, Any]:
         """Clean-up of zombie missions (long-term process/running)
 
-Args:
-max running hours: Maximum run time (hours), tasks longer than that will be marked as failure
+        Args:
+            max running hours: Maximum run time (hours), tasks longer than that will be marked as failure
 
-Returns:
-Cleanup result statistics
-"""
+        Returns:
+            Cleanup result statistics
+        """
         try:
             #1) Clean-up of memory zombie missions
             memory_cleaned = await self.memory_manager.cleanup_zombie_tasks(max_running_hours)
@@ -2276,12 +2276,12 @@ Cleanup result statistics
     async def get_zombie_tasks(self, max_running_hours: int = 2) -> List[Dict[str, Any]]:
         """Fetch Zombie Job List (no cleanup, only query)
 
-Args:
-max runing hours: maximum running time (hours)
+        Args:
+            max runing hours: maximum running time (hours)
 
-Returns:
-Zombie Job List
-"""
+        Returns:
+            Zombie Job List
+        """
         try:
             db = get_mongo_db()
             from datetime import timedelta

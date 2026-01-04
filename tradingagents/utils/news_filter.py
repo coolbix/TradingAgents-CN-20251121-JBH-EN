@@ -16,10 +16,10 @@ class NewsRelevanceFilter:
     def __init__(self, stock_code: str, company_name: str):
         """Initializing Filter
 
-Args:
-Stock code: Stock code, e. g. "600036"
-Company name: Name of the company, e.g. "Rendering Bank"
-"""
+        Args:
+            Stock code: Stock code, e. g. "600036"
+            Company name: Name of the company, e.g. "Rendering Bank"
+        """
         self.stock_code = stock_code.upper()
         self.company_name = company_name
         
@@ -49,13 +49,13 @@ Company name: Name of the company, e.g. "Rendering Bank"
     def calculate_relevance_score(self, title: str, content: str) -> float:
         """Calculate news relevance rating
 
-Args:
-title:
-Content:
+        Args:
+            title:
+            Content:
 
-Returns:
-float: Relevance rating (0-100)
-"""
+        Returns:
+            float: Relevance rating (0-100)
+        """
         score = 0
         title_lower = title.lower()
         content_lower = content.lower()
@@ -131,13 +131,13 @@ float: Relevance rating (0-100)
     def filter_news(self, news_df: pd.DataFrame, min_score: float = 30) -> pd.DataFrame:
         """Filter NewsDataFrame
 
-Args:
-News df: RawDataFrame
-min score: Minimum relevance rating threshold
+        Args:
+            News df: RawDataFrame
+            min score: Minimum relevance rating threshold
 
-Returns:
-pd. DataFrame: Filtered NewsDataFrame, in order of relevance
-"""
+        Returns:
+            pd. DataFrame: Filtered NewsDataFrame, in order of relevance
+        """
         if news_df.empty:
             logger.warning("[Filter] Enter NewsDataFrame empty")
             return news_df
@@ -177,13 +177,13 @@ pd. DataFrame: Filtered NewsDataFrame, in order of relevance
     def get_filter_statistics(self, original_df: pd.DataFrame, filtered_df: pd.DataFrame) -> Dict:
         """Fetch filter statistical information
 
-Args:
-Original df: Raw DataFrame
-filtered df: Post-FilterDataFrame
+        Args:
+            Original df: Raw DataFrame
+            filtered df: Post-FilterDataFrame
 
-Returns:
-Dict: Statistical information
-"""
+        Returns:
+            Dict: Statistical information
+        """
         stats = {
             'original_count': len(original_df),
             'filtered_count': len(filtered_df),
@@ -235,12 +235,12 @@ STOCK_COMPANY_MAPPING = {
 def get_company_name(ticker: str) -> str:
     """The name of the company to which the stock code corresponds
 
-Args:
-ticker: Stock code
+    Args:
+        ticker: Stock code
 
-Returns:
-str: Company name
-"""
+    Returns:
+        str: Company name
+    """
     #Clear stock code (delegate suffix)
     clean_ticker = ticker.split('.')[0]
     
@@ -259,12 +259,12 @@ str: Company name
 def create_news_filter(ticker: str) -> NewsRelevanceFilter:
     """A convenient function to create a news filter
 
-Args:
-ticker: Stock code
+    Args:
+        ticker: Stock code
 
-Returns:
-NewsRelevanceFilter: Examples of configured filters
-"""
+    Returns:
+        NewsRelevanceFilter: Examples of configured filters
+    """
     company_name = get_company_name(ticker)
     return NewsRelevanceFilter(ticker, company_name)
 

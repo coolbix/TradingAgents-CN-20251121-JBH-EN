@@ -23,9 +23,9 @@ class StockDataCache:
     def __init__(self, cache_dir: str = None):
         """Initialise Cache Manager
 
-Args:
-Cache dir: Cache Directory Path, default to trapats/dataflows/data cache
-"""
+        Args:
+            Cache dir: Cache Directory Path, default to trapats/dataflows/data cache
+        """
         if cache_dir is None:
             #Can not open message
             current_dir = Path(__file__).parent
@@ -136,13 +136,13 @@ Cache dir: Cache Directory Path, default to trapats/dataflows/data cache
     def should_skip_cache_for_content(self, content: str, data_type: str = "unknown") -> bool:
         """Whether or not to skip the cache because the content is too long
 
-Args:
-Content to cache
-Data type: Data type (for logs)
+        Args:
+            Content to cache
+            Data type: Data type (for logs)
 
-Returns:
-Bool: Should Skip Cache
-"""
+        Returns:
+            Bool: Should Skip Cache
+        """
         #If the length check is not enabled, go straight back to False
         if not self.content_length_config['enable_length_check']:
             return False
@@ -265,16 +265,16 @@ Bool: Should Skip Cache
                        data_source: str = "unknown") -> str:
         """Store stock data to cache - Support U.S. and U.S.A. Catalogue Storage
 
-Args:
-symbol: stock code
-Data: Stock data (DataFrame or string)
-Start date: Start date
-End date: End date
-Data source: Data sources (e.g. "tdx", "yfinance", "finnhub")
+        Args:
+            symbol: stock code
+            Data: Stock data (DataFrame or string)
+            Start date: Start date
+            End date: End date
+            Data source: Data sources (e.g. "tdx", "yfinance", "finnhub")
 
-Returns:
-Cache key: Cache keys
-"""
+        Returns:
+            Cache key: Cache keys
+        """
         #Check if content length needs to skip cache
         content_to_check = str(data)
         if self.should_skip_cache_for_content(content_to_check, "股票数据"):
@@ -352,16 +352,16 @@ Cache key: Cache keys
                               max_age_hours: int = None) -> Optional[str]:
         """Find matching cache data - support smart market classification search
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-data source: data source
-max age hours: maximum cache time (hours), use smart configuration for None
+        Args:
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            data source: data source
+            max age hours: maximum cache time (hours), use smart configuration for None
 
-Returns:
-Cache key: return the cache key if a valid cache is found, otherwise return the None
-"""
+        Returns:
+            Cache key: return the cache key if a valid cache is found, otherwise return the None
+        """
         market_type = self._determine_market_type(symbol)
 
         #Use smart configuration if no TTL is specified
@@ -507,14 +507,14 @@ Cache key: return the cache key if a valid cache is found, otherwise return the 
                                     max_age_hours: int = None) -> Optional[str]:
         """Find matching base cache data
 
-Args:
-symbol: stock code
-Data source: Data sources (e.g. "openai", "finnhub")
-max age hours: maximum cache time (hours), use smart configuration for None
+        Args:
+            symbol: stock code
+            Data source: Data sources (e.g. "openai", "finnhub")
+            max age hours: maximum cache time (hours), use smart configuration for None
 
-Returns:
-Cache key: return the cache key if a valid cache is found, otherwise return the None
-"""
+        Returns:
+            Cache key: return the cache key if a valid cache is found, otherwise return the None
+        """
         market_type = self._determine_market_type(symbol)
         
         #Use smart configuration if no TTL is specified

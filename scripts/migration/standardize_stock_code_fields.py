@@ -10,9 +10,9 @@
 5. (可选) 删除旧字段
 
 使用方法:
-    python scripts/migration/standardize_stock_code_fields.py --dry-run  # 预览
-    python scripts/migration/standardize_stock_code_fields.py --execute  # 执行
-    python scripts/migration/standardize_stock_code_fields.py --rollback # 回滚
+python scripts/migration/standardize_stock_code_fields.py --dry-run  # 预览
+python scripts/migration/standardize_stock_code_fields.py --execute  # 执行
+python scripts/migration/standardize_stock_code_fields.py --rollback # 回滚
 """
 
 import sys

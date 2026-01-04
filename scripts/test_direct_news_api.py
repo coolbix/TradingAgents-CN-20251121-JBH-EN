@@ -11,11 +11,11 @@ from urllib.parse import urlencode
 def get_stock_news_direct(symbol: str, page_size: int = 10):
     """
     直接访问东方财富网新闻 API
-    
+
     Args:
         symbol: 股票代码（如 600089）
         page_size: 每页数量
-        
+
     Returns:
         新闻列表
     """

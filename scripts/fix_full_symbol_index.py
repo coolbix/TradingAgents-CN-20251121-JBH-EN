@@ -30,10 +30,10 @@ from pymongo import ASCENDING
 def generate_full_symbol(code: str) -> str:
     """
     根据股票代码生成完整标准化代码
-    
+
     Args:
         code: 6位股票代码
-        
+
     Returns:
         完整标准化代码（如 000001.SZ）
     """

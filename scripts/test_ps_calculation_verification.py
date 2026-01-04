@@ -8,9 +8,9 @@ PS（市销率）计算验证程序
 3. 验证三个数据源的 PS 计算是否正确
 
 使用方法：
-    python scripts/test_ps_calculation_verification.py 600036
-    python scripts/test_ps_calculation_verification.py 000001
-    python scripts/test_ps_calculation_verification.py 600036 000001 000002
+python scripts/test_ps_calculation_verification.py 600036
+python scripts/test_ps_calculation_verification.py 000001
+python scripts/test_ps_calculation_verification.py 600036 000001 000002
 """
 
 import sys
@@ -92,13 +92,13 @@ class PSCalculationVerifier:
     ) -> Dict[str, Any]:
         """
         手动计算 PS
-        
+
         Args:
             price: 股价（元）
             total_share: 总股本（万股）
             revenue: 营业收入（万元，单期）
             revenue_ttm: TTM 营业收入（万元，最近12个月）
-        
+
         Returns:
             计算结果字典
         """

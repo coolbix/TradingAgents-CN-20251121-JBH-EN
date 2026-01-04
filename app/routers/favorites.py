@@ -226,8 +226,8 @@ async def sync_favorites_realtime(
 ):
     """Sync Self-Select Real-Time Line
 
-- **data source**: data source (tushare/akshare)
-"""
+    - **data source**: data source (tushare/akshare)
+    """
     try:
         logger.info(f"Synchronize the self-selected unit real-time status: user id={current_user['id']}, data_source={request.data_source}")
 

@@ -104,15 +104,15 @@ class OptimizedChinaDataProvider:
                       force_refresh: bool = False) -> str:
         """Get A-unit data - Prioritize Cache
 
-Args:
-symbol: stock code (6-digit)
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-source refresh: whether to forcibly refresh the cache
+        Args:
+            symbol: stock code (6-digit)
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            source refresh: whether to forcibly refresh the cache
 
-Returns:
-Formatted stock data string
-"""
+        Returns:
+            Formatted stock data string
+        """
         logger.info(f"For unit A data:{symbol} ({start_date}Present.{end_date})")
 
         #1. Preferably try to get it from MongoDB (if TA USE APP CACHE is enabled)
@@ -196,13 +196,13 @@ Formatted stock data string
     def get_fundamentals_data(self, symbol: str, force_refresh: bool = False) -> str:
         """Get A Basic Data - Prioritize Cache
 
-Args:
-symbol: stock code
-source refresh: whether to forcibly refresh the cache
+        Args:
+            symbol: stock code
+            source refresh: whether to forcibly refresh the cache
 
-Returns:
-Formatting Basic Data Strings
-"""
+        Returns:
+            Formatting Basic Data Strings
+        """
         logger.info(f"For basic data on Unit A:{symbol}")
 
         #1. Prioritize attempts to obtain financial data from MongoDB (if TA USE APP CACHE is enabled)
@@ -266,8 +266,8 @@ Formatting Basic Data Strings
 
     def _get_stock_basic_info_only(self, symbol: str) -> str:
         """Access to basic stock information (for basic face analysis only)
-No historical transaction data obtained, only basic information such as company name, current price, etc.
-"""
+        No historical transaction data obtained, only basic information such as company name, current price, etc.
+        """
         logger.debug(f" [basic optimization]{symbol}Basic information (excluding historical data)")
 
         try:
@@ -313,11 +313,11 @@ No historical transaction data obtained, only basic information such as company 
     def _generate_fundamentals_report(self, symbol: str, stock_data: str, analysis_modules: str = "standard") -> str:
         """Generate real fundamental analysis based on equity data
 
-Args:
-symbol: stock code
-Stock data: Stock data
-Analysis modules: Analysis module level
-"""
+        Args:
+            symbol: stock code
+            Stock data: Stock data
+            Analysis modules: Analysis module level
+        """
 
         #Add detailed stock code tracking log
         logger.debug(f"🔍 [Securities Code Tracking]  generate fundamentals report received stock codes: '{symbol}' (type:{type(symbol)})")
@@ -2127,15 +2127,15 @@ def get_china_stock_data_cached(symbol: str, start_date: str, end_date: str,
                                force_refresh: bool = False) -> str:
     """An easy function to access A share data
 
-Args:
-symbol: stock code (6-digit)
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-source refresh: whether to forcibly refresh the cache
+    Args:
+        symbol: stock code (6-digit)
+        Start date: Start date (YYYYY-MM-DD)
+        End date: End Date (YYYYY-MM-DD)
+        source refresh: whether to forcibly refresh the cache
 
-Returns:
-Formatted stock data string
-"""
+    Returns:
+        Formatted stock data string
+    """
     provider = get_optimized_china_data_provider()
     return provider.get_stock_data(symbol, start_date, end_date, force_refresh)
 
@@ -2143,13 +2143,13 @@ Formatted stock data string
 def get_china_fundamentals_cached(symbol: str, force_refresh: bool = False) -> str:
     """An easy function to access fundamental A data
 
-Args:
-symbol: stock code (6-digit)
-source refresh: whether to forcibly refresh the cache
+    Args:
+        symbol: stock code (6-digit)
+        source refresh: whether to forcibly refresh the cache
 
-Returns:
-Formatting Basic Data Strings
-"""
+    Returns:
+        Formatting Basic Data Strings
+    """
     provider = get_optimized_china_data_provider()
     return provider.get_fundamentals_data(symbol, force_refresh)
 

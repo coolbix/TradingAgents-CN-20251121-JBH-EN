@@ -70,15 +70,15 @@ class OptimizedUSDataProvider:
                       force_refresh: bool = False) -> str:
         """Get US share data - Prioritize Cache
 
-Args:
-symbol: stock code
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-source refresh: whether to forcibly refresh the cache
+        Args:
+            symbol: stock code
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            source refresh: whether to forcibly refresh the cache
 
-Returns:
-Formatted stock data string
-"""
+        Returns:
+            Formatted stock data string
+        """
         logger.info(f"For US stock data:{symbol} ({start_date}Present.{end_date})")
 
         #Check Cache (unless mandatory refreshing)
@@ -521,15 +521,15 @@ def get_us_stock_data_cached(symbol: str, start_date: str, end_date: str,
                            force_refresh: bool = False) -> str:
     """A convenient function to access U.S. stock data
 
-Args:
-symbol: stock code
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-source refresh: whether to forcibly refresh the cache
+    Args:
+        symbol: stock code
+        Start date: Start date (YYYYY-MM-DD)
+        End date: End Date (YYYYY-MM-DD)
+        source refresh: whether to forcibly refresh the cache
 
-Returns:
-Formatted stock data string
-"""
+    Returns:
+        Formatted stock data string
+    """
     # Smart date range processing: auto-extension back-to-back days to configuration, processing weekends/leaves Day
     from tradingagents.utils.dataflow_utils import get_trading_date_range
     from app.core.config import get_settings

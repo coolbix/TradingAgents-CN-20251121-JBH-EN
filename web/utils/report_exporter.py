@@ -1166,12 +1166,12 @@ def save_analysis_report(stock_symbol: str, analysis_results: Dict[str, Any],
                         report_content: str = None) -> bool:
     """
     保存分析报告到MongoDB
-    
+
     Args:
         stock_symbol: 股票代码
         analysis_results: 分析结果字典
         report_content: 报告内容（可选，如果不提供则自动生成）
-    
+
     Returns:
         bool: 保存是否成功
     """

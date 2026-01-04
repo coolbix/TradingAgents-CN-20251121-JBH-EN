@@ -118,17 +118,17 @@ class ConfigManager:
     def validate_openai_api_key_format(self, api_key: str) -> bool:
         """Verify OpenAI API key format
 
-OpenAI API key format rule:
-Start with 'sk-'
-2. The total length is usually 51 words Arguments
-3. Include letters, numbers and possible special words Arguments
+        OpenAI API key format rule:
+        Start with 'sk-'
+        2. The total length is usually 51 words Arguments
+        3. Include letters, numbers and possible special words Arguments
 
-Args:
-api key: API key to verify
+        Args:
+            api key: API key to verify
 
-Returns:
-Bool: Is the format correct
-"""
+        Returns:
+            Bool: Is the format correct
+        """
         if not api_key or not isinstance(api_key, str):
             return False
         
@@ -439,9 +439,9 @@ Bool: Is the format correct
     def calculate_cost(self, provider: str, model_name: str, input_tokens: int, output_tokens: int) -> tuple[float, str]:
         """Calculation of usage cost
 
-Returns:
-tuple [float, st]: (cost, currency unit)
-"""
+        Returns:
+            tuple [float, st]: (cost, currency unit)
+        """
         pricing_configs = self.load_pricing()
 
         for pricing in pricing_configs:
@@ -744,9 +744,9 @@ class TokenTracker:
                      estimated_output_tokens: int) -> tuple[float, str]:
         """Estimated costs
 
-Returns:
-tuple [float, st]: (cost, currency unit)
-"""
+        Returns:
+            tuple [float, st]: (cost, currency unit)
+        """
         return self.config_manager.calculate_cost(
             provider, model_name, estimated_input_tokens, estimated_output_tokens
         )

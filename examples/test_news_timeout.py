@@ -23,7 +23,7 @@ logger = get_logger('test')
 def test_news_for_stock(ticker):
     """
     测试获取指定股票的新闻
-    
+
     Args:
         ticker: 股票代码
     """

@@ -27,19 +27,19 @@ class DataCompletenessChecker:
     ) -> Tuple[bool, str, dict]:
         """Check data integrity
 
-Args:
-symbol: stock code
-Data: Data string
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-Market type (CN/HK/US)
+        Args:
+            symbol: stock code
+            Data: Data string
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            Market type (CN/HK/US)
 
-Returns:
-I'm sorry.
--is complete: Data completeness
-- message: Check the results
--details: detailed dictionary
-"""
+        Returns:
+            I'm sorry.
+            -is complete: Data completeness
+            - message: Check the results
+            -details: detailed dictionary
+        """
         details = {
             "symbol": symbol,
             "start_date": start_date,

@@ -14,12 +14,12 @@ class DatabaseConfig :
     def get_mongodb_config ()->Dict [str ,Any ]:
         """Get MongoDB Configuration
 
-Returns:
-Dict [str, Any]: MongoDB configuration dictionary
+        Returns:
+            Dict [str, Any]: MongoDB configuration dictionary
 
-Rices:
-ValueError: When the necessary configuration is not set Time
-"""
+        Rices:
+        ValueError: When the necessary configuration is not set Time
+        """
         connection_string =os .getenv ('MONGODB_CONNECTION_STRING')
         if not connection_string :
             raise ValueError (
@@ -37,12 +37,12 @@ ValueError: When the necessary configuration is not set Time
     def get_redis_config ()->Dict [str ,Any ]:
         """Get Redis Configuration
 
-Returns:
-Dict [str, Any]: Redis configuration dictionary
+        Returns:
+            Dict [str, Any]: Redis configuration dictionary
 
-Rices:
-ValueError: When the necessary configuration is not set Time
-"""
+        Rices:
+        ValueError: When the necessary configuration is not set Time
+        """
         # Prefer connecting string
         connection_string =os .getenv ('REDIS_CONNECTION_STRING')
         if connection_string :
@@ -73,9 +73,9 @@ ValueError: When the necessary configuration is not set Time
     def validate_config ()->Dict [str ,bool ]:
         """Verify whether the database configuration is complete
 
-Returns:
-Dict[str, bool]: Verify results
-"""
+        Returns:
+            Dict[str, bool]: Verify results
+        """
         result ={
         'mongodb_valid':False ,
         'redis_valid':False 
@@ -99,9 +99,9 @@ Dict[str, bool]: Verify results
     def get_config_status ()->str :
         """Fetch a friendly description of the configuration status
 
-Returns:
-str: Configure Status Description
-"""
+        Returns:
+            str: Configure Status Description
+        """
         validation =DatabaseConfig .validate_config ()
 
         if validation ['mongodb_valid']and validation ['redis_valid']:

@@ -39,9 +39,9 @@ class QuotesService:
 
     async def get_quotes(self, codes: List[str]) -> Dict[str, Dict[str, Optional[float]]]:
         """Obtain near real-time snapshots of a group of equities (latest prices, drops, turnover).
-- Priority is given to the use of the cache; the cache is overtime or empty and a full-market snapshot is updated.
-- returns the code that only contains the request.
-"""
+        - Priority is given to the use of the cache; the cache is overtime or empty and a full-market snapshot is updated.
+        - returns the code that only contains the request.
+        """
         codes = [c.strip() for c in codes if c]
         now = time.time()
         async with self._lock:
@@ -55,9 +55,9 @@ class QuotesService:
 
     def _fetch_spot_akshare(self) -> Dict[str, Dict[str, Optional[float]]]:
         """(c) Draw and standardize the dictionaries through the AKShare All-Professional Rapids interface.
-Expected column (common): codes, names, latest prices, drops, turnover.
-Different versions may vary and multiple listings are compatible.
-"""
+        Expected column (common): codes, names, latest prices, drops, turnover.
+        Different versions may vary and multiple listings are compatible.
+        """
         try:
             import akshare as ak  #Used in project without additional installation
             df = ak.stock_zh_a_spot_em()

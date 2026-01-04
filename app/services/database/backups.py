@@ -30,16 +30,16 @@ def _check_mongodump_available() -> bool:
 async def create_backup_native(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: str | None = None) -> Dict[str, Any]:
     """Create a backup using the MongoDB Native Mongodump command (recommended, fast)
 
-Strengths:
-- Speed.
-- Compressive efficiency.
-- Support large data volumes
-- Multiple collections in parallel.
+    Strengths:
+    - Speed.
+    - Compressive efficiency.
+    - Support large data volumes
+    - Multiple collections in parallel.
 
-Requests:
-- The system needs to install MongoDB Data Tools
-- Mongodump command available in PATH
-"""
+    Requests:
+    - The system needs to install MongoDB Data Tools
+    - Mongodump command available in PATH
+    """
     if not _check_mongodump_available():
         raise Exception("mongodump 命令不可用，请安装 MongoDB Database Tools 或使用 create_backup() 方法")
 
@@ -136,8 +136,8 @@ Requests:
 async def create_backup(name: str, backup_dir: str, collections: Optional[List[str]] = None, user_id: str | None = None) -> Dict[str, Any]:
     """Create database backup (Python achieved, compatible but slow)
 
-For large data volume (>100MB), it is recommended to use file backup native() method
-"""
+    For large data volume (>100MB), it is recommended to use file backup native() method
+    """
     db = get_mongo_db()
 
     backup_id = str(ObjectId())
@@ -234,11 +234,11 @@ async def delete_backup(backup_id: str) -> None:
 def _convert_date_fields(doc: dict) -> dict:
     """Convert date fields in documents (string - > datetime)
 
-Common date fields:
-- Creatured at, upted at, completed at.
-- Started at, finished at
-- analysis date (maintain string format because it is a date rather than a time stamp)
-"""
+    Common date fields:
+    - Creatured at, upted at, completed at.
+    - Started at, finished at
+    - analysis date (maintain string format because it is a date rather than a time stamp)
+    """
     from dateutil import parser
 
     date_fields = [
@@ -262,10 +262,10 @@ Common date fields:
 async def import_data(content: bytes, collection: str, *, format: str = "json", overwrite: bool = False, filename: str | None = None) -> Dict[str, Any]:
     """Import Data to Database
 
-Two import modes are supported:
-Single-pool mode: Import data to specified pool
-Multi-pool mode: Import export files containing multiple pools (automated detection)
-"""
+    Two import modes are supported:
+    Single-pool mode: Import data to specified pool
+    Multi-pool mode: Import export files containing multiple pools (automated detection)
+    """
     db = get_mongo_db()
 
     if format.lower() == "json":
@@ -398,11 +398,11 @@ Multi-pool mode: Import export files containing multiple pools (automated detect
 def _sanitize_document(doc: Any) -> Any:
     """Recursively empty sensitive fields of the document
 
-Sensitive field keywords: api key, api secret, secret, token, password,
-You're not going to be able to do that.
+    Sensitive field keywords: api key, api secret, secret, token, password,
+    You're not going to be able to do that.
 
-Excluded fields: max tokens, timeout, configuration times etc. (not sensitive information)
-"""
+    Excluded fields: max tokens, timeout, configuration times etc. (not sensitive information)
+    """
     SENSITIVE_KEYWORDS = [
         "api_key", "api_secret", "secret", "token", "password",
         "client_secret", "webhook_secret", "private_key"

@@ -2,7 +2,7 @@
 初始化模型目录到数据库
 
 使用方法:
-    python scripts/init_model_catalog.py
+python scripts/init_model_catalog.py
 """
 
 import asyncio

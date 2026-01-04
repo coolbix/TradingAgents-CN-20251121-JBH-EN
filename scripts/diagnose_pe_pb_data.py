@@ -9,7 +9,7 @@
 4. 测试 PE/PB 计算逻辑
 
 使用方法：
-    python scripts/diagnose_pe_pb_data.py 600036
+python scripts/diagnose_pe_pb_data.py 600036
 """
 
 import asyncio

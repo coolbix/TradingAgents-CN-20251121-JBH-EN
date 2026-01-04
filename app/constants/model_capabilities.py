@@ -430,24 +430,24 @@ AGGREGATOR_PROVIDERS = {
 def is_aggregator_model(model_name: str) -> bool:
     """Determines if it's a polymer channel model name
 
-Args:
-Model name: Model name
+    Args:
+        Model name: Model name
 
-Returns:
-Whether it's a polymer channel model
-"""
+    Returns:
+        Whether it's a polymer channel model
+    """
     return "/" in model_name
 
 
 def parse_aggregator_model(model_name: str) -> Tuple[str, str]:
     """Parsing polymer channel model names
 
-Args:
-Model name: Model name (e. g. openai/gpt-4)
+    Args:
+        Model name: Model name (e. g. openai/gpt-4)
 
-Returns:
-(provider, model)
-"""
+    Returns:
+        (provider, model)
+    """
     if "/" in model_name:
         parts = model_name.split("/", 1)
         return parts[0], parts[1]

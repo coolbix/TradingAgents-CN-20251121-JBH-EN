@@ -25,21 +25,21 @@ def get_fundamentals(
 ) -> str:
     """Access to comprehensive corporate fundamentals
 
-Includes financial ratios and key indicators such as:
-- Valuation indicators such as market value, PE, PB, ROE
-- Financial indicators such as income, profits, EPS, etc.
-- Company information, etc.
+    Includes financial ratios and key indicators such as:
+    - Valuation indicators such as market value, PE, PB, ROE
+    - Financial indicators such as income, profits, EPS, etc.
+    - Company information, etc.
 
-Args:
-ticker: Stock code
-Curr date: Current date (Alpha Vantage does not use this parameter)
+    Args:
+        ticker: Stock code
+        Curr date: Current date (Alpha Vantage does not use this parameter)
 
-Returns:
-Formatted Corporate Profile Data String
+    Returns:
+        Formatted Corporate Profile Data String
 
-Example:
-=fundamentals = get fundamentals
-"""
+    Example:
+    =fundamentals = get fundamentals
+    """
     try:
         logger.info(f"[Alpha Vantage]{ticker}")
         
@@ -148,14 +148,14 @@ def get_balance_sheet(
 ) -> str:
     """Get balance sheet data
 
-Args:
-ticker: Stock code
-freq: Report frequency (Alpha Vantage returns all data)
-Curr date: Current date (not used)
+    Args:
+        ticker: Stock code
+        freq: Report frequency (Alpha Vantage returns all data)
+        Curr date: Current date (not used)
 
-Returns:
-Formatted balance sheet data string
-"""
+    Returns:
+        Formatted balance sheet data string
+    """
     try:
         logger.info(f"[Alpha Vantage]{ticker}")
         
@@ -176,14 +176,14 @@ def get_cashflow(
 ) -> str:
     """Access to cash flow statement data
 
-Args:
-ticker: Stock code
-freq: Report frequency (Alpha Vantage returns all data)
-Curr date: Current date (not used)
+    Args:
+        ticker: Stock code
+        freq: Report frequency (Alpha Vantage returns all data)
+        Curr date: Current date (not used)
 
-Returns:
-Formatted cash flow table data string
-"""
+    Returns:
+        Formatted cash flow table data string
+    """
     try:
         logger.info(f"[Alpha Vantage]{ticker}")
         
@@ -204,14 +204,14 @@ def get_income_statement(
 ) -> str:
     """Access to profit statement data
 
-Args:
-ticker: Stock code
-freq: Report frequency (Alpha Vantage returns all data)
-Curr date: Current date (not used)
+    Args:
+        ticker: Stock code
+        freq: Report frequency (Alpha Vantage returns all data)
+        Curr date: Current date (not used)
 
-Returns:
-Formatted profit table data string
-"""
+    Returns:
+        Formatted profit table data string
+    """
     try:
         logger.info(f"[Alpha Vantage]{ticker}")
         

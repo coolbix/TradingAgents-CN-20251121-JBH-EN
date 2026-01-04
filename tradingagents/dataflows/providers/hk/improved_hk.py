@@ -167,12 +167,12 @@ class ImprovedHKStockProvider:
     def get_company_name(self, symbol: str) -> str:
         """Obtaining the name of the Port Equity Company
 
-Args:
-Symbol: Port Unit Code
+        Args:
+            Symbol: Port Unit Code
 
-Returns:
-str: Company name
-"""
+        Returns:
+            str: Company name
+        """
         try:
             #Check Cache
             cache_key = f"name_{symbol}"
@@ -291,15 +291,15 @@ str: Company name
     def get_financial_indicators(self, symbol: str) -> Dict[str, Any]:
         """Access to port unit financial indicators
 
-Use the AKShare stop financial hk analysis indicator em interface
-Access to key financial indicators including EPS, BPS, ROE, ROA, etc.
+        Use the AKShare stop financial hk analysis indicator em interface
+        Access to key financial indicators including EPS, BPS, ROE, ROA, etc.
 
-Args:
-Symbol: Port Unit Code
+        Args:
+            Symbol: Port Unit Code
 
-Returns:
-Dict: Financial indicators data
-"""
+        Returns:
+            Dict: Financial indicators data
+        """
         try:
             import akshare as ak
 
@@ -386,12 +386,12 @@ Dict: Financial indicators data
     def get_stock_info(self, symbol: str) -> Dict[str, Any]:
         """Access to basic information on port units
 
-Args:
-Symbol: Port Unit Code
+        Args:
+            Symbol: Port Unit Code
 
-Returns:
-Dict: Port Unit Information
-"""
+        Returns:
+            Dict: Port Unit Information
+        """
         try:
             company_name = self.get_company_name(symbol)
 
@@ -432,12 +432,12 @@ def get_improved_hk_provider() -> ImprovedHKStockProvider:
 def get_hk_company_name_improved(symbol: str) -> str:
     """Access to improved names of port equity companies
 
-Args:
-Symbol: Port Unit Code
+    Args:
+        Symbol: Port Unit Code
 
-Returns:
-str: Company name
-"""
+    Returns:
+        str: Company name
+    """
     provider = get_improved_hk_provider()
     return provider.get_company_name(symbol)
 
@@ -445,12 +445,12 @@ str: Company name
 def get_hk_stock_info_improved(symbol: str) -> Dict[str, Any]:
     """Improved access to information on port units
 
-Args:
-Symbol: Port Unit Code
+    Args:
+        Symbol: Port Unit Code
 
-Returns:
-Dict: Port Unit Information
-"""
+    Returns:
+        Dict: Port Unit Information
+    """
     provider = get_improved_hk_provider()
     return provider.get_stock_info(symbol)
 
@@ -458,21 +458,21 @@ Dict: Port Unit Information
 def get_hk_financial_indicators(symbol: str) -> Dict[str, Any]:
     """Access to port unit financial indicators
 
-Args:
-Symbol: Port Unit Code
+    Args:
+        Symbol: Port Unit Code
 
-Returns:
-Dict: Financial indicators data, including:
-- eps basic: basic per share
-- eps ttm: scroll each share of proceeds
-- bps: Net assets per share
-- roe avg: Average net asset return
-- Roa: Total asset return
-- Operate income: operating income
-- Operate income youy: Growth of operating income per year
--debt asset ratio: asset-liability ratio
-Wait.
-"""
+    Returns:
+        Dict: Financial indicators data, including:
+        - eps basic: basic per share
+        - eps ttm: scroll each share of proceeds
+        - bps: Net assets per share
+        - roe avg: Average net asset return
+        - Roa: Total asset return
+        - Operate income: operating income
+        - Operate income youy: Growth of operating income per year
+        -debt asset ratio: asset-liability ratio
+        Wait.
+    """
     provider = get_improved_hk_provider()
     return provider.get_financial_indicators(symbol)
 
@@ -481,14 +481,14 @@ Wait.
 def get_hk_stock_data_akshare(symbol: str, start_date: str = None, end_date: str = None):
     """Compatibility function: Access to historical Hong Kong stock data using the AKShare New Wave financial interface
 
-Args:
-Symbol: Port Unit Code
-Start date: Start date
-End date: End date
+    Args:
+        Symbol: Port Unit Code
+        Start date: Start date
+        End date: End date
 
-Returns:
-Port Unit data (formatted string)
-"""
+    Returns:
+        Port Unit data (formatted string)
+    """
     try:
         import akshare as ak
         from datetime import datetime, timedelta
@@ -660,14 +660,14 @@ _akshare_hk_spot_lock = threading.Lock()
 
 def get_hk_stock_info_akshare(symbol: str) -> Dict[str, Any]:
     """Compatibility function: directly use akshare to obtain information about the port stock (avoid recycling calls)
- Use global cache + thread lock to avoid repetition of calls for ak.stock hk spot()
+    Use global cache + thread lock to avoid repetition of calls for ak.stock hk spot()
 
-Args:
-Symbol: Port Unit Code
+    Args:
+        Symbol: Port Unit Code
 
-Returns:
-Dict: Port Unit Information
-"""
+    Returns:
+        Dict: Port Unit Information
+    """
     try:
         import akshare as ak
         from datetime import datetime

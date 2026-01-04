@@ -192,8 +192,8 @@ async def run_stock_basics_sync(
 
 async def _test_single_adapter(adapter) -> dict:
     """Test the connectivity of individual data source adapters
-Lightweight connectivity tests only, not complete data
-"""
+    Lightweight connectivity tests only, not complete data
+    """
     result = {
         "name": adapter.name,
         "priority": adapter.priority,
@@ -277,14 +277,14 @@ class TestSourceRequest(BaseModel):
 async def test_data_sources(request: TestSourceRequest = TestSourceRequest()):
     """Test connectivity of data sources
 
-Parameters:
-- source name: Optional, specify the name of the data source to be tested. If not specified, test all data sources
+    Parameters:
+        - source name: Optional, specify the name of the data source to be tested. If not specified, test all data sources
 
-Lightweight connectivity tests only, not complete data
-- Test timeout: 10 seconds.
-- Get only one data check connection.
-- Rapid returns.
-"""
+    Lightweight connectivity tests only, not complete data
+    - Test timeout: 10 seconds.
+    - Get only one data check connection.
+    - Rapid returns.
+    """
     try:
         manager = DataSourceManager()
         all_adapters = manager.adapters

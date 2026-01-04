@@ -60,14 +60,14 @@ class USDataService:
     ) -> Optional[Dict[str, Any]]:
         """Access to US stock basic information (Access + Cache)
 
-Args:
-Stock code: Stock code (e. g. "AAPL")
-source: data source (yfinance/finnhub), None uses default data source
-Force refresh: whether to forcibly refresh (ignore cache)
+        Args:
+            Stock code: Stock code (e. g. "AAPL")
+            source: data source (yfinance/finnhub), None uses default data source
+            Force refresh: whether to forcibly refresh (ignore cache)
 
-Returns:
-Stock Dictionary, failed to return None
-"""
+        Returns:
+            Stock Dictionary, failed to return None
+        """
         try:
             #Use default data sources
             if source is None:
@@ -145,13 +145,13 @@ Stock Dictionary, failed to return None
     def _normalize_stock_info(self, stock_info: Dict, source: str) -> Dict:
         """Standardized stock information format
 
-Args:
-stock info: raw stock information
-source:
+        Args:
+            stock info: raw stock information
+            source:
 
-Returns:
-Standardized equity information
-"""
+        Returns:
+            Standardized equity information
+        """
         normalized = {
             "name": stock_info.get("name", ""),
             "currency": stock_info.get("currency", "USD"),

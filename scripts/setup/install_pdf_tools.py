@@ -10,7 +10,7 @@ PDF 导出工具安装脚本
 3. Pandoc - 需要安装 pandoc
 
 使用方法：
-    python scripts/setup/install_pdf_tools.py
+python scripts/setup/install_pdf_tools.py
 """
 
 import subprocess

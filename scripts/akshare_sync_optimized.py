@@ -9,9 +9,9 @@ AKShare 优化同步脚本
 4. 详细的错误日志
 
 使用方法：
-    python scripts/akshare_sync_optimized.py
-    python scripts/akshare_sync_optimized.py --batch-size 100  # 调整批次大小
-    python scripts/akshare_sync_optimized.py --delay 0.2  # 调整延迟时间
+python scripts/akshare_sync_optimized.py
+python scripts/akshare_sync_optimized.py --batch-size 100  # 调整批次大小
+python scripts/akshare_sync_optimized.py --delay 0.2  # 调整延迟时间
 """
 
 import asyncio
@@ -45,7 +45,7 @@ async def sync_stock_basic_info(
 ):
     """
     同步股票基础信息
-    
+
     Args:
         batch_size: 批次大小
         delay: 每只股票之间的延迟（秒）

@@ -4,13 +4,13 @@
 Quick connectivity test for Baidu Qianfan (ERNIE) via the OpenAI-compatible adapter.
 
 Usage:
-  # 1) Put your keys in .env or environment variables:
-  #    QIANFAN_ACCESS_KEY=your_ak
-  #    QIANFAN_SECRET_KEY=your_sk
-  # 2) Optionally set model (default: ERNIE-Speed-8K)
-  #    QIANFAN_MODEL=ERNIE-Lite-8K
-  # 3) Run:
-  #    python scripts/test_qianfan_connect.py
+# 1) Put your keys in .env or environment variables:
+#    QIANFAN_ACCESS_KEY=your_ak
+#    QIANFAN_SECRET_KEY=your_sk
+# 2) Optionally set model (default: ERNIE-Speed-8K)
+#    QIANFAN_MODEL=ERNIE-Lite-8K
+# 3) Run:
+#    python scripts/test_qianfan_connect.py
 """
 import os
 import sys

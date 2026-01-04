@@ -47,12 +47,12 @@ class DatabaseCacheManager:
                  redis_db: int = 0):
         """Initialise database cache manager
 
-Args:
-Mongodb url: MongoDB connects URLs by default using profileend mouth
-REDIS url: Redis connects URLs by default using profileend mouth
-Mongodb db: MongoDB database First Name
-Redis db: Redis database number
-"""
+        Args:
+            Mongodb url: MongoDB connects URLs by default using profileend mouth
+            REDIS url: Redis connects URLs by default using profileend mouth
+            Mongodb db: MongoDB database First Name
+            Redis db: Redis database number
+        """
         #Get the correct port from the profile
         mongodb_port = os.getenv("MONGODB_PORT", "27018")
         redis_port = os.getenv("REDIS_PORT", "6380")
@@ -184,17 +184,17 @@ Redis db: Redis database number
                        data_source: str = "unknown", market_type: str = None) -> str:
         """Save stock data to MongoDB and Redis
 
-Args:
-symbol: stock code
-Data: Stock data
-Start date: Start date
-End date: End date
-data source: data source
-market type: Market type (us/china)
+        Args:
+            symbol: stock code
+            Data: Stock data
+            Start date: Start date
+            End date: End date
+            data source: data source
+            market type: Market type (us/china)
 
-Returns:
-Cache key: Cache keys
-"""
+        Returns:
+            Cache key: Cache keys
+        """
         cache_key = self._generate_cache_key("stock", symbol,
                                            start_date=start_date,
                                            end_date=end_date,

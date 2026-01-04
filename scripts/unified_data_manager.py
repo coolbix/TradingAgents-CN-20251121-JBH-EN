@@ -19,7 +19,7 @@ class UnifiedDataDirectoryManager:
     def __init__(self, project_root: Optional[Union[str, Path]] = None):
         """
         初始化数据目录管理器
-        
+
         Args:
             project_root: 项目根目录，默认为当前文件的上级目录
         """
@@ -81,11 +81,11 @@ class UnifiedDataDirectoryManager:
     def get_path(self, key: str, create: bool = True) -> Path:
         """
         获取指定数据目录的路径
-        
+
         Args:
             key: 目录键名
             create: 是否自动创建目录
-            
+
         Returns:
             Path: 目录路径对象
         """
@@ -114,10 +114,10 @@ class UnifiedDataDirectoryManager:
     def get_all_paths(self, create: bool = True) -> Dict[str, Path]:
         """
         获取所有数据目录路径
-        
+
         Args:
             create: 是否自动创建目录
-            
+
         Returns:
             Dict[str, Path]: 所有目录路径的字典
         """
@@ -133,7 +133,7 @@ class UnifiedDataDirectoryManager:
     def create_all_directories(self) -> bool:
         """
         创建所有数据目录
-        
+
         Returns:
             bool: 是否成功创建所有目录
         """
@@ -155,7 +155,7 @@ class UnifiedDataDirectoryManager:
     def get_config_summary(self) -> Dict[str, str]:
         """
         获取配置摘要
-        
+
         Returns:
             Dict[str, str]: 配置摘要
         """
@@ -174,7 +174,7 @@ class UnifiedDataDirectoryManager:
     def validate_structure(self) -> Dict[str, bool]:
         """
         验证目录结构
-        
+
         Returns:
             Dict[str, bool]: 验证结果
         """
@@ -226,10 +226,10 @@ _data_manager = None
 def get_data_manager(project_root: Optional[Union[str, Path]] = None) -> UnifiedDataDirectoryManager:
     """
     获取全局数据目录管理器实例
-    
+
     Args:
         project_root: 项目根目录
-        
+
     Returns:
         UnifiedDataDirectoryManager: 数据目录管理器实例
     """
@@ -241,11 +241,11 @@ def get_data_manager(project_root: Optional[Union[str, Path]] = None) -> Unified
 def get_data_path(key: str, create: bool = True) -> Path:
     """
     便捷函数：获取数据目录路径
-    
+
     Args:
         key: 目录键名
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 目录路径
     """

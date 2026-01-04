@@ -72,10 +72,10 @@ class ConfigProvider:
     async def get_system_settings_meta(self) -> Dict[str, Dict[str, Any]]:
         """Return metadata for system settings keys including sensitivity, editability and source.
         Fields per key:
-          - sensitive: bool (by keyword patterns)
-          - editable: bool (False if sensitive or source is environment; True otherwise)
-          - source: 'environment' | 'database' | 'default'
-          - has_value: bool (effective value is not None/empty)
+        - sensitive: bool (by keyword patterns)
+        - editable: bool (False if sensitive or source is environment; True otherwise)
+        - source: 'environment' | 'database' | 'default'
+        - has_value: bool (effective value is not None/empty)
         """
         # Load DB settings raw
         cfg = await config_service.get_system_config()

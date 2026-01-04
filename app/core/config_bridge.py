@@ -14,15 +14,15 @@ logger = logging.getLogger("app.config_bridge")
 def bridge_config_to_env():
     """Bring the unified configuration bridge to the environment variable
 
-This function will:
-1. Read large model manufacturer configurations from the database (API keys, overtime, temperature, etc.)
-2. Writing configuration to environmental variables
-3. Writing default models to environmental variables
-4. Writing data source configuration to environmental variables (API keys, timeout, retrying, etc.)
-5. Writing system time configuration to environmental variables
+    This function will:
+    1. Read large model manufacturer configurations from the database (API keys, overtime, temperature, etc.)
+    2. Writing configuration to environmental variables
+    3. Writing default models to environmental variables
+    4. Writing data source configuration to environmental variables (API keys, timeout, retrying, etc.)
+    5. Writing system time configuration to environmental variables
 
-So the TradingAgents Core Library can read the user profile data from the environment variable.
-"""
+    So the TradingAgents Core Library can read the user profile data from the environment variable.
+    """
     try:
         from app.core.unified_config import unified_config
         from app.services.config_service import config_service
@@ -293,12 +293,12 @@ So the TradingAgents Core Library can read the user profile data from the enviro
 def _bridge_datasource_details(data_source_configs) -> int:
     """Configure bridge data source details to environmental variables
 
-Args:
-Data source configs: Data source configuration list
+    Args:
+        Data source configs: Data source configuration list
 
-Returns:
-Int: Number of configurations for bridges
-"""
+    Returns:
+        Int: Number of configurations for bridges
+    """
     bridged_count = 0
 
     for ds_config in data_source_configs:
@@ -352,9 +352,9 @@ Int: Number of configurations for bridges
 def _bridge_system_settings() -> int:
     """Configure the bridge system to the environment variable while running
 
-Returns:
-Int: Number of configurations for bridges
-"""
+    Returns:
+        Int: Number of configurations for bridges
+    """
     try:
         #Use synchronized MongoDB client
         from pymongo import MongoClient
@@ -490,12 +490,12 @@ Int: Number of configurations for bridges
 def get_bridged_api_key(provider: str) -> Optional[str]:
     """Fetch Bridge API Key
 
-Args:
-Provider: Provider name (e. g. openai, Deepseek, Dashscope)
+    Args:
+        Provider: Provider name (e. g. openai, Deepseek, Dashscope)
 
-Returns:
-API key, if no returns
-"""
+    Returns:
+        API key, if no returns
+    """
     env_key = f"{provider.upper()}_API_KEY"
     return os.environ.get(env_key)
 
@@ -503,12 +503,12 @@ API key, if no returns
 def get_bridged_model(model_type: str = "default") -> Optional[str]:
     """Getting Bridge Model Name
 
-Args:
-Model  type: Model type (default, quick, Deep)
+    Args:
+        Model  type: Model type (default, quick, Deep)
 
-Returns:
-Model name, if none returns
-"""
+    Returns:
+        Model name, if none returns
+    """
     if model_type == "quick":
         return os.environ.get('TRADINGAGENTS_QUICK_MODEL')
     elif model_type == "deep":
@@ -520,8 +520,8 @@ Model name, if none returns
 def clear_bridged_config():
     """Clear configuration of the bridge
 
-For testing or reloading configuration
-"""
+    For testing or reloading configuration
+    """
     keys_to_clear = [
         #Model Configuration
         'TRADINGAGENTS_DEFAULT_MODEL',
@@ -573,8 +573,8 @@ For testing or reloading configuration
 def reload_bridged_config():
     """Reload bridge configuration
 
-For configuration updated and reconnect
-"""
+    For configuration updated and reconnect
+    """
     logger.info("Reload the configuration bridge...")
     clear_bridged_config()
     return bridge_config_to_env()
@@ -583,9 +583,9 @@ For configuration updated and reconnect
 def _sync_pricing_config(llm_configs):
     """Synchronise pricing configuration to contact/pricing.json
 
-Args:
-llm configs: LLM configuration list
-"""
+    Args:
+        llm configs: LLM configuration list
+    """
     try:
         #Config directory to fetch root directory
         project_root = Path(__file__).parent.parent.parent
@@ -621,8 +621,8 @@ llm configs: LLM configuration list
 def sync_pricing_config_now():
     """Synchronize pricing configuration immediately (for real time synchronization after configuration update)
 
-Note: This function performs sync operations at step step back.
-"""
+    Note: This function performs sync operations at step step back.
+    """
     import asyncio
 
     try:
@@ -658,7 +658,7 @@ def _handle_sync_task_result(task):
 
 async def _sync_pricing_config_from_db():
     """Synchronize pricing configuration from database (speech version)
-"""
+    """
     try:
         from app.core.database import get_mongo_db
         from app.models.config import LLMConfig

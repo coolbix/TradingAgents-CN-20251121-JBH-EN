@@ -22,8 +22,8 @@ _stock_name_cache = {}
 
 def get_stock_name(stock_code: str) -> str:
     """Get stock names
-Priority: Cache - > MongoDB (data source priority) - > Default return stock code
-"""
+    Priority: Cache - > MongoDB (data source priority) - > Default return stock code
+    """
     global _stock_name_cache
 
     #Check Cache
@@ -431,12 +431,12 @@ async def download_report(
 ):
     """Download Report
 
-Supported format:
-- markdown: Markdown format (default)
-- json: JSON format (with complete data)
--docx: Word Document Formatting (needs pandoc)
--pdf: PDF format (needs pandoc and PDF engines)
-"""
+    Supported format:
+    - markdown: Markdown format (default)
+    - json: JSON format (with complete data)
+    -docx: Word Document Formatting (needs pandoc)
+    -pdf: PDF format (needs pandoc and PDF engines)
+    """
     try:
         logger.info(f"Downloading report:{report_id}, format:{format}")
 

@@ -8,8 +8,8 @@ AKShare 强制全量同步股票基础信息
 3. 统计成功/失败的股票数量
 
 使用方法：
-    python scripts/akshare_force_sync_all.py
-    python scripts/akshare_force_sync_all.py --batch-size 10  # 调整批次大小
+python scripts/akshare_force_sync_all.py
+python scripts/akshare_force_sync_all.py --batch-size 10  # 调整批次大小
 """
 
 import asyncio

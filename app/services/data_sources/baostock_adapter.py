@@ -107,10 +107,10 @@ class BaoStockAdapter(DataSourceAdapter):
     def get_daily_basic(self, trade_date: str, max_stocks: int = None) -> Optional[pd.DataFrame]:
         """Access to daily basic data (including PE, PB, total market value, etc.)
 
-Args:
-trade date: transaction date (YYYYMMDD)
-Max stocks: Max. Number of processed equities.
-"""
+        Args:
+            trade date: transaction date (YYYYMMDD)
+            Max stocks: Max. Number of processed equities.
+        """
         if not self.is_available():
             return None
         try:

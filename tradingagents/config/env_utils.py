@@ -10,22 +10,22 @@ from typing import Any, Union, Optional
 def parse_bool_env(env_var: str, default: bool = False) -> bool:
     """Parsing Boolean-type environment variables in many formats
 
-Supported format:
-- True/True/True
-- false/False/FALSE
-- 1/0.
-- Yes/yes/YES
-- No/No/NO
-- On/On/ON
-- off/off/IFF
+    Supported format:
+    - True/True/True
+    - false/False/FALSE
+    - 1/0.
+    - Yes/yes/YES
+    - No/No/NO
+    - On/On/ON
+    - off/off/IFF
 
-Args:
-env var: Environment variable First Name
-default:
+    Args:
+        env var: Environment variable First Name
+        default:
 
-Returns:
-Bool: parsed boolean value
-"""
+    Returns:
+        Bool: parsed boolean value
+    """
     value = os.getenv(env_var)
     
     if value is None:
@@ -65,13 +65,13 @@ Bool: parsed boolean value
 def parse_int_env(env_var: str, default: int = 0) -> int:
     """Parsing integer-type environment variables
 
-Args:
-env var: Environment variable First Name
-default:
+    Args:
+        env var: Environment variable First Name
+        default:
 
-Returns:
-int: integer value after resolution
-"""
+    Returns:
+        int: integer value after resolution
+    """
     value = os.getenv(env_var)
     
     if value is None:
@@ -87,13 +87,13 @@ int: integer value after resolution
 def parse_float_env(env_var: str, default: float = 0.0) -> float:
     """Parsing floating point type environment variable
 
-Args:
-env var: Environment variable First Name
-default:
+    Args:
+        env var: Environment variable First Name
+        default:
 
-Returns:
-Float: float value after resolution
-"""
+    Returns:
+        Float: float value after resolution
+    """
     value = os.getenv(env_var)
     
     if value is None:
@@ -109,13 +109,13 @@ Float: float value after resolution
 def parse_str_env(env_var: str, default: str = "") -> str:
     """Parsing string type environment variable
 
-Args:
-env var: Environment variable First Name
-default:
+    Args:
+        env var: Environment variable First Name
+        default:
 
-Returns:
-st: string values after resolution
-"""
+    Returns:
+        st: string values after resolution
+    """
     value = os.getenv(env_var)
     
     if value is None:
@@ -127,14 +127,14 @@ st: string values after resolution
 def parse_list_env(env_var: str, separator: str = ",", default: Optional[list] = None) -> list:
     """Parsing list type environment variable
 
-Args:
-env var: Environment variable First Name
-separator:
-default:
+    Args:
+        env var: Environment variable First Name
+        separator:
+        default:
 
-Returns:
-list: list after resolution
-"""
+    Returns:
+        list: list after resolution
+    """
     if default is None:
         default = []
     
@@ -156,12 +156,12 @@ list: list after resolution
 def get_env_info(env_var: str) -> dict:
     """Get detailed information on environmental variables
 
-Args:
-env var: Environment variable First Name
+    Args:
+        env var: Environment variable First Name
 
-Returns:
-dict: Environmental variable information
-"""
+    Returns:
+        dict: Environmental variable information
+    """
     value = os.getenv(env_var)
     
     return {
@@ -177,12 +177,12 @@ dict: Environmental variable information
 def validate_required_env_vars(required_vars: list) -> dict:
     """Verify whether the necessary environmental variables are set
 
-Args:
-list of required environment variables
+    Args:
+        list of required environment variables
 
-Returns:
-dict: Verify results
-"""
+    Returns:
+        dict: Verify results
+    """
     results = {
         'all_set': True,
         'missing': [],

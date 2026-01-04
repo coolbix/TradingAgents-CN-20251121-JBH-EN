@@ -197,12 +197,12 @@ class RedisProgressTracker:
     def _get_base_total_time(self) -> float:
         """Total estimated length (s) based on number of analysts, depth of research, model type
 
-Algorithmic design thinking (based on actual test data):
-1. Actual: Level 4 depth + 3 analysts = 11 minutes (661 seconds)
-2. Measurements: 1 level of speed = 4-5 minutes
-3. Measurement: Level 2 base = 5-6 minutes
-4. Co-processing between analysts, not linear overlay
-"""
+        Algorithmic design thinking (based on actual test data):
+        1. Actual: Level 4 depth + 3 analysts = 11 minutes (661 seconds)
+        2. Measurements: 1 level of speed = 4-5 minutes
+        3. Measurement: Level 2 base = 5-6 minutes
+        4. Co-processing between analysts, not linear overlay
+        """
 
         #Supporting 5 levels of analysis
         depth_map = {

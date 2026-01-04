@@ -79,18 +79,18 @@ DEFAULT_CACHE_STRATEGY = os.getenv("TA_CACHE_STRATEGY", "integrated")
 def get_cache() -> Union[StockDataCache, IntegratedCacheManager]:
     """Get Cache Examples (Unified Access)
 
-Select the cache policy based on the environment variable TA Cache STRATEGY:
-- "file" (default): use file cache
-- "integraded": use integrated cache (auto-selection MongoDB/Redis/File)
-- "adaptive": use self-adapted caches
+    Select the cache policy based on the environment variable TA Cache STRATEGY:
+    - "file" (default): use file cache
+    - "integraded": use integrated cache (auto-selection MongoDB/Redis/File)
+    - "adaptive": use self-adapted caches
 
-Environment variable settings:
-#Linux/Mac
-# Windows
+    Environment variable settings:
+    #Linux/Mac
+    # Windows
 
-Return:
-StockDataCache or IntegradCacheManager
-"""
+    Return:
+    StockDataCache or IntegradCacheManager
+    """
     global _cache_instance
 
     if _cache_instance is None:

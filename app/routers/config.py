@@ -37,8 +37,8 @@ logger = logging.getLogger("webapi")
 async def reload_config(current_user: dict = Depends(get_current_user)):
     """Reload configuration and bridge to environment variable
 
-Effective immediately after configuration update without restarting service
-"""
+    Effective immediately after configuration update without restarting service
+    """
     try:
         from app.core.config_bridge import reload_bridged_config
 
@@ -87,11 +87,11 @@ def _sanitize_llm_configs(items):
 def _sanitize_datasource_configs(items):
     """Desensitive data source configuration, return abbreviated API Key
 
-Logical:
-1. Return abbreviated version if there is a valid API Key in the database
-2. If not available in the database, try to read from the environment variable and return the abbreviated version
-3. If none, return
-"""
+    Logical:
+    1. Return abbreviated version if there is a valid API Key in the database
+    2. If not available in the database, try to read from the environment variable and return the abbreviated version
+    3. If none, return
+    """
     try:
         from app.utils.api_key_utils import (
             is_valid_api_key,
@@ -1687,8 +1687,8 @@ async def get_system_settings_meta(
     current_user: User = Depends(get_current_user)
 ):
     """(c) Obtaining metadata (sensitivity, redactability, source, availability of values) from the system settings.
-Return structure:   FT 0 }, message}
-"""
+    Return structure:   FT 0 }, message}
+    """
     try:
         meta_map = await config_provider.get_system_settings_meta()
         items = [

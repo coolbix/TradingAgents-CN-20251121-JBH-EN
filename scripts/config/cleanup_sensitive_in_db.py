@@ -7,9 +7,9 @@
 - 默认仅打印变更计划；传入 --apply 方才执行更新。
 
 使用方法（PowerShell 示例）：
-  .\.venv\Scripts\python scripts\config\cleanup_sensitive_in_db.py --mongo "mongodb://localhost:27017/tradingagents" --apply
+.\.venv\Scripts\python scripts\config\cleanup_sensitive_in_db.py --mongo "mongodb://localhost:27017/tradingagents" --apply
 或仅查看（dry-run）：
-  .\.venv\Scripts\python scripts\config\cleanup_sensitive_in_db.py --mongo "mongodb://localhost:27017/tradingagents"
+.\.venv\Scripts\python scripts\config\cleanup_sensitive_in_db.py --mongo "mongodb://localhost:27017/tradingagents"
 """
 
 import argparse

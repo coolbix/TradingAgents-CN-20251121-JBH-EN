@@ -8,7 +8,7 @@
 3. 验证基本面分析报告能否正确显示 PE/PB
 
 使用方法：
-    python scripts/test_pe_pb_fix.py 600036
+python scripts/test_pe_pb_fix.py 600036
 """
 
 import sys

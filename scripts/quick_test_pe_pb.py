@@ -3,7 +3,7 @@
 快速测试 PE/PB 修复
 
 使用方法：
-    python scripts/quick_test_pe_pb.py 600036
+python scripts/quick_test_pe_pb.py 600036
 """
 
 import sys

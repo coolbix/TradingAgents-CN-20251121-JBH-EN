@@ -34,12 +34,12 @@ class AlphaVantageAPIError(Exception):
 def _get_api_key_from_database() -> Optional[str]:
     """Read from database Alpha Vantage API Key
 
-Priority: Database Configuration > Environmental Variable
-This will take effect immediately after the user changes configuration in the Web backstage
+    Priority: Database Configuration > Environmental Variable
+    This will take effect immediately after the user changes configuration in the Web backstage
 
-Returns:
-Optional [str]: API Key, if not returned None
-"""
+    Returns:
+        Optional [str]: API Key, if not returned None
+    """
     try:
         logger.debug("[DB query] Start reading Alpha Vantage API Key...")
         from app.core.database import get_mongo_db_synchronous
@@ -83,17 +83,17 @@ Optional [str]: API Key, if not returned None
 def get_api_key() -> str:
     """Get Alpha Vantage API Key
 
-Priority:
-1. Database configuration (system configs collection)
-2. Environmental variable ALPHA VANTAGE API KEY
-3. Profile
+    Priority:
+    1. Database configuration (system configs collection)
+    2. Environmental variable ALPHA VANTAGE API KEY
+    3. Profile
 
-Returns:
-str: API Key
+    Returns:
+        str: API Key
 
-Rices:
-ValueError: If API Key is not configured
-"""
+    Rices:
+    ValueError: If API Key is not configured
+    """
     #1. Access to databases (highest priority)
     logger.debug("[Step 1] Start reading Alpha Vantage API Key...")
     db_api_key = _get_api_key_from_database()
@@ -140,12 +140,12 @@ ValueError: If API Key is not configured
 def format_datetime_for_api(date_str: str) -> str:
     """Format date time to format required by Alpha Vantage API
 
-Args:
-date str: Date string, format YYYY-MM-DD
+    Args:
+        date str: Date string, format YYYY-MM-DD
 
-Returns:
-Date time string after formatting, format YYYYMMDDHHMM
-"""
+    Returns:
+        Date time string after formatting, format YYYYMMDDHHMM
+    """
     try:
         dt = datetime.strptime(date_str, "%Y-%m-%d")
         return dt.strftime("%Y%m%dT0000")
@@ -162,19 +162,19 @@ def _make_api_request(
 ) -> Dict[str, Any] | str:
     """Launch AlphaVantage API Request
 
-Args:
-funct: API function name (e. g. NEWS SENTIMENT, OWERVIEW, etc.)
-Params: Request for digitization
-max retries: maximum number of retries
-retry delay: retry delay (sec)
+    Args:
+        funct: API function name (e. g. NEWS SENTIMENT, OWERVIEW, etc.)
+        Params: Request for digitization
+        max retries: maximum number of retries
+        retry delay: retry delay (sec)
 
-Returns:
-JSON data or error message string for API response
+    Returns:
+        JSON data or error message string for API response
 
-Rices:
-AlphaVantageRateLimitError: Speed Limit Error
-AlphaVantageAPIError: API error
-"""
+    Rices:
+    AlphaVantageRateLimitError: Speed Limit Error
+    AlphaVantageAPIError: API error
+    """
     api_key = get_api_key()
     base_url = "https://www.alphavantage.co/query"
     
@@ -265,13 +265,13 @@ AlphaVantageAPIError: API error
 def format_response_as_string(data: Dict[str, Any], title: str = "Alpha Vantage Data") -> str:
     """Format API responses into strings
 
-Args:
-Data: API response data
-type: Data title
+    Args:
+        Data: API response data
+        type: Data title
 
-Returns:
-Formatted String
-"""
+    Returns:
+        Formatted String
+    """
     try:
         #Add Head Information
         header = f"# {title}\n"
@@ -290,9 +290,9 @@ Formatted String
 def check_api_key_valid() -> bool:
     """Check if Alpha Vantage API Key is valid
 
-Returns:
-True If API Key is valid, or False
-"""
+    Returns:
+        True If API Key is valid, or False
+    """
     try:
         #Use simple API call test
         data = _make_api_request("GLOBAL_QUOTE", {"symbol": "IBM"})

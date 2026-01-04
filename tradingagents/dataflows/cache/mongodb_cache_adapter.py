@@ -80,12 +80,12 @@ class MongoDBCacheAdapter:
     def _get_data_source_priority(self, symbol: str) -> list:
         """Get data source priorities
 
-Args:
-symbol: stock code
+        Args:
+            symbol: stock code
 
-Returns:
-List of data sources in order of priority, e.g.: ["tushare", "akshare", "baostock"]
-"""
+        Returns:
+            List of data sources in order of priority, e.g.: ["tushare", "akshare", "baostock"]
+        """
         try:
             #1. Identification of market classifications
             from tradingagents.utils.stock_utils import StockUtils, StockMarket
@@ -159,15 +159,15 @@ List of data sources in order of priority, e.g.: ["tushare", "akshare", "baostoc
                           period: str = "daily") -> Optional[pd.DataFrame]:
         """Access to historical data to support multi-cycle queries by data source priority
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-period: data cycle (daily/weekly/monthly), default is Daily
+        Args:
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            period: data cycle (daily/weekly/monthly), default is Daily
 
-Returns:
-DataFrame: Historical data
-"""
+        Returns:
+            DataFrame: Historical data
+        """
         if not self.use_app_cache or self.db is None:
             return None
 
@@ -365,15 +365,15 @@ def get_stock_data_with_fallback(symbol: str, start_date: str = None, end_date: 
                                 fallback_func=None) -> Union[pd.DataFrame, str, None]:
     """Degraded stock acquisition
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-fallback func: downgrade function
+    Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
+        fallback func: downgrade function
 
-Returns:
-Prioritize returns of MongoDB data, and call downgrade if failure
-"""
+    Returns:
+        Prioritize returns of MongoDB data, and call downgrade if failure
+    """
     adapter = get_enhanced_data_adapter()
     
     #Try to get from MongoDB
@@ -394,13 +394,13 @@ Prioritize returns of MongoDB data, and call downgrade if failure
 def get_financial_data_with_fallback(symbol: str, fallback_func=None) -> Union[Dict[str, Any], str, None]:
     """Access to downgraded financial data
 
-Args:
-symbol: stock code
-fallback func: downgrade function
+    Args:
+        symbol: stock code
+        fallback func: downgrade function
 
-Returns:
-Prioritize returns of MongoDB data, and call downgrade if failure
-"""
+    Returns:
+        Prioritize returns of MongoDB data, and call downgrade if failure
+    """
     adapter = get_enhanced_data_adapter()
     
     #Try to get from MongoDB

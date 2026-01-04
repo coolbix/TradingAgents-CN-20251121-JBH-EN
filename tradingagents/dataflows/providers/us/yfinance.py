@@ -151,8 +151,8 @@ def get_stock_data_with_indicators(
 ) -> str:
     """Fetch stock data (OHLCV) and return the CSV format string
 
-Quoted original TradingAgendas get YFin data online
-"""
+    Quoted original TradingAgendas get YFin data online
+    """
     try:
         #Authentication date format
         datetime.strptime(start_date, "%Y-%m-%d")
@@ -201,23 +201,23 @@ def get_technical_indicator(
 ) -> str:
     """Obtain technical indicator data (calculated using stockstats library)
 
-Reference original version of TradingAgendas get stock stats indicators window
+    Reference original version of TradingAgendas get stock stats indicators window
 
-Supported indicators:
-- close 50 sma: 50 days of simple moving average
-- close 200 sma: 200 days simple moving average
-- close 10 ema: 10 day index movement average
-- Macd: MACD indicators
-- Macds: MCD signal lines
-- Macdh: MACD column
--rsi: Relative strength and weakness indicators
-- Boll: Bryn's on track.
-- Boll ub:
-- Boll lb:
-Astr: average real band
--vwma: trade-weighted moving average
--mfi: Financial flow indicators
-"""
+    Supported indicators:
+    - close 50 sma: 50 days of simple moving average
+    - close 200 sma: 200 days simple moving average
+    - close 10 ema: 10 day index movement average
+    - Macd: MACD indicators
+    - Macds: MCD signal lines
+    - Macdh: MACD column
+    -rsi: Relative strength and weakness indicators
+    - Boll: Bryn's on track.
+    - Boll ub:
+    - Boll lb:
+    Astr: average real band
+    -vwma: trade-weighted moving average
+    -mfi: Financial flow indicators
+    """
     try:
         from stockstats import wrap
 

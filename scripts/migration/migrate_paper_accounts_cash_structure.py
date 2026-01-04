@@ -5,11 +5,11 @@ to a multi-currency object structure: {'CNY': ..., 'HKD': 0.0, 'USD': 0.0}.
 Idempotent: safe to run multiple times; only updates records with scalar fields.
 
 Usage:
-    python scripts/migration/migrate_paper_accounts_cash_structure.py
+python scripts/migration/migrate_paper_accounts_cash_structure.py
 
 Environment variables:
-    MONGO_URI: e.g. mongodb://user:pass@host:27017
-    MONGODB_DATABASE or MONGO_DB: database name
+MONGO_URI: e.g. mongodb://user:pass@host:27017
+MONGODB_DATABASE or MONGO_DB: database name
 """
 
 import os

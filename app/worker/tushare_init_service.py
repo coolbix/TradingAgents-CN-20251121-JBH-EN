@@ -38,14 +38,14 @@ class InitializationStats:
 class TushareInitService:
     """Tushare Data Initialisation Service
 
-Responsible for initialization of complete data at first deployment:
-1. Check database status
-2. Initialization of stock base information
-Synchronization of historical data (configurable time frames)
-4. Synchronization of financial data
-5. Synchronization of up-to-date behaviour data
-Validation of data integrity
-"""
+    Responsible for initialization of complete data at first deployment:
+    1. Check database status
+    2. Initialization of stock base information
+    Synchronization of historical data (configurable time frames)
+    4. Synchronization of financial data
+    5. Synchronization of up-to-date behaviour data
+    Validation of data integrity
+    """
     
     def __init__(self):
         self.db = None
@@ -68,24 +68,24 @@ Validation of data integrity
     ) -> Dict[str, Any]:
         """Run full data initialization
 
-Args:
-History days: days of historical data (default 1 year)
-sskip if exists: Skipped if data already exists
-Watch size: Batch size
-enabled multi-cycle data sync (daily, weekly, moon)
-sync items: list of data types to synchronize, optional values:
-- 'basic info': basic stock information
-- 'historic': historical patterns (daily)
-- 'Weekly': weekline data
-- 'Monthly': Moonline data.
-- 'financial': financial data
-- 'Quotes':
-- 'news': news data
-- None: Sync all data (default)
+        Args:
+            History days: days of historical data (default 1 year)
+            sskip if exists: Skipped if data already exists
+            Watch size: Batch size
+            enabled multi-cycle data sync (daily, weekly, moon)
+            sync items: list of data types to synchronize, optional values:
+            - 'basic info': basic stock information
+            - 'historic': historical patterns (daily)
+            - 'Weekly': weekline data
+            - 'Monthly': Moonline data.
+            - 'financial': financial data
+            - 'Quotes':
+            - 'news': news data
+            - None: Sync all data (default)
 
-Returns:
-Initialization Results Statistics
-"""
+        Returns:
+            Initialization Results Statistics
+        """
         #Sync all data if sync items are not specified
         if sync_items is None:
             sync_items = ['basic_info', 'historical', 'financial', 'quotes']

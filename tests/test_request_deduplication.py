@@ -12,7 +12,7 @@ from app.services.foreign_stock_service import ForeignStockService
 async def test_concurrent_hk_quote_requests():
     """
     测试并发港股行情请求的去重机制
-    
+
     场景：
     1. 同时发起10个相同股票的请求
     2. 验证只有1个实际的API调用

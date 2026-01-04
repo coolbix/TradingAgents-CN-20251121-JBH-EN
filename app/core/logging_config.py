@@ -30,8 +30,8 @@ except Exception:
 
 def resolve_logging_cfg_path() -> Path:
     """Select a path to the profile according to the environment (may not exist)
-Prefers the docker configuration, with the second default configuration.
-"""
+    Prefers the docker configuration, with the second default configuration.
+    """
     profile = os.environ.get("LOGGING_PROFILE", "").lower()
     is_docker_env = os.environ.get("DOCKER", "").lower() in {"1", "true", "yes"} or Path("/.dockerenv").exists()
     cfg_candidate = "config/logging_docker.toml" if profile == "docker" or is_docker_env else "config/logging.toml"
@@ -65,9 +65,9 @@ def _parse_size(size_str: str) -> int:
 
 def setup_logging(log_level: str = "INFO"):
     """Set application log configuration:
-1) Prioritize reading from config/ logging.toml to dictConfig
-2) Back to the built-in default configuration when failed or non-existent
-"""
+    1) Prioritize reading from config/ logging.toml to dictConfig
+    2) Back to the built-in default configuration when failed or non-existent
+    """
     #1) Priority if TOML configuration exists and is parsable
     try:
         cfg_path = resolve_logging_cfg_path()

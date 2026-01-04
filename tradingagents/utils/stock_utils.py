@@ -26,12 +26,12 @@ class StockUtils:
     def identify_stock_market(ticker: str) -> StockMarket:
         """Identify the market where the stock code belongs
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-Stockmark: Stock market type
-"""
+        Returns:
+            Stockmark: Stock market type
+        """
         if not ticker:
             return StockMarket.UNKNOWN
 
@@ -55,48 +55,48 @@ Stockmark: Stock market type
     def is_china_stock(ticker: str) -> bool:
         """Whether or not it's China A.
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-Bool: Is it Chinese Unit A?
-"""
+        Returns:
+            Bool: Is it Chinese Unit A?
+        """
         return StockUtils.identify_stock_market(ticker) == StockMarket.CHINA_A
     
     @staticmethod
     def is_hk_stock(ticker: str) -> bool:
         """Determination of Port Unit
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-Bool: Is it the Port Unit?
-"""
+        Returns:
+            Bool: Is it the Port Unit?
+        """
         return StockUtils.identify_stock_market(ticker) == StockMarket.HONG_KONG
     
     @staticmethod
     def is_us_stock(ticker: str) -> bool:
         """To determine whether it's a U.S. stock.
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-Bool: Is it American?
-"""
+        Returns:
+            Bool: Is it American?
+        """
         return StockUtils.identify_stock_market(ticker) == StockMarket.US
     
     @staticmethod
     def get_currency_info(ticker: str) -> Tuple[str, str]:
         """Obtain monetary information by stock code
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-Tuple[str, st]: (currency name, currency symbol)
-"""
+        Returns:
+            Tuple[str, st]: (currency name, currency symbol)
+        """
         market = StockUtils.identify_stock_market(ticker)
         
         if market == StockMarket.CHINA_A:
@@ -112,12 +112,12 @@ Tuple[str, st]: (currency name, currency symbol)
     def get_data_source(ticker: str) -> str:
         """Obtain recommended data sources from stock code
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-str: Data Source Name
-"""
+        Returns:
+            str: Data Source Name
+        """
         market = StockUtils.identify_stock_market(ticker)
         
         if market == StockMarket.CHINA_A:
@@ -133,12 +133,12 @@ str: Data Source Name
     def normalize_hk_ticker(ticker: str) -> str:
         """Standardized port unit code format
 
-Args:
-ticker: Original Port Unit Code
+        Args:
+            ticker: Original Port Unit Code
 
-Returns:
-st: Standardized port unit code
-"""
+        Returns:
+            st: Standardized port unit code
+        """
         if not ticker:
             return ticker
             
@@ -158,12 +158,12 @@ st: Standardized port unit code
     def get_market_info(ticker: str) -> Dict:
         """Access to stock market details
 
-Args:
-ticker: Stock code
+        Args:
+            ticker: Stock code
 
-Returns:
-Dict: Market Dictionary
-"""
+        Returns:
+            Dict: Market Dictionary
+        """
         market = StockUtils.identify_stock_market(ticker)
         currency_name, currency_symbol = StockUtils.get_currency_info(ticker)
         data_source = StockUtils.get_data_source(ticker)

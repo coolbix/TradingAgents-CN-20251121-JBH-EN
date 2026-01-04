@@ -52,8 +52,8 @@ class TechnicalIndicators(BaseModel):
 
 class StockBasicInfoExtended(BaseModel):
     """Stock Basic Information Extension Model - based on existing stock basic info collection
-Harmonize the use of symbol as the main stock code field
-"""
+    Harmonize the use of symbol as the main stock code field
+    """
     #= = standardized field (main field) = = =
     symbol: str = Field(..., description="6位股票代码", pattern=r"^\d{6}$")
     full_symbol: str = Field(..., description="完整标准化代码(如 000001.SZ)")
@@ -150,8 +150,8 @@ Harmonize the use of symbol as the main stock code field
 
 class MarketQuotesExtended(BaseModel):
     """Real-time line extension model - based on existing market quotes collection
-Harmonize the use of symbol as the main stock code field
-"""
+    Harmonize the use of symbol as the main stock code field
+    """
     #= = standardized field (main field) = = =
     symbol: str = Field(..., description="6位股票代码", pattern=r"^\d{6}$")
     full_symbol: Optional[str] = Field(None, description="完整标准化代码")

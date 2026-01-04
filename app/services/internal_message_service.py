@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 def convert_objectid_to_str(data: Union[Dict, List[Dict]]) -> Union[Dict, List[Dict]]:
     """Convert MongoDB ObjectId to a string to avoid a serialization error by JSON
 
-Args:
-Data: Single document or list of documents
+    Args:
+        Data: Single document or list of documents
 
-Returns:
-Converted Data
-"""
+    Returns:
+        Converted Data
+    """
     if isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and '_id' in item:
@@ -102,12 +102,12 @@ class InternalMessageService:
     ) -> Dict[str, int]:
         """Batch Save Internal Messages
 
-Args:
-Messages: Internal Message List
+        Args:
+            Messages: Internal Message List
 
-Returns:
-Save statistical information
-"""
+        Returns:
+            Save statistical information
+        """
         if not messages:
             return {"saved": 0, "failed": 0}
         
@@ -158,12 +158,12 @@ Save statistical information
     ) -> List[Dict[str, Any]]:
         """Query Internal Message
 
-Args:
-Params: query parameters
+        Args:
+            Params: query parameters
 
-Returns:
-Internal Message List
-"""
+        Returns:
+            Internal Message List
+        """
         try:
             collection = await self._get_collection()
             

@@ -26,12 +26,12 @@ async def get_stock_basic_info(
 ):
     """Access to basic stock information
 
-Args:
-Symbol: Stock code
+    Args:
+        Symbol: Stock code
 
-Returns:
-StockBasicInfoResponse: Stock Basic Information with Extended Fields
-"""
+    Returns:
+        StockBasicInfoResponse: Stock Basic Information with Extended Fields
+    """
     try:
         service = get_stock_data_service()
         stock_info = await service.get_stock_basic_info(symbol)
@@ -62,12 +62,12 @@ async def get_market_quotes(
 ):
     """Get Real Time Line Data
 
-Args:
-Symbol: Stock code
+    Args:
+        Symbol: Stock code
 
-Returns:
-MarketQuotesReponse: Real-time line data with extended fields
-"""
+    Returns:
+        MarketQuotesReponse: Real-time line data with extended fields
+    """
     try:
         service = get_stock_data_service()
         quotes = await service.get_market_quotes(symbol)
@@ -101,15 +101,15 @@ async def get_stock_list(
 ):
     """Get Stock List
 
-Args:
-market: Market Filter (optional)
-Industry filter (optional)
-Page: Page Number (from 1)
-page size: per page size (1-100)
+    Args:
+        market: Market Filter (optional)
+        Industry filter (optional)
+        Page: Page Number (from 1)
+        page size: per page size (1-100)
 
-Returns:
-StockListResponse: Stocklist data
-"""
+    Returns:
+        StockListResponse: Stocklist data
+    """
     try:
         service = get_stock_data_service()
         stock_list = await service.get_stock_list(
@@ -145,12 +145,12 @@ async def get_combined_stock_data(
 ):
     """Access to comprehensive stock data (basic information + real time lines)
 
-Args:
-symbol: stock code
+    Args:
+        symbol: stock code
 
-Returns:
-dict: Comprehensive data containing basic information and real time patterns
-"""
+    Returns:
+        dict: Comprehensive data containing basic information and real time patterns
+    """
     try:
         service = get_stock_data_service()
 
@@ -203,13 +203,13 @@ async def search_stocks(
 ):
     """Search stocks
 
-Args:
-Keyword: Search for keywords (stock code or name)
-Limited number of returns
+    Args:
+        Keyword: Search for keywords (stock code or name)
+        Limited number of returns
 
-Returns:
-dict: Search results
-"""
+    Returns:
+        dict: Search results
+    """
     try:
         from app.core.database import get_mongo_db
         from app.core.unified_config import UnifiedConfigManager
@@ -287,9 +287,9 @@ async def get_market_summary(
 ):
     """Overview of access markets
 
-Returns:
-Dict: Stock count by market
-"""
+    Returns:
+        Dict: Stock count by market
+    """
     try:
         from app.core.database import get_mongo_db
 
@@ -339,11 +339,11 @@ async def get_quotes_sync_status(
 ):
     """Get Real Time Line Sync Status
 
-Returns:
-== sync, corrected by elderman ==
-"Message": "Access."
-♪ I'm sorry ♪
-"""
+    Returns:
+        == sync, corrected by elderman ==
+        "Message": "Access."
+        ♪ I'm sorry ♪
+    """
     try:
         from app.services.quotes_ingestion_service import QuotesIngestionService
 

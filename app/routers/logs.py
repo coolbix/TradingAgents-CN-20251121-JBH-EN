@@ -68,8 +68,8 @@ async def list_log_files(
 ):
     """Fetch list of all log files
 
-Returns basic information for log files, including file name, size, change time, etc.
-"""
+    Returns basic information for log files, including file name, size, change time, etc.
+    """
     try:
         logger.info(f"User {current_user['username']}Query log file list")
         
@@ -90,12 +90,12 @@ async def read_log_file(
 ):
     """Read log file contents
 
-Support filter conditions:
-- Lines: Number of lines read (starting at the end)
--level: Log Level (ERRO, WARNING, INFO, DEBUG)
--keyword: Keyword Search
--start time/end time:
-"""
+    Support filter conditions:
+    - Lines: Number of lines read (starting at the end)
+    -level: Log Level (ERRO, WARNING, INFO, DEBUG)
+    -keyword: Keyword Search
+    -start time/end time:
+    """
     try:
         logger.info(f"User {current_user['username']}Read log files:{request.filename}")
         
@@ -125,15 +125,15 @@ async def export_logs(
 ):
     """Export Log File
 
-Support export format:
--zip: Compressed package (recommended)
--txt: Merged text files
+    Support export format:
+    -zip: Compressed package (recommended)
+    -txt: Merged text files
 
-Support filter conditions:
--filenames: Specify the file to export
--level: log level filter
--start time/end time: timescale filter
-"""
+    Support filter conditions:
+    -filenames: Specify the file to export
+    -level: log level filter
+    -start time/end time: timescale filter
+    """
     try:
         logger.info(f"User {current_user['username']}Export Log File")
         
@@ -172,12 +172,12 @@ async def get_log_statistics(
 ):
     """Get Log Statistics
 
-Returns the latest N-day log statistics, including:
-- Number and total size of files
-- Number of error logs
-- Recent error.
-- Distribution of log type
-"""
+    Returns the latest N-day log statistics, including:
+    - Number and total size of files
+    - Number of error logs
+    - Recent error.
+    - Distribution of log type
+    """
     try:
         logger.info(f"User {current_user['username']}Query log statistics")
         
@@ -198,8 +198,8 @@ async def delete_log_file(
 ):
     """Delete Log File
 
-Note: This operation cannot be restored. Please be careful.
-"""
+    Note: This operation cannot be restored. Please be careful.
+    """
     try:
         logger.warning(f"User {current_user['username']}Delete log file:{filename}")
         

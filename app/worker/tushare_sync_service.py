@@ -24,16 +24,16 @@ UTC_8 = timezone(timedelta(hours=8))
 def get_utc8_now():
     """Fetch UTC+8 Current Time
 
-Note: returns a given datetime (without time zone information), MongoDB stores local time values as they are
-This allows the frontend to directly add +08:00 suffix display
-"""
+    Note: returns a given datetime (without time zone information), MongoDB stores local time values as they are
+    This allows the frontend to directly add +08:00 suffix display
+    """
     return now_tz().replace(tzinfo=None)
 
 
 class TushareSyncService:
     """Tushare Data Sync Service
-To synchronise Tushare data to the MongoDB Standard Collection - Yeah.
-"""
+    To synchronise Tushare data to the MongoDB Standard Collection - Yeah.
+    """
     
     def __init__(self):
         self.provider = TushareProvider()
@@ -72,13 +72,13 @@ To synchronise Tushare data to the MongoDB Standard Collection - Yeah.
     async def sync_stock_basic_info(self, force_update: bool = False, job_id: str = None) -> Dict[str, Any]:
         """Sync Equation Basic Information
 
-Args:
-force update: whether all data is mandatory update
-job id: Task ID (for progress tracking)
+        Args:
+            force update: whether all data is mandatory update
+            job id: Task ID (for progress tracking)
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         logger.info("Start syncing stock base information...")
 
         stats = {
@@ -224,17 +224,17 @@ Sync Results Statistics
     async def sync_realtime_quotes(self, symbols: List[str] = None, force: bool = False) -> Dict[str, Any]:
         """Sync Real Time Line Data
 
-Policy:
-- Automatically switch to AKShare interface (avoid waste of Tushare rt k quota) if a small number of shares (1010) are specified
-- One-time acquisition of a Tushare batch interface if a large number of shares or a full market are specified
+        Policy:
+        - Automatically switch to AKShare interface (avoid waste of Tushare rt k quota) if a small number of shares (1010) are specified
+        - One-time acquisition of a Tushare batch interface if a large number of shares or a full market are specified
 
-Args:
-symbols: specify a list of stock codes and synchronize all stocks if empty; if list of shares is specified, save only data on these stocks
-force: enforcement ( Skip transaction time check), default False
+        Args:
+            symbols: specify a list of stock codes and synchronize all stocks if empty; if list of shares is specified, save only data on these stocks
+            force: enforcement ( Skip transaction time check), default False
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         stats = {
             "total_processed": 0,
             "success_count": 0,
@@ -473,13 +473,13 @@ Sync Results Statistics
 
     def _is_trading_time(self) -> bool:
         """Determines whether the current transaction time is
-Unit A trading time:
-Monday to Friday.
-- 9.30-11.30 a.m.
-- 15:00 to 15:00
+        Unit A trading time:
+        Monday to Friday.
+        - 9.30-11.30 a.m.
+        - 15:00 to 15:00
 
-Note: This method does not check holidays and only check periods
-"""
+        Note: This method does not check holidays and only check periods
+        """
         from datetime import datetime
         import pytz
 
@@ -546,18 +546,18 @@ Note: This method does not check holidays and only check periods
     ) -> Dict[str, Any]:
         """Sync Historical Data
 
-Args:
-symbols: list of stock codes
-Start date: Start date
-End date: End date
-increment: Incremental sync
-All history: Sync all historical data
-period: data cycle (daily/weekly/montly)
-job id: Task ID (for progress tracking)
+        Args:
+            symbols: list of stock codes
+            Start date: Start date
+            End date: End date
+            increment: Incremental sync
+            All history: Sync all historical data
+            period: data cycle (daily/weekly/montly)
+            job id: Task ID (for progress tracking)
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         period_name = {"daily": "日线", "weekly": "周线", "monthly": "月线"}.get(period, period)
         logger.info(f"Synchronize{period_name}Historical Data...")
 
@@ -773,12 +773,12 @@ Sync Results Statistics
     async def _get_last_sync_date(self, symbol: str = None) -> str:
         """Get Last Sync Date
 
-Args:
-symbol: stock code, due date to return the stock if provided + 1 day
+        Args:
+            symbol: stock code, due date to return the stock if provided + 1 day
 
-Returns:
-Date string (YYYY-MM-DD)
-"""
+        Returns:
+            Date string (YYYY-MM-DD)
+        """
         try:
             if self.historical_service is None:
                 self.historical_service = await get_historical_data_service()
@@ -830,11 +830,11 @@ Date string (YYYY-MM-DD)
     async def sync_financial_data(self, symbols: List[str] = None, limit: int = 20, job_id: str = None) -> Dict[str, Any]:
         """Sync Financial Data
 
-Args:
-Symbols: list of stock codes. None means sync all stocks
-Limited: Obtain financial reporting periods, default 20 issues (approximately 5 years of data)
-job id: Task ID (for progress tracking)
-"""
+        Args:
+            Symbols: list of stock codes. None means sync all stocks
+            Limited: Obtain financial reporting periods, default 20 issues (approximately 5 years of data)
+            job id: Task ID (for progress tracking)
+        """
         logger.info(f"Synchronization of financial data (access to latest){limit}Period")
 
         stats = {
@@ -1019,16 +1019,16 @@ job id: Task ID (for progress tracking)
     ) -> Dict[str, Any]:
         """Sync News Data
 
-Args:
-symbols: list of stock codes to capture all stocks on the net
-Hours back: Backtrace hours, default 24 hours
-Max news per stock: Maximum number of news per stock
-Force update
-job id: Task ID (for progress tracking)
+        Args:
+            symbols: list of stock codes to capture all stocks on the net
+            Hours back: Backtrace hours, default 24 hours
+            Max news per stock: Maximum number of news per stock
+            Force update
+            job id: Task ID (for progress tracking)
 
-Returns:
-Sync Results Statistics
-"""
+        Returns:
+            Sync Results Statistics
+        """
         logger.info("Commencing news data...")
 
         stats = {
@@ -1167,12 +1167,12 @@ Sync Results Statistics
     async def _should_stop(self, job_id: str) -> bool:
         """Check if the mission should stop.
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Should it stop?
-"""
+        Returns:
+            Should it stop?
+        """
         try:
             #Query execution records, check cancer requested tags
             execution = await self.db.scheduler_executions.find_one(
@@ -1192,11 +1192,11 @@ Should it stop?
     async def _update_progress(self, job_id: str, progress: int, message: str):
         """Update Task Progress
 
-Args:
-Job id: Task ID
-Progress: percentage (0-100)
-message: progress message
-"""
+        Args:
+            Job id: Task ID
+            Progress: percentage (0-100)
+            message: progress message
+        """
         try:
             from app.services.scheduler_service import TaskCancelledException
             from pymongo import MongoClient
@@ -1277,9 +1277,9 @@ async def run_tushare_basic_info_sync(force_update: bool = False):
 async def run_tushare_quotes_sync(force: bool = False):
     """APSscheduler mission: Sync real-time patterns
 
-Args:
-force: enforcement ( Skip transaction time check), default False
-"""
+    Args:
+        force: enforcement ( Skip transaction time check), default False
+    """
     try:
         service = await get_tushare_sync_service()
         result = await service.sync_realtime_quotes(force=force)

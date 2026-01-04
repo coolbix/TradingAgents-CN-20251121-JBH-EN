@@ -18,11 +18,11 @@ SavePathType = Annotated[str, "File path to save data. If None, data is not save
 def save_output(data: pd.DataFrame, tag: str, save_path: SavePathType = None) -> None:
     """Save DataFrame to CSV files
 
-Args:
-Data: DataFrame to save
-tag: Label (for logs)
-Save Path: Save path, not None
-"""
+    Args:
+        Data: DataFrame to save
+        tag: Label (for logs)
+        Save Path: Save path, not None
+    """
     if save_path:
         data.to_csv(save_path)
         logger.info(f"{tag} saved to {save_path}")
@@ -31,27 +31,27 @@ Save Path: Save path, not None
 def get_current_date():
     """Get Current Date (YYYYY-MM-DD format)
 
-Returns:
-str: Current Date String
-"""
+    Returns:
+        str: Current Date String
+    """
     return date.today().strftime("%Y-%m-%d")
 
 
 def decorate_all_methods(decorator):
     """Decorator type: Apply specified decorator for all methods of the class
 
-Args:
-Decorator: Decorator function to apply
+    Args:
+        Decorator: Decorator function to apply
 
-Returns:
-Function: Decoder function
+    Returns:
+        Function: Decoder function
 
-Example:
-@decorate all methods (my decorator)
-Well, that's it.
->def method1(self):
-♪ Pass ♪
-"""
+    Example:
+    @decorate all methods (my decorator)
+    Well, that's it.
+    >def method1(self):
+    ♪ Pass ♪
+    """
     def class_decorator(cls):
         for attr_name, attr_value in cls.__dict__.items():
             if callable(attr_value):
@@ -64,16 +64,16 @@ Well, that's it.
 def get_next_weekday(date_input):
     """Get the next working day (jumping the weekend)
 
-Args:
-date input: date object or date string (YYYYY-MM-DD)
+    Args:
+        date input: date object or date string (YYYYY-MM-DD)
 
-Returns:
-datetime: the date of the next working day
+    Returns:
+        datetime: the date of the next working day
 
-Example:
-# Saturday
-♪ Back Monday
-"""
+    Example:
+    # Saturday
+    ♪ Back Monday
+    """
     if not isinstance(date_input, datetime):
         date_input = datetime.strptime(date_input, "%Y-%m-%d")
 
@@ -88,23 +88,23 @@ Example:
 def get_trading_date_range(target_date=None, lookback_days=10):
     """Date range for accessing transaction data
 
-Policy: Obtain the latest N-day data to ensure that data from the last transaction date are available
-This will automatically address weekends, holidays and data delays.
+    Policy: Obtain the latest N-day data to ensure that data from the last transaction date are available
+    This will automatically address weekends, holidays and data delays.
 
-Args:
-target date: Target date (datetime object or string YYY-MM-DD), default today
-Lookback days: Number of days to search forward, default 10 days (coverable weekend + small leave)
+    Args:
+        target date: Target date (datetime object or string YYY-MM-DD), default today
+        Lookback days: Number of days to search forward, default 10 days (coverable weekend + small leave)
 
-Returns:
-tuple: (start date, end date) two strings, format YYYY-MM-DD
+    Returns:
+        tuple: (start date, end date) two strings, format YYYY-MM-DD
 
-Example:
-Get trading date range
-(2025-10-03), 2025-10-13)
+    Example:
+    Get trading date range
+    (2025-10-03), 2025-10-13)
 
-# Sunday
-(2025-10-02), 2025-10-12)
-"""
+    # Sunday
+    (2025-10-02), 2025-10-12)
+    """
     from datetime import datetime, timedelta
 
     #Process Input Date

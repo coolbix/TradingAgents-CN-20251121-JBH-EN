@@ -3,7 +3,7 @@
 同步市场新闻数据脚本
 
 用法：
-    python scripts/sync_market_news.py
+python scripts/sync_market_news.py
 """
 import asyncio
 import sys

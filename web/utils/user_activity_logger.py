@@ -106,7 +106,7 @@ class UserActivityLogger:
                     duration_ms: int = None) -> None:
         """
         记录用户活动
-        
+
         Args:
             action_type: 活动类型 (auth, analysis, config, navigation, etc.)
             action_name: 活动名称
@@ -244,14 +244,14 @@ class UserActivityLogger:
                           limit: int = 100) -> List[Dict[str, Any]]:
         """
         获取用户活动记录
-        
+
         Args:
             username: 用户名过滤
             start_date: 开始日期
             end_date: 结束日期  
             action_type: 活动类型过滤
             limit: 返回记录数限制
-            
+
         Returns:
             活动记录列表
         """
@@ -324,10 +324,10 @@ class UserActivityLogger:
     def get_activity_statistics(self, days: int = 7) -> Dict[str, Any]:
         """
         获取活动统计信息
-        
+
         Args:
             days: 统计天数
-            
+
         Returns:
             统计信息字典
         """
@@ -379,10 +379,10 @@ class UserActivityLogger:
     def cleanup_old_activities(self, days_to_keep: int = 90) -> int:
         """
         清理旧的活动记录
-        
+
         Args:
             days_to_keep: 保留天数
-            
+
         Returns:
             删除的文件数量
         """

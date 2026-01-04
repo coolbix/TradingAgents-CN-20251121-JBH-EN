@@ -64,12 +64,12 @@ class DataConsistencyChecker:
     ) -> DataConsistencyResult:
         """Check the data consistency of the Daily basic
 
-Args:
-Primary data: Main data source data
-Secondary data: Subdata source data
-Primary source: Main data source name
-Secondary source: Subdata source name
-"""
+        Args:
+            Primary data: Main data source data
+            Secondary data: Subdata source data
+            Primary source: Main data source name
+            Secondary source: Subdata source name
+        """
         try:
             logger.info(f"Check data consistency:{primary_source} vs {secondary_source}")
             
@@ -293,9 +293,9 @@ Secondary source: Subdata source name
     ) -> Tuple[pd.DataFrame, str]:
         """Resolution of data conflicts based on consistency checks
 
-Returns:
-Tuple [pd.DataFrame, st]: (final data, resolution strategy statement)
-"""
+        Returns:
+            Tuple [pd.DataFrame, st]: (final data, resolution strategy statement)
+        """
         action = consistency_result.recommended_action
         
         if action == 'use_either':

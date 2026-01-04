@@ -76,16 +76,16 @@ class HistoricalDataService:
     ) -> int:
         """Save historical data to database
 
-Args:
-symbol: stock code
-Data: Historical DataFrame
-Data source: Data source (tushare/akshare/baostock)
-Market type (CN/HK/US)
-period: data cycle (daily/weekly/montly)
+        Args:
+            symbol: stock code
+            Data: Historical DataFrame
+            Data source: Data source (tushare/akshare/baostock)
+            Market type (CN/HK/US)
+            period: data cycle (daily/weekly/montly)
 
-Returns:
-Number of records kept
-"""
+        Returns:
+            Number of records kept
+        """
         if self.collection is None:
             await self.initialize()
         
@@ -196,14 +196,14 @@ Number of records kept
     ) -> int:
         """Implementation batch writing with retry mechanism
 
-Args:
-symbol: stock code
-Organisations: Batch Operations List
-max retries: maximum number of retries
+        Args:
+            symbol: stock code
+            Organisations: Batch Operations List
+            max retries: maximum number of retries
 
-Returns:
-Number of records successfully saved
-"""
+        Returns:
+            Number of records successfully saved
+        """
         saved_count = 0
         retry_count = 0
 
@@ -378,17 +378,17 @@ Number of records successfully saved
     ) -> List[Dict[str, Any]]:
         """Query Historical Data
 
-Args:
-symbol: stock code
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-Data source: Data source filter
-period: data cycle screening (daily/weekly/montly)
-Limited number of returns
+        Args:
+            symbol: stock code
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            Data source: Data source filter
+            period: data cycle screening (daily/weekly/montly)
+            Limited number of returns
 
-Returns:
-Historical Data List
-"""
+        Returns:
+            Historical Data List
+        """
         if self.collection is None:
             await self.initialize()
         

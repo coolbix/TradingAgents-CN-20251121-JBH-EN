@@ -9,9 +9,9 @@ Features:
 4. Support overwriting or skipping existing data
 
 Usage:
-    python scripts/import_config_and_create_user.py <export_file.json>
-    python scripts/import_config_and_create_user.py <export_file.json> --overwrite
-    python scripts/import_config_and_create_user.py <export_file.json> --collections system_configs users
+python scripts/import_config_and_create_user.py <export_file.json>
+python scripts/import_config_and_create_user.py <export_file.json> --overwrite
+python scripts/import_config_and_create_user.py <export_file.json> --collections system_configs users
 """
 
 import json
@@ -196,7 +196,7 @@ def connect_mongodb(use_docker: bool = True, config: dict = None) -> MongoClient
 
     Args:
         use_docker: True = running inside Docker (use service name 'mongodb')
-                    False = running on host machine (use 'localhost')
+        False = running on host machine (use 'localhost')
         config: Configuration dictionary
     """
     if config is None:

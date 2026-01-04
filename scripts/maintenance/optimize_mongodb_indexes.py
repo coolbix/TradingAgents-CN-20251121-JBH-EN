@@ -9,7 +9,7 @@ MongoDB 索引优化脚本
 4. 生成索引使用报告
 
 使用方法：
-    python scripts/maintenance/optimize_mongodb_indexes.py
+python scripts/maintenance/optimize_mongodb_indexes.py
 """
 
 import asyncio

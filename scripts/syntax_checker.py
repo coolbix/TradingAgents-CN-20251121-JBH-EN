@@ -41,7 +41,7 @@ def check_syntax(file_path: str) -> Tuple[bool, str]:
     """
     检查单个Python文件的语法
     Check syntax of a single Python file
-    
+
     Returns:
         Tuple[bool, str]: (是否有语法错误, 错误信息)
     """

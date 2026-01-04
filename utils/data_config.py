@@ -47,11 +47,11 @@ except ImportError:
 def get_cache_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
     """
     获取缓存目录
-    
+
     Args:
         subdir: 子目录名称
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 缓存目录路径
     """
@@ -66,11 +66,11 @@ def get_cache_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
 def get_results_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
     """
     获取分析结果目录
-    
+
     Args:
         subdir: 子目录名称
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 结果目录路径
     """
@@ -85,11 +85,11 @@ def get_results_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
 def get_sessions_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
     """
     获取会话数据目录
-    
+
     Args:
         subdir: 子目录名称
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 会话目录路径
     """
@@ -104,11 +104,11 @@ def get_sessions_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
 def get_logs_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
     """
     获取日志目录
-    
+
     Args:
         subdir: 子目录名称
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 日志目录路径
     """
@@ -123,11 +123,11 @@ def get_logs_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
 def get_config_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
     """
     获取配置目录
-    
+
     Args:
         subdir: 子目录名称
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 配置目录路径
     """
@@ -142,11 +142,11 @@ def get_config_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
 def get_temp_dir(subdir: Optional[str] = None, create: bool = True) -> Path:
     """
     获取临时文件目录
-    
+
     Args:
         subdir: 子目录名称
         create: 是否自动创建目录
-        
+
     Returns:
         Path: 临时目录路径
     """
@@ -213,7 +213,7 @@ def get_user_activities_logs_dir() -> Path:
 def check_data_directory_config() -> dict:
     """
     检查数据目录配置状态
-    
+
     Returns:
         dict: 配置状态信息
     """

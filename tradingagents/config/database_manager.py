@@ -11,6 +11,11 @@ from typing import Dict, Any, Optional, Tuple
 
 class DatabaseManager:
     """Smart Database Manager"""
+    #NOTE: "Synchronous" Database Manager
+    #NOTE: there is another DatabaseManager in app/core/database.py (asynchronous version)
+    #NOTE: consider unifying them in the future
+    #NOTE: this class seems to being used in only the scripts folder which are used for testing and initial installation
+    #      the main business logic of tradingagents itself seems to use DatabaseManager in app/core/database.py.
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)

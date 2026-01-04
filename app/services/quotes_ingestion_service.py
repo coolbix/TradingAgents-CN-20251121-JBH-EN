@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 class QuotesIngestionService:
     """Regularly capture market-wide near real-time patterns from the data source adaptation layer, and enter the database into the MongoDB collection `market quotes ' .
 
-Core characteristics:
-- Schedule frequency: controlled by settings. QUOTES INGEST INTERVAL SECONDS (default 360 seconds = 6 minutes)
-- Interface rotation: Tushare → AKShare Eastern Wealth → AKShare New Wave (to avoid a single interface being restricted)
-- Intelligent limit flow: Tushare free users up to 2 times an hour, pay users automatically switch to HF mode (5 seconds)
-- Break time: Skip the task, keep last round data; implement one-time refills if necessary
-- Fields: code (6), close, pct chg, amount, open, high, low, pre close, mode date, updated at
-"""
+    Core characteristics:
+    - Schedule frequency: controlled by settings. QUOTES INGEST INTERVAL SECONDS (default 360 seconds = 6 minutes)
+    - Interface rotation: Tushare → AKShare Eastern Wealth → AKShare New Wave (to avoid a single interface being restricted)
+    - Intelligent limit flow: Tushare free users up to 2 times an hour, pay users automatically switch to HF mode (5 seconds)
+    - Break time: Skip the task, keep last round data; implement one-time refills if necessary
+    - Fields: code (6), close, pct chg, amount, open, high, low, pre close, mode date, updated at
+    """
 
     def __init__(self, collection_name: str = "market_quotes") -> None:
         from collections import deque
@@ -47,18 +47,18 @@ Core characteristics:
     def _normalize_stock_code(code: str) -> str:
         """Standardised stock code is 6 digit
 
-Address the following:
-- Sz00001.
-- Sh600036 - 600036.
-- 000001 - > 000001
-- > 000001
+        Address the following:
+        - Sz00001.
+        - Sh600036 - 600036.
+        - 000001 - > 000001
+        - > 000001
 
-Args:
-Code: Original stock code
+        Args:
+            Code: Original stock code
 
-Returns:
-str: Standardized 6-bit stock code
-"""
+        Returns:
+            str: Standardized 6-bit stock code
+        """
         if not code:
             return ""
 
@@ -100,12 +100,12 @@ str: Standardized 6-bit stock code
     ) -> None:
         """Record Sync Status
 
-Args:
-Success
-source name
-records counts: number of records
-error message
-"""
+        Args:
+            Success
+            source name
+            records counts: number of records
+            error message
+        """
         try:
             db = get_mongo_db()
             status_coll = db[self.status_collection_name]
@@ -136,9 +136,9 @@ error message
     async def get_sync_status(self) -> Dict[str, any]:
         """Get Sync Status
 
-Returns:
-FMT 0 
-"""
+        Returns:
+            FMT 0 
+        """
         try:
             db = get_mongo_db()
             status_coll = db[self.status_collection_name]
@@ -194,10 +194,10 @@ FMT 0
     def _check_tushare_permission(self) -> bool:
         """Detecting Tushare rt k interface privileges
 
-Returns:
-True: Payable access (HF)
-False: Free users (up to 2 times an hour)
-"""
+        Returns:
+            True: Payable access (HF)
+            False: Free users (up to 2 times an hour)
+        """
         if self._tushare_permission_checked:
             return self._tushare_has_premium or False
 
@@ -241,10 +241,10 @@ False: Free users (up to 2 times an hour)
     def _can_call_tushare(self) -> bool:
         """Judge whether Tushare rt k interface can be called
 
-Returns:
-True: Callable
-False: beyond limit, no callable
-"""
+        Returns:
+            True: Callable
+            False: beyond limit, no callable
+        """
         #In the case of paid users, no limit on the number of calls
         if self._tushare_has_premium:
             return True
@@ -274,11 +274,11 @@ False: beyond limit, no callable
     def _get_next_source(self) -> Tuple[str, Optional[str]]:
         """Get the next data source (rotation mechanism)
 
-Returns:
-(source  type, akshare api):
-- "Tushare"
-- kshare api: "east money" | "sina"
-"""
+        Returns:
+            (source  type, akshare api):
+            - "Tushare"
+            - kshare api: "east money" | "sina"
+        """
         if not settings.QUOTES_ROTATION_ENABLED:
             #Rotation not enabled, default priority used
             return "tushare", None
@@ -299,16 +299,16 @@ Returns:
     def _is_trading_time(self, now: Optional[datetime] = None) -> bool:
         """Determination of whether it is a buffer period after trading time or closing
 
-Transaction time:
-- 9.30-11.30 a.m.
-- 15:00 to 15:00
-- Post-disclose buffer period: 15:00-15:30 (ensure that closing prices are obtained)
+        Transaction time:
+        - 9.30-11.30 a.m.
+        - 15:00 to 15:00
+        - Post-disclose buffer period: 15:00-15:30 (ensure that closing prices are obtained)
 
-Description of the buffer period after closing:
-- 30 minutes after the transaction.
-- Three additional opportunities for synchronization, assuming one in six minutes (15:06, 15:12, 15:18)
-- significantly reduce the risk of missing closing prices
-"""
+        Description of the buffer period after closing:
+        - 30 minutes after the transaction.
+        - Three additional opportunities for synchronization, assuming one in six minutes (15:06, 15:12, 15:18)
+        - significantly reduce the risk of missing closing prices
+        """
         now = now or datetime.now(self.tz)
         #Chile
         if now.weekday() > 4:
@@ -395,9 +395,9 @@ Description of the buffer period after closing:
 
     async def backfill_from_historical_data(self) -> None:
         """Importing data from historical data set to previous day's closing data to market quotes
-- Import all data if market quotes is empty
-- If markt quotes is not empty, check and fix missing barter fields
-"""
+        - Import all data if market quotes is empty
+        - If markt quotes is not empty, check and fix missing barter fields
+        """
         try:
             #Check if market quates is empty
             is_empty = await self._collection_empty()
@@ -519,13 +519,13 @@ Description of the buffer period after closing:
     def _fetch_quotes_from_source(self, source_type: str, akshare_api: Optional[str] = None) -> Tuple[Optional[Dict], Optional[str]]:
         """Fetch lines from specified data sources
 
-Args:
-"tushare"
-Akshare api: "east money"
+        Args:
+            "tushare"
+            Akshare api: "east money"
 
-Returns:
-(quates map, source name)
-"""
+        Returns:
+            (quates map, source name)
+        """
         try:
             if source_type == "tushare":
                 #Check for callable Tushare
@@ -578,11 +578,11 @@ Returns:
     async def run_once(self) -> None:
         """Implementation of a collection and inventory
 
-Core logic:
-1. Test Tushare Permissions (first run)
-2. Attempts to obtain a business by rotation: Tushare → AKShare’s Eastern Wealth → AKShare’s New Wave
-3. Any interface successfully enters the library and fails to skip this collection
-"""
+        Core logic:
+        1. Test Tushare Permissions (first run)
+        2. Attempts to obtain a business by rotation: Tushare → AKShare’s Eastern Wealth → AKShare’s New Wave
+        3. Any interface successfully enters the library and fails to skip this collection
+        """
         #Non-trading periods
         if not self._is_trading_time():
             if settings.QUOTES_BACKFILL_ON_OFFHOURS:

@@ -61,15 +61,15 @@ class StockDataPreparer:
                           period_days: int = None, analysis_date: str = None) -> StockDataPreparationResult:
         """Pre-acquisition and validation of stock data
 
-Args:
-Stock code: Stock code
-Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
-period days: length of historical data (days), value when defaulting on class initialization
-Analysis date: date analysed, default today
+        Args:
+            Stock code: Stock code
+            Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
+            period days: length of historical data (days), value when defaulting on class initialization
+            Analysis date: date analysed, default today
 
-Returns:
-StockDataPreparationResult: Data Preparation Results
-"""
+        Returns:
+            StockDataPreparationResult: Data Preparation Results
+        """
         if period_days is None:
             period_days = self.default_period_days
 
@@ -606,9 +606,9 @@ StockDataPreparationResult: Data Preparation Results
     def _check_database_data(self, stock_code: str, start_date: str, end_date: str) -> Dict:
         """Check the existence and updating of data in the database
 
-Returns:
-Dict:   FMT 0 
-"""
+        Returns:
+            Dict:   FMT 0 
+        """
         try:
             from tradingagents.dataflows.cache.mongodb_cache_adapter import get_mongodb_cache_adapter
 
@@ -691,12 +691,12 @@ Dict:   FMT 0
 
     def _trigger_data_sync_sync(self, stock_code: str, start_date: str, end_date: str) -> Dict:
         """Trigger Data Synchronization (Sync Packer)
-Call the step synchronisation method in sync context
+        Call the step synchronisation method in sync context
 
-compatible with asyncio.to thread() calling:
-- Create a new cycle of events if running in a line created by asyncio.to thread()
-"attached to a different loop" error
-"""
+        compatible with asyncio.to thread() calling:
+        - Create a new cycle of events if running in a line created by asyncio.to thread()
+        "attached to a different loop" error
+        """
         import asyncio
 
         try:
@@ -742,11 +742,11 @@ compatible with asyncio.to thread() calling:
 
     async def _trigger_data_sync_async(self, stock_code: str, start_date: str, end_date: str) -> Dict:
         """Trigger data synchronisation (show, according to data source priorities configured by the database)
-Synchronization includes: historical, financial, real-time
+        Synchronization includes: historical, financial, real-time
 
-Returns:
-Dict:   FMT 0 
-"""
+        Returns:
+            Dict:   FMT 0 
+        """
         try:
             logger.info(f"[Data syncs]{stock_code}Data (History + Finance + Real Time)...")
 
@@ -900,9 +900,9 @@ Dict:   FMT 0
     def _get_data_source_priority_for_sync(self, stock_code: str) -> list:
         """Acquisition of data source priorities (for synchronization)
 
-Returns:
-list: list of data sources, in order of priority ['tushare', 'akshare', 'baostock']
-"""
+        Returns:
+            list: list of data sources, in order of priority ['tushare', 'akshare', 'baostock']
+        """
         try:
             from tradingagents.dataflows.cache.mongodb_cache_adapter import get_mongodb_cache_adapter
 
@@ -1215,15 +1215,15 @@ def prepare_stock_data(stock_code: str, market_type: str = "auto",
                       period_days: int = None, analysis_date: str = None) -> StockDataPreparationResult:
     """Easy function: Pre-acquisition and validation of stock data
 
-Args:
-Stock code: Stock code
-Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
-period days: length of historical data (days), default 30 days
-Analysis date: date analysed, default today
+    Args:
+        Stock code: Stock code
+        Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
+        period days: length of historical data (days), default 30 days
+        Analysis date: date analysed, default today
 
-Returns:
-StockDataPreparationResult: Data Preparation Results
-"""
+    Returns:
+        StockDataPreparationResult: Data Preparation Results
+    """
     preparer = get_stock_preparer()
     return preparer.prepare_stock_data(stock_code, market_type, period_days, analysis_date)
 
@@ -1232,15 +1232,15 @@ def is_stock_data_ready(stock_code: str, market_type: str = "auto",
                        period_days: int = None, analysis_date: str = None) -> bool:
     """Easy function: Check for stock data readiness
 
-Args:
-Stock code: Stock code
-Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
-period days: length of historical data (days), default 30 days
-Analysis date: date analysed, default today
+    Args:
+        Stock code: Stock code
+        Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
+        period days: length of historical data (days), default 30 days
+        Analysis date: date analysed, default today
 
-Returns:
-Bool: Data ready
-"""
+    Returns:
+        Bool: Data ready
+    """
     result = prepare_stock_data(stock_code, market_type, period_days, analysis_date)
     return result.is_valid
 
@@ -1249,15 +1249,15 @@ def get_stock_preparation_message(stock_code: str, market_type: str = "auto",
                                  period_days: int = None, analysis_date: str = None) -> str:
     """Easy function: Get stock data ready messages
 
-Args:
-Stock code: Stock code
-Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
-period days: length of historical data (days), default 30 days
-Analysis date: date analysed, default today
+    Args:
+        Stock code: Stock code
+        Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
+        period days: length of historical data (days), default 30 days
+        Analysis date: date analysed, default today
 
-Returns:
-str: Data Preparation Message
-"""
+    Returns:
+        str: Data Preparation Message
+    """
     result = prepare_stock_data(stock_code, market_type, period_days, analysis_date)
 
     if result.is_valid:
@@ -1270,17 +1270,17 @@ async def prepare_stock_data_async(stock_code: str, market_type: str = "auto",
                                    period_days: int = None, analysis_date: str = None) -> StockDataPreparationResult:
     """Offset: pre-acquisition and validation of stock data
 
- is dedicated to the FastAPI rectangular context to avoid a cycle of incident conflict
+    is dedicated to the FastAPI rectangular context to avoid a cycle of incident conflict
 
-Args:
-Stock code: Stock code
-Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
-period days: length of historical data (days), default 30 days
-Analysis date: date analysed, default today
+    Args:
+        Stock code: Stock code
+        Market type: Market type ("A" equity, "Hong Kong equity", "Auto")
+        period days: length of historical data (days), default 30 days
+        Analysis date: date analysed, default today
 
-Returns:
-StockDataPreparationResult: Data Preparation Results
-"""
+    Returns:
+        StockDataPreparationResult: Data Preparation Results
+    """
     preparer = get_stock_preparer()
 
     #Use an in-house method using a different version

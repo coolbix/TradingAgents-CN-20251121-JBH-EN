@@ -2,8 +2,8 @@
 修复模拟交易账户的港股和美股初始资金
 
 运行方式：
-    python scripts/fix_paper_trading_initial_cash.py
-    python scripts/fix_paper_trading_initial_cash.py --dry-run  # 仅预览，不实际修改
+python scripts/fix_paper_trading_initial_cash.py
+python scripts/fix_paper_trading_initial_cash.py --dry-run  # 仅预览，不实际修改
 """
 
 import asyncio

@@ -47,8 +47,8 @@ enhanced_svc = get_enhanced_screening_service()
 @router.get("/fields", response_model=FieldConfigResponse)
 async def get_screening_fields(user: dict = Depends(get_current_user)):
     """Get Filter Field Configuration
-Returns all available filter fields and their configuration information
-"""
+    Returns all available filter fields and their configuration information
+    """
     try:
         #Field Classification
         categories = {
@@ -73,16 +73,16 @@ Returns all available filter fields and their configuration information
 def _convert_legacy_conditions_to_new_format(legacy_conditions: Dict[str, Any]) -> List[ScreeningCondition]:
     """Convert filter conditions in traditional format to new format
 
-Example of traditional format:
-FMT 0 
+    Example of traditional format:
+    FMT 0 
 
-♪ I'm sorry ♪
+    ♪ I'm sorry ♪
 
-New format:
-[ Chuckles ]
-ScreeningCondition (field = "total mv", operator = "between", value = [50, 900771992547])
+    New format:
+    [ Chuckles ]
+    ScreeningCondition (field = "total mv", operator = "between", value = [50, 900771992547])
 
-"""
+    """
     conditions = []
 
     #Field name map (old field name - > unified backend field name that may be used at the front end)
@@ -188,10 +188,10 @@ async def run_screening(req: ScreeningRequest, user: dict = Depends(get_current_
 @router.post("/enhanced", response_model=NewScreeningResponse)
 async def enhanced_screening(req: NewScreeningRequest, user: dict = Depends(get_current_user)):
     """Enhanced stock filter interface
-- Support for richer filtering conditions formats
-- Automatically select the best selection strategy (database optimization vs traditional method)
-- Provide detailed performance statistics
-"""
+    - Support for richer filtering conditions formats
+    - Automatically select the best selection strategy (database optimization vs traditional method)
+    - Provide detailed performance statistics
+    """
     try:
         logger.info(f"[enhanced screening]{len(req.conditions)}individual")
         logger.info(f"[enhanced screening] Sort with page break: order by={req.order_by}, limit={req.limit}, offset={req.offset}")
@@ -269,9 +269,9 @@ async def validate_conditions(conditions: List[ScreeningCondition], user: dict =
 @router.get("/industries")
 async def get_industries(user: dict = Depends(get_current_user)):
     """Get a list of all available industries in the database
-Obtain industry-specific data from the highest-priority data sources according to the data source priorities configured by the system
-Returns the list of industries by stock count
-"""
+    Obtain industry-specific data from the highest-priority data sources according to the data source priorities configured by the system
+    Returns the list of industries by stock count
+    """
     try:
         from app.core.database import get_mongo_db
         from app.core.unified_config import UnifiedConfigManager

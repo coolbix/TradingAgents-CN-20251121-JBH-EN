@@ -26,15 +26,15 @@ load_dotenv()
 def analyze_stock_custom(symbol, analysis_focus="comprehensive"):
     """
     自定义股票分析函数
-    
+
     Args:
         symbol: 股票代码 (如 "AAPL", "TSLA", "MSFT")
         analysis_focus: 分析重点
-            - "comprehensive": 全面分析
-            - "technical": 技术面分析
-            - "fundamental": 基本面分析
-            - "risk": 风险评估
-            - "comparison": 行业比较
+        - "comprehensive": 全面分析
+        - "technical": 技术面分析
+        - "fundamental": 基本面分析
+        - "risk": 风险评估
+        - "comparison": 行业比较
     """
     
     logger.info(f"\n🚀 开始分析股票: {symbol}")

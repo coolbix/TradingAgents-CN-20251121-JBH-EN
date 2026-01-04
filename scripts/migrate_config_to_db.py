@@ -4,12 +4,12 @@
 将旧的 JSON 配置文件迁移到 MongoDB 数据库中。
 
 使用方法：
-    python scripts/migrate_config_to_db.py [--dry-run] [--backup] [--force]
+python scripts/migrate_config_to_db.py [--dry-run] [--backup] [--force]
 
 参数：
-    --dry-run   仅显示将要迁移的内容，不实际执行
-    --backup    迁移前备份现有配置
-    --force     强制覆盖已存在的配置
+--dry-run   仅显示将要迁移的内容，不实际执行
+--backup    迁移前备份现有配置
+--force     强制覆盖已存在的配置
 """
 
 import sys

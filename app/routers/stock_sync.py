@@ -24,13 +24,13 @@ router = APIRouter(prefix="/api/stock-sync", tags=["股票数据同步"])
 async def _sync_latest_to_market_quotes(symbol: str) -> None:
     """Synchronise the latest data from stock daily quotes to market quotes
 
-Smart judgement logic:
-- Not overrided if updated data (trade date update) are available in market quotes
-- Update if data are not available or older
+    Smart judgement logic:
+    - Not overrided if updated data (trade date update) are available in market quotes
+    - Update if data are not available or older
 
-Args:
-Symbol: Stock code (6 bits)
-"""
+    Args:
+        Symbol: Stock code (6 bits)
+    """
     db = get_mongo_db()
     symbol6 = str(symbol).zfill(6)
 
@@ -125,13 +125,13 @@ async def sync_single_stock(
 ):
     """Synchronize historical data, financial data and real-time behaviour of individual equities
 
--**symbol**: stock code (6 bits)
--**sync realtime**: Sync real-time lines
--**sync historic**: Synchronization of historical data
--**sync financial**: Synchronization of financial data
-- **data source**: data source (tushare/akshare)
-- **days**: days of historical data
-"""
+    -**symbol**: stock code (6 bits)
+    -**sync realtime**: Sync real-time lines
+    -**sync historic**: Synchronization of historical data
+    -**sync financial**: Synchronization of financial data
+    - **data source**: data source (tushare/akshare)
+    - **days**: days of historical data
+    """
     try:
         logger.info(f"Commencing single stocks:{request.symbol}(Data source:{request.data_source})")
 
@@ -528,12 +528,12 @@ async def sync_batch_stocks(
 ):
     """Batch synchronization of historical and financial data on multiple equities
 
--**symbols**: list of stock codes
--**sync historic**: Synchronization of historical data
--**sync financial**: Synchronization of financial data
-- **data source**: data source (tushare/akshare)
-- **days**: days of historical data
-"""
+    -**symbols**: list of stock codes
+    -**sync historic**: Synchronization of historical data
+    -**sync financial**: Synchronization of financial data
+    - **data source**: data source (tushare/akshare)
+    - **days**: days of historical data
+    """
     try:
         logger.info(f"Start batch sync{len(request.symbols)}Stock only (data source:{request.data_source})")
         
@@ -717,8 +717,8 @@ async def get_sync_status(
 ):
     """Retrieving stock synchronization
 
-Returns final sync time, data bar, etc.
-"""
+    Returns final sync time, data bar, etc.
+    """
     try:
         from app.core.database import get_mongo_db
         

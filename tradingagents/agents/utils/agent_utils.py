@@ -134,13 +134,13 @@ class Toolkit:
         curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
     ) -> str:
         """Access to emotional analysis and discussion on selected stocks on social media and financial platforms in China.
-China's local platforms, such as snowballs, Eastern Wealth Bars, and New Waves.
-Args:
-ticker (str): Stock codes such as AAPL, TSM
-Curr date(str): Current date, format is yyyy-mm-dd
-Returns:
-str: Formatted report containing analysis of Chinese investors ' emotions, discussion of heat, key views
-"""
+        China's local platforms, such as snowballs, Eastern Wealth Bars, and New Waves.
+        Args:
+            ticker (str): Stock codes such as AAPL, TSM
+            Curr date(str): Current date, format is yyyy-mm-dd
+        Returns:
+            str: Formatted report containing analysis of Chinese investors ' emotions, discussion of heat, key views
+        """
         try:
             #This is where data from multiple Chinese platforms can be integrated.
             chinese_sentiment_results = interface.get_chinese_social_sentiment(ticker, curr_date)
@@ -157,14 +157,14 @@ str: Formatted report containing analysis of Chinese investors ' emotions, discu
         end_date: Annotated[str, "结束日期，格式 yyyy-mm-dd"],
     ) -> str:
         """Obtain real-time and historical data from China A and provide professional stock data through high-quality data sources such as Tushare.
-Support for comprehensive data, such as real-time patterns, historical K-lines, technical indicators, and automatic use of best data sources.
-Args:
-Stock code(str): Chinese stock code, e.g. 000001 (Peace Bank), 600519 (Guizhou Shao Tai)
-Start date(str): Start date, format yyyy-mm-dd
-End date(str): End date, format yyyy-mm-dd
-Returns:
-str: Complete stock analysis with real-time performance, historical data, technical indicators
-"""
+        Support for comprehensive data, such as real-time patterns, historical K-lines, technical indicators, and automatic use of best data sources.
+        Args:
+            Stock code(str): Chinese stock code, e.g. 000001 (Peace Bank), 600519 (Guizhou Shao Tai)
+            Start date(str): Start date, format yyyy-mm-dd
+            End date(str): End date, format yyyy-mm-dd
+        Returns:
+            str: Complete stock analysis with real-time performance, historical data, technical indicators
+        """
         try:
             logger.debug(f"== sync, corrected by elderman == @elder man")
             logger.debug(f"[DBUG] Parameter: stock code={stock_code}, start_date={start_date}, end_date={end_date}")
@@ -199,12 +199,12 @@ str: Complete stock analysis with real-time performance, historical data, techni
         curr_date: Annotated[str, "当前日期，格式 yyyy-mm-dd"],
     ) -> str:
         """Get an overview of the Chinese stock market as a whole, including real-time performance of key indicators.
-It covers key indicators such as the above-documented index, the in-depth evidence index, the entrepreneurship index and the 50-year-old.
-Args:
-Curr date(str): Current date, format yyyy-mm-dd
-Returns:
-str: Market overview report with real-time information on key indicators
-"""
+        It covers key indicators such as the above-documented index, the in-depth evidence index, the entrepreneurship index and the 50-year-old.
+        Args:
+            Curr date(str): Current date, format yyyy-mm-dd
+        Returns:
+            str: Market overview report with real-time information on key indicators
+        """
         try:
             #Use Tushare to obtain key index data
             from tradingagents.dataflows.providers.china.tushare import get_tushare_adapter
@@ -422,7 +422,7 @@ str: Market overview report with real-time information on key indicators
             freq (str): reporting frequency of the company's financial history: annual / quarterly
             curr_date (str): current date you are trading at, yyyy-mm-dd
         Returns:
-                str: a report of the company's most recent cash flow statement
+            str: a report of the company's most recent cash flow statement
         """
 
         data_cashflow = interface.get_simfin_cashflow(ticker, freq, curr_date)
@@ -446,7 +446,7 @@ str: Market overview report with real-time information on key indicators
             freq (str): reporting frequency of the company's financial history: annual / quarterly
             curr_date (str): current date you are trading at, yyyy-mm-dd
         Returns:
-                str: a report of the company's most recent income statement
+            str: a report of the company's most recent income statement
         """
 
         data_income_stmt = interface.get_simfin_income_statements(
@@ -482,16 +482,16 @@ str: Market overview report with real-time information on key indicators
         curr_date: Annotated[str, "Current date in yyyy-mm-dd format"],
     ) -> str:
         """Access to real-time news analysis of equities to address the lag in traditional news sources.
-Integration of a number of professional financial services API, providing updates in 15-30 minutes.
-Support for multi-source query mechanisms, giving priority to the use of real-time news aggregaters and the automatic attempt of back-up sources in case of failure.
-For both Unit A and the Port Unit, preference is given to Chinese-language financial and economic news sources (e.g. Eastern Wealth).
+        Integration of a number of professional financial services API, providing updates in 15-30 minutes.
+        Support for multi-source query mechanisms, giving priority to the use of real-time news aggregaters and the automatic attempt of back-up sources in case of failure.
+        For both Unit A and the Port Unit, preference is given to Chinese-language financial and economic news sources (e.g. Eastern Wealth).
 
-Args:
-ticker (str): Stock codes such as AAPL, TSM, 600036.SH
-Curr date(str): Current date, format is yyyy-mm-dd
-Returns:
-str: Formatted reports containing real-time news analysis, emergency assessments, time-bound statements
-"""
+        Args:
+            ticker (str): Stock codes such as AAPL, TSM, 600036.SH
+            Curr date(str): Current date, format is yyyy-mm-dd
+        Returns:
+            str: Formatted reports containing real-time news analysis, emergency assessments, time-bound statements
+        """
         from tradingagents.dataflows.realtime_news_utils import get_realtime_stock_news
         return get_realtime_stock_news(ticker, curr_date, hours_back=6)
 
@@ -591,12 +591,12 @@ str: Formatted reports containing real-time news analysis, emergency assessments
         curr_date: Annotated[str, "当前日期，格式为yyyy-mm-dd"],
     ):
         """Access to basic face-to-face information on Chinese stock A, using Chinese stock data sources.
-Args:
-ticker (str): Chinese stock code A, e.g. 6,00036 000001
-curr date(str): Current date in yyyy-mm-dd
-Returns:
-st: Formatted string with basic face information on shares
-"""
+        Args:
+            ticker (str): Chinese stock code A, e.g. 6,00036 000001
+            curr date(str): Current date in yyyy-mm-dd
+        Returns:
+            st: Formatted string with basic face information on shares
+        """
         logger.debug(f"[DEBUG] get china fundamentals called: ticker={ticker}, date={curr_date}")
 
         #Check for Chinese stocks.
@@ -656,14 +656,14 @@ st: Formatted string with basic face information on shares
     ) -> str:
         """Harmonization of access to port unit data, priority use of AKShare data source, backup Yahoo Finance
 
-Args:
-Symbol: Port Unit Code (e.g. 0700.HK)
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
+        Args:
+            Symbol: Port Unit Code (e.g. 0700.HK)
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
 
-Returns:
-str: Formatted Port Unit data
-"""
+        Returns:
+            str: Formatted Port Unit data
+        """
         logger.debug(f"[DBUG] get hk stock data unified: symbol={symbol}, start_date={start_date}, end_date={end_date}")
 
         try:
@@ -693,18 +693,18 @@ str: Formatted Port Unit data
         curr_date: Annotated[str, "当前日期，格式：YYYY-MM-DD"] = None
     ) -> str:
         """A uniform stock fundamental analysis tool
-Automatically identify stock types (A, port, US) and call the corresponding data Source
-Supporting analytical level-based data acquisition strategies
+        Automatically identify stock types (A, port, US) and call the corresponding data Source
+        Supporting analytical level-based data acquisition strategies
 
-Args:
-ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
-Start date: Start date (optional, format: YYYY-MM-DD)
-End date: End date (optional, format: YYYY-MM-DD)
-Curr date: Current date (optional, format: YYYY-MM-DD)
+        Args:
+            ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
+            Start date: Start date (optional, format: YYYY-MM-DD)
+            End date: End date (optional, format: YYYY-MM-DD)
+            Curr date: Current date (optional, format: YYYY-MM-DD)
 
-Returns:
-str: Basic analysis of data and reports
-"""
+        Returns:
+            str: Basic analysis of data and reports
+        """
         logger.info(f"Analysis of stocks:{ticker}")
 
         # Get an analytical level configuration to support a level-based data acquisition strategy
@@ -1040,26 +1040,26 @@ str: Basic analysis of data and reports
         end_date: Annotated[str, "结束日期，格式：YYYY-MM-DD。通常与start_date相同，传递当前分析日期即可"]
     ) -> str:
         """Common stock market data tool
-Automatically identify stock types (A, Port, USA) and use the corresponding data sources to obtain price and technical indicator data
+        Automatically identify stock types (A, Port, USA) and use the corresponding data sources to obtain price and technical indicator data
 
- Important: The system automatically expands the date range to the number of days (usually 365 days) of the configuration to ensure that technical indicators are calculated with sufficient historical data.
-All you need to do is pass the current analysis date as start date and end date, without manually calculating the historical date range.
+        Important: The system automatically expands the date range to the number of days (usually 365 days) of the configuration to ensure that technical indicators are calculated with sufficient historical data.
+        All you need to do is pass the current analysis date as start date and end date, without manually calculating the historical date range.
 
-Args:
-ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
-Start date: Start date (format: YYYY-MM-DD). Just pass the current analysis date. The system will expand automatically.
-End date: End date (format: YYYY-MM-DD). Just pass the current analysis date.
+        Args:
+            ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
+            Start date: Start date (format: YYYY-MM-DD). Just pass the current analysis date. The system will expand automatically.
+            End date: End date (format: YYYY-MM-DD). Just pass the current analysis date.
 
-Returns:
-str: Analysis of market data and technology
+        Returns:
+            str: Analysis of market data and technology
 
-Example:
-If the date of analysis is 2025-11-09, pass:
--Ticker: "00700.HK"
-- Start date: "2025-11-09"
--end date: "2025-11-09"
-The system automatically captures 365 days of historical data from 2024-11-09 to 2025-11-09.
-"""
+        Example:
+        If the date of analysis is 2025-11-09, pass:
+        -Ticker: "00700.HK"
+        - Start date: "2025-11-09"
+        -end date: "2025-11-09"
+        The system automatically captures 365 days of historical data from 2024-11-09 to 2025-11-09.
+        """
         logger.info(f"Analysis of stocks:{ticker}")
 
         try:
@@ -1150,15 +1150,15 @@ The system automatically captures 365 days of historical data from 2024-11-09 to
         curr_date: Annotated[str, "当前日期，格式：YYYY-MM-DD"]
     ) -> str:
         """Unified stock news tool
-Automatically identify stock types (A, Hong Kong, United States) and call corresponding news data Source
+        Automatically identify stock types (A, Hong Kong, United States) and call corresponding news data Source
 
-Args:
-ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
-Curr date: Current date (format: YYYY-MM-DD)
+        Args:
+            ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
+            Curr date: Current date (format: YYYY-MM-DD)
 
-Returns:
-str: Public information analysis reports
-"""
+        Returns:
+            str: Public information analysis reports
+        """
         logger.info(f"Analysis of stocks:{ticker}")
 
         try:
@@ -1283,15 +1283,15 @@ str: Public information analysis reports
         curr_date: Annotated[str, "当前日期，格式：YYYY-MM-DD"]
     ) -> str:
         """Common stock mood analysis tool
-Automatically identify stock types (A, port, US) and call corresponding emotional data Source
+        Automatically identify stock types (A, port, US) and call corresponding emotional data Source
 
-Args:
-ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
-Curr date: Current date (format: YYYY-MM-DD)
+        Args:
+            ticker: Stock code (e.g. 000001, 0700.HK, AAPL)
+            Curr date: Current date (format: YYYY-MM-DD)
 
-Returns:
-str: Emotional analysis
-"""
+        Returns:
+            str: Emotional analysis
+        """
         logger.info(f"Analysis of stocks:{ticker}")
 
         try:

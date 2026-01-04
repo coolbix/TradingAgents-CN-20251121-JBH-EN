@@ -28,6 +28,9 @@ _synchronous_mongo_db: Optional[Database] = None
 
 class DatabaseManager:
     """Database Connection Manager"""
+    #NOTE: "Asynchronous" Database Manager
+    #NOTE: there is another DatabaseManager in tradingagents/config/database_manager.py (synchronous version)
+    #NOTE: consider unifying them in the future
 
     def __init__(self):
         self.mongo_client: Optional[AsyncIOMotorClient] = None

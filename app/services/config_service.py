@@ -219,10 +219,10 @@ class ConfigService:
     async def update_datasource_grouping(self, data_source_name: str, category_id: str, updates: Dict[str, Any]) -> bool:
         """Update data source group relationships
 
-Important: updating both the data groups and systems configs
--Datasource groupings: for front-end presentation and management
-- system configs.data source configs: for priority judgement when actual data are obtained
-"""
+        Important: updating both the data groups and systems configs
+        -Datasource groupings: for front-end presentation and management
+        - system configs.data source configs: for priority judgement when actual data are obtained
+        """
         try:
             db = await self._get_db()
             groupings_collection = db.datasource_groupings
@@ -287,10 +287,10 @@ Important: updating both the data groups and systems configs
     async def update_category_datasource_order(self, category_id: str, ordered_datasources: List[Dict[str, Any]]) -> bool:
         """Update the sorting of data sources in the classification
 
-Important: updating both the data groups and systems configs
--Datasource groupings: for front-end presentation and management
-- system configs.data source configs: for priority judgement when actual data are obtained
-"""
+        Important: updating both the data groups and systems configs
+        -Datasource groupings: for front-end presentation and management
+        - system configs.data source configs: for priority judgement when actual data are obtained
+        """
         try:
             db = await self._get_db()
             groupings_collection = db.datasource_groupings
@@ -1109,14 +1109,14 @@ Important: updating both the data groups and systems configs
     def _truncate_api_key(self, api_key: str, prefix_len: int = 6, suffix_len: int = 6) -> str:
         """Cut API Key for display
 
-Args:
-api key: Complete API Key
-prefix len: Keep prefix length
-suffix len: retain suffix length
+        Args:
+            api key: Complete API Key
+            prefix len: Keep prefix length
+            suffix len: retain suffix length
 
-Returns:
-Post-cut API Key, e.g. 0f229a c550ec
-"""
+        Returns:
+            Post-cut API Key, e.g. 0f229a c550ec
+        """
         if not api_key or len(api_key) <= prefix_len + suffix_len:
             return api_key
 
@@ -2796,18 +2796,18 @@ Post-cut API Key, e.g. 0f229a c550ec
     def _is_valid_api_key(self, api_key: Optional[str]) -> bool:
         """Determines whether API Key is valid
 
-Conditions of validity:
-Key is not empty
-Key is not a placeholder (not beginning with 'your ' or 'your-', not ending with 'here')
-Key is not a cut-off key (does not contain '...')
-4. Key length > 10 (basic format validation)
+        Conditions of validity:
+        Key is not empty
+        Key is not a placeholder (not beginning with 'your ' or 'your-', not ending with 'here')
+        Key is not a cut-off key (does not contain '...')
+        4. Key length > 10 (basic format validation)
 
-Args:
-api key: API Key to be validated
+        Args:
+            api key: API Key to be validated
 
-Returns:
-Bool: True is valid, False is invalid
-"""
+        Returns:
+            Bool: True is valid, False is invalid
+        """
         if not api_key:
             return False
 
@@ -3020,9 +3020,9 @@ Bool: True is valid, False is invalid
     async def init_aggregator_providers(self) -> Dict[str, Any]:
         """Initialized polymer channel plant configuration
 
-Returns:
-Initialization Results Statistics
-"""
+        Returns:
+            Initialization Results Statistics
+        """
         from app.constants.model_capabilities import AGGREGATOR_PROVIDERS
 
         try:
@@ -4074,11 +4074,11 @@ Initialization Results Statistics
     def _format_models_with_pricing(self, models: list) -> list:
         """Formatting Model List with Price Information
 
-Support multiple price formats:
-1. OpenRouter: pricing.prompt/complement
-2. 302.ai: price.prompt/complement or price.input/output
-Other: possible lack of price information
-"""
+        Support multiple price formats:
+        1. OpenRouter: pricing.prompt/complement
+        2. 302.ai: price.prompt/complement or price.input/output
+        Other: possible lack of price information
+        """
         formatted = []
         for model in models:
             model_id = model.get("id", "")

@@ -27,7 +27,7 @@ from tradingagents.dataflows.config import get_config, set_config
 def create_sample_news_data(ticker, data_dir, days=7):
     """
     创建示例新闻数据
-    
+
     Args:
         ticker (str): 股票代码
         data_dir (str): 数据目录
@@ -129,7 +129,7 @@ def create_sample_news_data(ticker, data_dir, days=7):
 def create_sample_insider_data(ticker, data_dir, data_type):
     """
     创建示例内部人数据
-    
+
     Args:
         ticker (str): 股票代码
         data_dir (str): 数据目录

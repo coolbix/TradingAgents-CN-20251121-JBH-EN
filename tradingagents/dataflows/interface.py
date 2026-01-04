@@ -55,9 +55,9 @@ except (ImportError, AttributeError) as e:
 def _get_enabled_hk_data_sources() -> list:
     """Access to user-enabled port unit data source configuration from database
 
-Returns:
-list: list of data sources in order of priority, e.g. ['akshare', 'yfinance']
-"""
+    Returns:
+        list: list of data sources in order of priority, e.g. ['akshare', 'yfinance']
+    """
     try:
         #Try reading configurations from the database
         from app.core.database import get_mongo_db_synchronous
@@ -114,9 +114,9 @@ list: list of data sources in order of priority, e.g. ['akshare', 'yfinance']
 def _get_enabled_us_data_sources() -> list:
     """Read user-enabled US share data source configuration from database
 
-Returns:
-list: list of data sources in order of priority, such as ['yfinance', 'finnhub']
-"""
+    Returns:
+        list: list of data sources in order of priority, such as ['yfinance', 'finnhub']
+    """
     try:
         #Try reading configurations from the database
         from app.core.database import get_mongo_db_synchronous
@@ -226,11 +226,11 @@ def get_finnhub_news(
     Retrieve news about a company within a time frame
 
     Args
-        ticker (str): ticker for the company you are interested in
-        start_date (str): Start date in yyyy-mm-dd format
-        end_date (str): End date in yyyy-mm-dd format
+    ticker (str): ticker for the company you are interested in
+    start_date (str): Start date in yyyy-mm-dd format
+    end_date (str): End date in yyyy-mm-dd format
     Returns
-        str: dataframe containing the news of the company in the time frame
+    str: dataframe containing the news of the company in the time frame
 
     """
 
@@ -1006,12 +1006,12 @@ def get_global_news_openai(curr_date):
 
 def get_fundamentals_finnhub(ticker, curr_date):
     """Using Finnhub API to obtain stock fundamentals as an option for OpenAI
-Args:
-ticker (str): Stock code
-curr date(str): Current date in yyyy-mm-dd
-Returns:
-str: Formatted Basic Data Reports
-"""
+    Args:
+        ticker (str): Stock code
+        curr date(str): Current date in yyyy-mm-dd
+    Returns:
+        str: Formatted Basic Data Reports
+    """
     try:
         import finnhub
         import os
@@ -1145,20 +1145,20 @@ str: Formatted Basic Data Reports
 def get_fundamentals_openai(ticker, curr_date):
     """Acquisition of U.S. stock fundamentals, automatic selection and downgrading using data source manager
 
-Supported data sources (priority by database configuration):
-- Alpha Vantage: Basic and news data (high accuracy)
-- yfinance: Stock prices and basic information (free of charge)
-- Finnhub: Alternative data source
-- OpenAI: Search basic information using AI (needs configuration)
+    Supported data sources (priority by database configuration):
+    - Alpha Vantage: Basic and news data (high accuracy)
+    - yfinance: Stock prices and basic information (free of charge)
+    - Finnhub: Alternative data source
+    - OpenAI: Search basic information using AI (needs configuration)
 
-Priority read from database data groupings (market category id=us stocks')
+    Priority read from database data groupings (market category id=us stocks')
 
-Args:
-ticker (str): Stock code
-curr date(str): Current date in yyyy-mm-dd
-Returns:
-str: Basic data reporting
-"""
+    Args:
+        ticker (str): Stock code
+        curr date(str): Current date in yyyy-mm-dd
+    Returns:
+        str: Basic data reporting
+    """
     try:
         #Import Cache Manager and Data Source Manager
         from .cache import get_cache
@@ -1238,14 +1238,14 @@ str: Basic data reporting
 def _get_fundamentals_alpha_vantage(ticker, curr_date, cache):
     """Fetch basic face data from Alpha Vantage
 
-Args:
-ticker: Stock code
-Curr date: Current date
-Cache: Cache Object
+    Args:
+        ticker: Stock code
+        Curr date: Current date
+        Cache: Cache Object
 
-Returns:
-str: Basic Data Report, Failed to return None
-"""
+    Returns:
+        str: Basic Data Report, Failed to return None
+    """
     try:
         logger.info(f"[Alpha Vantage]{ticker}Basic Data...")
         from .providers.us.alpha_vantage_fundamentals import get_fundamentals as get_av_fundamentals
@@ -1268,14 +1268,14 @@ str: Basic Data Report, Failed to return None
 def _get_fundamentals_yfinance(ticker, curr_date, cache):
     """Fetch basic facet data from yfinance
 
-Args:
-ticker: Stock code
-Curr date: Current date
-Cache: Cache Object
+    Args:
+        ticker: Stock code
+        Curr date: Current date
+        Cache: Cache Object
 
-Returns:
-str: Basic Data Report, Failed to return None
-"""
+    Returns:
+        str: Basic Data Report, Failed to return None
+    """
     try:
         logger.info(f"[yfinance]{ticker}Basic Data...")
         import yfinance as yf
@@ -1341,15 +1341,15 @@ str: Basic Data Report, Failed to return None
 def _get_fundamentals_openai_impl(ticker, curr_date, config, cache):
     """OpenAI Basic Data Acquisition Achieved (Internal Functions)
 
-Args:
-ticker: Stock code
-Curr date: Current date
-config: Configure Object
-Cache: Cache Object
+    Args:
+        ticker: Stock code
+        Curr date: Current date
+        config: Configure Object
+        Cache: Cache Object
 
-Returns:
-str: Basic data reporting
-"""
+    Returns:
+        str: Basic data reporting
+    """
     try:
         logger.debug(f"[OpenAI]{ticker}Basic Data...")
 
@@ -1405,16 +1405,16 @@ def get_china_stock_data_tushare(
     end_date: Annotated[str, "结束日期，格式：YYYY-MM-DD"]
 ) -> str:
     """Using Tushare to access Chinese stock A historical data
-Redirect to Data source manager to avoid circular calls
+    Redirect to Data source manager to avoid circular calls
 
-Args:
-ticker: Stock code
-Start date: Start date
-End date: End date
+    Args:
+        ticker: Stock code
+        Start date: Start date
+        End date: End date
 
-Returns:
-str: Formatted Stock Data Reports
-"""
+    Returns:
+        str: Formatted Stock Data Reports
+    """
     try:
         from .data_source_manager import get_data_source_manager
 
@@ -1436,14 +1436,14 @@ def get_china_stock_info_tushare(
     ticker: Annotated[str, "中国股票代码，如：000001、600036等"]
 ) -> str:
     """Use Tushare to obtain basic information on China's A-unit
-Directly call Tushare adapter to avoid recycling
+    Directly call Tushare adapter to avoid recycling
 
-Args:
-ticker: Stock code
+    Args:
+        ticker: Stock code
 
-Returns:
-str: Formatted Basic Information on Stock
-"""
+    Returns:
+        str: Formatted Basic Information on Stock
+    """
     try:
         from .data_source_manager import get_data_source_manager
 
@@ -1476,14 +1476,14 @@ def get_china_stock_fundamentals_tushare(
     ticker: Annotated[str, "中国股票代码，如：000001、600036等"]
 ) -> str:
     """Acquisition of China Unit A fundamentals data (uniform interface)
-Supporting multiple data sources: MongoDB →Tushare →AKshare → Generating
+    Supporting multiple data sources: MongoDB →Tushare →AKshare → Generating
 
-Args:
-ticker: Stock code
+    Args:
+        ticker: Stock code
 
-Returns:
-str: Basic analysis reports
-"""
+    Returns:
+        str: Basic analysis reports
+    """
     try:
         from .data_source_manager import get_data_source_manager
 
@@ -1507,16 +1507,16 @@ def get_china_stock_data_unified(
     end_date: Annotated[str, "结束日期，格式：YYYY-MM-DD"]
 ) -> str:
     """Integrated China A data access interface
-Automatically use configured data sources (default Tushare) to support backup data sources
+    Automatically use configured data sources (default Tushare) to support backup data sources
 
-Args:
-ticker: Stock code
-Start date: Start date
-End date: End date
+    Args:
+        ticker: Stock code
+        Start date: Start date
+        End date: End date
 
-Returns:
-str: Formatted Stock Data Reports
-"""
+    Returns:
+        str: Formatted Stock Data Reports
+    """
     # Smart date range processing: auto-extension back-to-back days to configuration, processing weekends/leaves Day
     from tradingagents.utils.dataflow_utils import get_trading_date_range
     from app.core.config import get_settings
@@ -1620,14 +1620,14 @@ def get_china_stock_info_unified(
     ticker: Annotated[str, "中国股票代码，如：000001、600036等"]
 ) -> str:
     """Basic information access interface for Unit A of China
-Automatically use configured data sources (default Tushare)
+    Automatically use configured data sources (default Tushare)
 
-Args:
-ticker: Stock code
+    Args:
+        ticker: Stock code
 
-Returns:
-str: Stock Basic Information
-"""
+    Returns:
+        str: Stock Basic Information
+    """
     try:
         from .data_source_manager import get_china_stock_info_unified
 
@@ -1672,12 +1672,12 @@ def switch_china_data_source(
 ) -> str:
     """Toggle Chinese stock data sources
 
-Args:
-source name
+    Args:
+        source name
 
-Returns:
-st: Switch result
-"""
+    Returns:
+        st: Switch result
+    """
     try:
         from .data_source_manager import get_data_source_manager, ChinaDataSource
 
@@ -1708,9 +1708,9 @@ st: Switch result
 def get_current_china_data_source() -> str:
     """Get the current Chinese stock data source
 
-Returns:
-str: Current data source information
-"""
+    Returns:
+        str: Current data source information
+    """
     try:
         from .data_source_manager import get_data_source_manager
 
@@ -1734,14 +1734,14 @@ str: Current data source information
 def get_hk_stock_data_unified(symbol: str, start_date: str = None, end_date: str = None) -> str:
     """Harmonization interface for access to port unit data (selection of data sources according to user configuration)
 
-Args:
-Symbol: Port Unit Code (e.g. 0700.HK)
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
+    Args:
+        Symbol: Port Unit Code (e.g. 0700.HK)
+        Start date: Start date (YYYYY-MM-DD)
+        End date: End Date (YYYYY-MM-DD)
 
-Returns:
-str: Formatted Port Unit data
-"""
+    Returns:
+        str: Formatted Port Unit data
+    """
     try:
         logger.info(f"Access to Port Unit data:{symbol}")
 
@@ -1832,12 +1832,12 @@ str: Formatted Port Unit data
 def get_hk_stock_info_unified(symbol: str) -> Dict:
     """Unified interface for information on port units (selection of data sources according to user configuration)
 
-Args:
-Symbol: Port Unit Code
+    Args:
+        Symbol: Port Unit Code
 
-Returns:
-Dict: Port Unit Information
-"""
+    Returns:
+        Dict: Port Unit Information
+    """
     try:
         #🔥 Read user-enabled data source configuration from the database
         enabled_sources = _get_enabled_hk_data_sources()
@@ -1893,14 +1893,14 @@ Dict: Port Unit Information
 def get_stock_data_by_market(symbol: str, start_date: str = None, end_date: str = None) -> str:
     """Automatically select data sources according to stock market type
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
+    Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
 
-Returns:
-str: Formatted Stock Data
-"""
+    Returns:
+        str: Formatted Stock Data
+    """
     try:
         from tradingagents.utils.stock_utils import StockUtils
 

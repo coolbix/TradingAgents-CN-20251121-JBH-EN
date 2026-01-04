@@ -164,11 +164,11 @@ class AuthManager:
     def authenticate(self, username: str, password: str) -> Tuple[bool, Optional[Dict]]:
         """
         用户认证
-        
+
         Args:
             username: 用户名
             password: 密码
-            
+
         Returns:
             (认证成功, 用户信息)
         """
@@ -204,10 +204,10 @@ class AuthManager:
     def check_permission(self, permission: str) -> bool:
         """
         检查当前用户权限
-        
+
         Args:
             permission: 权限名称
-            
+
         Returns:
             是否有权限
         """
@@ -247,11 +247,11 @@ class AuthManager:
     def login(self, username: str, password: str) -> bool:
         """
         用户登录
-        
+
         Args:
             username: 用户名
             password: 密码
-            
+
         Returns:
             登录是否成功
         """
@@ -323,11 +323,11 @@ class AuthManager:
     def restore_from_cache(self, user_info: Dict, login_time: float = None) -> bool:
         """
         从前端缓存恢复登录状态
-        
+
         Args:
             user_info: 用户信息
             login_time: 原始登录时间，如果为None则使用当前时间
-            
+
         Returns:
             恢复是否成功
         """
@@ -368,10 +368,10 @@ class AuthManager:
     def require_permission(self, permission: str) -> bool:
         """
         要求特定权限，如果没有权限则显示错误信息
-        
+
         Args:
             permission: 权限名称
-            
+
         Returns:
             是否有权限
         """

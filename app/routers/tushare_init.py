@@ -56,8 +56,8 @@ async def get_database_status(
     current_user: dict = Depends(get_current_user)
 ):
     """Get database status
-Check the status of the data in the current database and determine whether it needs initialization
-"""
+    Check the status of the data in the current database and determine whether it needs initialization
+    """
     try:
         db = get_mongo_db()
         
@@ -111,8 +111,8 @@ async def get_initialization_status(
     current_user: dict = Depends(get_current_user)
 ):
     """Get Initialization
-Check if current initializing task is running
-"""
+    Check if current initializing task is running
+    """
     try:
         status = InitializationStatusResponse(
             is_running=_initialization_status["is_running"],
@@ -136,8 +136,8 @@ async def start_basic_initialization(
     current_user: dict = Depends(get_current_user)
 ):
     """Start Basic Information Initialization
-Synchronization of stock base information only for rapid initialization
-"""
+    Synchronization of stock base information only for rapid initialization
+    """
     if _initialization_status["is_running"]:
         raise HTTPException(status_code=400, detail="初始化任务已在运行中")
     
@@ -160,8 +160,8 @@ async def start_full_initialization(
     current_user: dict = Depends(get_current_user)
 ):
     """Start Full Data Initialization
-Includes complete synchronization of basic information, historical data, financial data, status data
-"""
+    Includes complete synchronization of basic information, historical data, financial data, status data
+    """
     if _initialization_status["is_running"]:
         raise HTTPException(status_code=400, detail="初始化任务已在运行中")
     
@@ -190,8 +190,8 @@ async def stop_initialization(
     current_user: dict = Depends(get_current_user)
 ):
     """Stop Initialising Tasks
-Try to cancel a running initialisation task
-"""
+    Try to cancel a running initialisation task
+    """
     if not _initialization_status["is_running"]:
         raise HTTPException(status_code=400, detail="没有正在运行的初始化任务")
     

@@ -55,12 +55,12 @@ async def query_financial_data(
 ) -> dict:
     """Search for stock financial data
 
-- **symbol**: stock code (mandatory)
-- **report period**: Screening for reporting period, format YYYMMDD
-- **data source**: data source filter (tushare/akshare/baostock)
--**report type**: Report type filter (quarterly/annual)
--**Limit**: Limit number of returns, default 10
-"""
+    - **symbol**: stock code (mandatory)
+    - **report period**: Screening for reporting period, format YYYMMDD
+    - **data source**: data source filter (tushare/akshare/baostock)
+    -**report type**: Report type filter (quarterly/annual)
+    -**Limit**: Limit number of returns, default 10
+    """
     try:
         service = await get_financial_data_service()
         
@@ -92,9 +92,9 @@ async def get_latest_financial_data(
 ) -> dict:
     """Obtain updated financial data on equities
 
-- **symbol**: stock code (mandatory)
-- **data source**: data source filter (tushare/akshare/baostock)
-"""
+    - **symbol**: stock code (mandatory)
+    - **data source**: data source filter (tushare/akshare/baostock)
+    """
     try:
         service = await get_financial_data_service()
         
@@ -121,11 +121,11 @@ async def get_latest_financial_data(
 async def get_financial_statistics() -> dict:
     """Access to financial data statistics
 
-Return financial data statistics from various data sources, including:
-- Total records.
-- Total stocks
-- Statistics grouped by data source and type of report
-"""
+    Return financial data statistics from various data sources, including:
+    - Total records.
+    - Total stocks
+    - Statistics grouped by data source and type of report
+    """
     try:
         service = await get_financial_data_service()
         
@@ -147,12 +147,12 @@ async def start_financial_sync(
 ) -> dict:
     """Other Organiser
 
-Support configuration:
-- List of stock codes (sync all stocks if empty)
-- Data source selection
-- Selection of types of reports
-- Batch size and delay settings
-"""
+    Support configuration:
+    - List of stock codes (sync all stocks if empty)
+    - Data source selection
+    - Selection of types of reports
+    - Batch size and delay settings
+    """
     try:
         service = await get_financial_sync_service()
         
@@ -181,9 +181,9 @@ async def sync_single_stock_financial(
 ) -> dict:
     """Synchronize single equity financial data
 
-- **symbol**: stock code (mandatory)
--**data sources**: list of data sources, default for all data sources
-"""
+    - **symbol**: stock code (mandatory)
+    -**data sources**: list of data sources, default for all data sources
+    """
     try:
         service = await get_financial_sync_service()
         
@@ -215,8 +215,8 @@ async def sync_single_stock_financial(
 async def get_sync_statistics() -> dict:
     """Obtain financial data synchronized statistical information
 
-Returns synchronized statistics from data sources, including records, shares, etc.
-"""
+    Returns synchronized statistics from data sources, including records, shares, etc.
+    """
     try:
         service = await get_financial_sync_service()
         
@@ -235,8 +235,8 @@ Returns synchronized statistics from data sources, including records, shares, et
 async def health_check() -> dict:
     """Health screening of financial data services
 
-Check service status and database connection
-"""
+    Check service status and database connection
+    """
     try:
         #Initial status of inspection services
         service = await get_financial_data_service()

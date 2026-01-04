@@ -26,13 +26,13 @@ router = APIRouter(prefix="/markets", tags=["multi-market"])
 async def get_supported_markets(current_user: dict = Depends(get_current_user)):
     """List of markets to obtain support
 
-Returns:
-FMT 0,
-I don't know.
+    Returns:
+        FMT 0,
+        I don't know.
 
-♪ I'm sorry ♪
-♪ I'm sorry ♪
-"""
+    ♪ I'm sorry ♪
+    ♪ I'm sorry ♪
+    """
     markets = [
         {
             "code": "CN",
@@ -72,18 +72,18 @@ async def search_stocks(
 ):
     """Search for stocks (support multi-market)
 
-Args:
-Market type (CN/HK/US)
-q: Search keyword
-Number of returns
+    Args:
+        Market type (CN/HK/US)
+        q: Search keyword
+        Number of returns
 
-Returns:
-FMT 0 
-I don't know.
-"Total": 1
-♪ I'm sorry ♪
-♪ I'm sorry ♪
-"""
+    Returns:
+        FMT 0 
+        I don't know.
+        "Total": 1
+        ♪ I'm sorry ♪
+        ♪ I'm sorry ♪
+    """
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -117,15 +117,15 @@ async def get_stock_info(
 ):
     """Access to basic stock information (support to multi-market, multi-data sources)
 
-Args:
-Market type (CN/HK/US)
-code: stock code
-source: specify the data source (optional, not assigned automatic selection by priority)
+    Args:
+        Market type (CN/HK/US)
+        code: stock code
+        source: specify the data source (optional, not assigned automatic selection by priority)
 
-Returns:
-FMT 0 
-♪ I'm sorry ♪
-"""
+    Returns:
+        FMT 0 
+        ♪ I'm sorry ♪
+    """
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -164,14 +164,14 @@ async def get_stock_quote(
 ):
     """Access to real-time equity (support to multiple markets)
 
-Args:
-Market type (CN/HK/US)
-code: stock code
+    Args:
+        Market type (CN/HK/US)
+        code: stock code
 
-Returns:
-FMT 0 
-♪ I'm sorry ♪
-"""
+    Returns:
+        FMT 0 
+        ♪ I'm sorry ♪
+    """
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(
@@ -213,21 +213,21 @@ async def get_stock_daily_quotes(
 ):
     """Acquisition of stock history K-line data (support to multi-market)
 
-Args:
-Market type (CN/HK/US)
-code: stock code
-Start date: Start date
-End date: End date
-Other Organiser
+    Args:
+        Market type (CN/HK/US)
+        code: stock code
+        Start date: Start date
+        End date: End date
+        Other Organiser
 
-Returns:
-FMT 0,
-I don't know.
-I don't know.
-"Total": 100
-♪ I'm sorry ♪
-♪ I'm sorry ♪
-"""
+    Returns:
+        FMT 0,
+        I don't know.
+        I don't know.
+        "Total": 100
+        ♪ I'm sorry ♪
+        ♪ I'm sorry ♪
+    """
     market = market.upper()
     if market not in ["CN", "HK", "US"]:
         raise HTTPException(

@@ -355,12 +355,12 @@ class MemoryStateManager:
     async def cleanup_zombie_tasks(self, max_running_hours: int = 2) -> int:
         """Clean-up of zombie missions (long running missions)
 
-Args:
-max running hours: Maximum running time (hours), longer than which running task will be marked as failure
+        Args:
+            max running hours: Maximum running time (hours), longer than which running task will be marked as failure
 
-Returns:
-Number of tasks cleared
-"""
+        Returns:
+            Number of tasks cleared
+        """
         with self._lock:
             cutoff_time = datetime.now().timestamp() - (max_running_hours * 3600)
             zombie_tasks = []
@@ -393,12 +393,12 @@ Number of tasks cleared
     async def remove_task(self, task_id: str) -> bool:
         """Remove Tasks From Memory
 
-Args:
-task id: task ID
+        Args:
+            task id: task ID
 
-Returns:
-Delete successfully
-"""
+        Returns:
+            Delete successfully
+        """
         with self._lock:
             if task_id in self._tasks:
                 del self._tasks[task_id]

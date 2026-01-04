@@ -20,9 +20,9 @@ class LogExportService:
     def __init__(self, log_dir: str = "./logs"):
         """Initialization log export service
 
-Args:
-log dir: logfile directory
-"""
+        Args:
+            log dir: logfile directory
+        """
         self.log_dir = Path(log_dir)
         logger.info(f"[LogExport Service] Initialization log export service")
         logger.info(f"[LogExportService]{log_dir}")
@@ -43,9 +43,9 @@ log dir: logfile directory
     def list_log_files(self) -> List[Dict[str, Any]]:
         """List all log files
 
-Returns:
-Log file list containing information on file name, size, change time, etc.
-"""
+        Returns:
+            Log file list containing information on file name, size, change time, etc.
+        """
         log_files = []
 
         try:
@@ -104,12 +104,12 @@ Log file list containing information on file name, size, change time, etc.
     def _get_log_type(self, filename: str) -> str:
         """Log type by filename
 
-Args:
-Filename: File First Name
+        Args:
+            Filename: File First Name
 
-Returns:
-Log Type
-"""
+        Returns:
+            Log Type
+        """
         if "error" in filename.lower():
             return "error"
         elif "webapi" in filename.lower():
@@ -132,17 +132,17 @@ Log Type
     ) -> Dict[str, Any]:
         """Read log file contents (support filtering)
 
-Args:
-filename: Log file First Name
-Lines: Number of lines read (starting at the end)
-level: log level filter (ERRO, WARNING, INFO, DEBUG)
-Keyword: Keyword Filter
-Start time: Start time (ISO format)
-End time: End time (ISO format)
+        Args:
+            filename: Log file First Name
+            Lines: Number of lines read (starting at the end)
+            level: log level filter (ERRO, WARNING, INFO, DEBUG)
+            Keyword: Keyword Filter
+            Start time: Start time (ISO format)
+            End time: End time (ISO format)
 
-Returns:
-Log contents and statistical information
-"""
+        Returns:
+            Log contents and statistical information
+        """
         file_path = self.log_dir / filename
         
         if not file_path.exists():
@@ -219,16 +219,16 @@ Log contents and statistical information
     ) -> str:
         """Export Log File
 
-Args:
-Filenames: List of log filenames to export (None for export all)
-level: log level filter
-Start time: start time
-End time: End time
-Format: Export Format (zip, txt)
+        Args:
+            Filenames: List of log filenames to export (None for export all)
+            level: log level filter
+            Start time: start time
+            End time: End time
+            Format: Export Format (zip, txt)
 
-Returns:
-Path to Export File
-"""
+        Returns:
+            Path to Export File
+        """
         try:
             #Determine File to Export
             if filenames:
@@ -311,12 +311,12 @@ Path to Export File
     def get_log_statistics(self, days: int = 7) -> Dict[str, Any]:
         """Get Log Statistics
 
-Args:
-Days: Statistics for the last few days
+        Args:
+            Days: Statistics for the last few days
 
-Returns:
-Log Statistics
-"""
+        Returns:
+            Log Statistics
+        """
         try:
             cutoff_time = datetime.now() - timedelta(days=days)
             
@@ -383,11 +383,11 @@ def get_log_export_service() -> LogExportService:
 
 def _get_log_directory() -> str:
     """Get Log Directory Path
-Priority:
-1. Read from log profile (support to Docker environment)
-Read from Settings configuration
-3. Use default values./logs
-"""
+    Priority:
+    1. Read from log profile (support to Docker environment)
+    Read from Settings configuration
+    3. Use default values./logs
+    """
     import os
     from pathlib import Path
 

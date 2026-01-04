@@ -2,8 +2,8 @@
 模拟交易数据库迁移脚本：支持多市场和多货币
 
 运行方式：
-    python scripts/migrate_paper_trading_multi_market.py
-    python scripts/migrate_paper_trading_multi_market.py --dry-run  # 仅预览，不实际修改
+python scripts/migrate_paper_trading_multi_market.py
+python scripts/migrate_paper_trading_multi_market.py --dry-run  # 仅预览，不实际修改
 """
 
 import asyncio

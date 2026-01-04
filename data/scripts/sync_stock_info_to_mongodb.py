@@ -36,7 +36,7 @@ class StockInfoSyncer:
     def __init__(self, mongodb_config: Dict[str, Any] = None):
         """
         初始化同步器
-        
+
         Args:
             mongodb_config: MongoDB配置字典
         """

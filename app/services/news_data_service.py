@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 def convert_objectid_to_str(data: Union[Dict, List[Dict]]) -> Union[Dict, List[Dict]]:
     """Convert MongoDB ObjectId to a string to avoid a serialization error by JSON
 
-Args:
-Data: Single document or list of documents
+    Args:
+        Data: Single document or list of documents
 
-Returns:
-Converted Data
-"""
+    Returns:
+        Converted Data
+    """
     if isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and '_id' in item:
@@ -149,14 +149,14 @@ class NewsDataService:
     ) -> int:
         """Preservation of news data
 
-Args:
-News data: News data (single or multiple)
-Data source: Data source identifier
-Market sign
+        Args:
+            News data: News data (single or multiple)
+            Data source: Data source identifier
+            Market sign
 
-Returns:
-Number of records kept
-"""
+        Returns:
+            Number of records kept
+        """
         try:
             #🔥 Ensure Index exists (created on first call)
             await self._ensure_indexes()
@@ -245,16 +245,16 @@ Number of records kept
         market: str = "CN"
     ) -> int:
         """Save news data (sync version)
-Use a synchronized PyMongo client for non-show context
+        Use a synchronized PyMongo client for non-show context
 
-Args:
-News data: News data (single or multiple)
-Data source: Data source identifier
-Market sign
+        Args:
+            News data: News data (single or multiple)
+            Data source: Data source identifier
+            Market sign
 
-Returns:
-Number of records kept
-"""
+        Returns:
+            Number of records kept
+        """
         try:
             from app.core.database import get_mongo_db_synchronous
 
@@ -453,12 +453,12 @@ Number of records kept
     async def query_news(self, params: NewsQueryParams) -> List[Dict[str, Any]]:
         """Query news data
 
-Args:
-Params: query parameters
+        Args:
+            Params: query parameters
 
-Returns:
-News Data List
-"""
+        Returns:
+            News Data List
+        """
         try:
             collection = self._get_collection()
 
@@ -552,14 +552,14 @@ News Data List
     ) -> List[Dict[str, Any]]:
         """Get the latest news.
 
-Args:
-symbol: stock code, empty for all news
-Limited number of returns
-Hours back: backtrace hours
+        Args:
+            symbol: stock code, empty for all news
+            Limited number of returns
+            Hours back: backtrace hours
 
-Returns:
-Newslist Update
-"""
+        Returns:
+            Newslist Update
+        """
         start_time = datetime.utcnow() - timedelta(hours=hours_back)
         
         params = NewsQueryParams(
@@ -580,14 +580,14 @@ Newslist Update
     ) -> NewsStats:
         """Access to news statistics
 
-Args:
-symbol: stock code
-Start time: start time
-End time: End time
+        Args:
+            symbol: stock code
+            Start time: start time
+            End time: End time
 
-Returns:
-News statistics
-"""
+        Returns:
+            News statistics
+        """
         try:
             collection = self._get_collection()
             
@@ -676,12 +676,12 @@ News statistics
     async def delete_old_news(self, days_to_keep: int = 90) -> int:
         """Delete Expired News
 
-Args:
-days to keep: Keep days
+        Args:
+            days to keep: Keep days
 
-Returns:
-Number of records removed
-"""
+        Returns:
+            Number of records removed
+        """
         try:
             collection = self._get_collection()
             
@@ -708,14 +708,14 @@ Number of records removed
     ) -> List[Dict[str, Any]]:
         """Full text search news
 
-Args:
-Query text: Search text
-symbol: stock code filter
-Limited number of returns
+        Args:
+            Query text: Search text
+            symbol: stock code filter
+            Limited number of returns
 
-Returns:
-Search result list
-"""
+        Returns:
+            Search result list
+        """
         try:
             collection = self._get_collection()
 

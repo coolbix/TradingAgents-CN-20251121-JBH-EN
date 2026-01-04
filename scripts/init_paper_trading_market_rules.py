@@ -2,7 +2,7 @@
 初始化模拟交易市场规则配置
 
 运行方式：
-    python scripts/init_paper_trading_market_rules.py
+python scripts/init_paper_trading_market_rules.py
 """
 
 import asyncio

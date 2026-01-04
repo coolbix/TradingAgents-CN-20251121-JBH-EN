@@ -9,7 +9,7 @@
 3. 检查数据是否正确存储到 stock_basic_info_hk 集合
 
 使用方法：
-    python scripts/test/test_hk_sync.py
+python scripts/test/test_hk_sync.py
 """
 
 import asyncio

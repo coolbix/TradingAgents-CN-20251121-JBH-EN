@@ -5,9 +5,9 @@
 - sync_status: 为后台任务状态查询建立索引
 
 用法：
-  python scripts/setup/init_mongodb_indexes.py
+python scripts/setup/init_mongodb_indexes.py
 或设置环境：
-  MONGODB_HOST / MONGODB_PORT / MONGODB_DATABASE / MONGODB_USERNAME / MONGODB_PASSWORD / MONGODB_AUTH_SOURCE
+MONGODB_HOST / MONGODB_PORT / MONGODB_DATABASE / MONGODB_USERNAME / MONGODB_PASSWORD / MONGODB_AUTH_SOURCE
 
 注意：此脚本仅创建索引，不会删除已有索引。
 """

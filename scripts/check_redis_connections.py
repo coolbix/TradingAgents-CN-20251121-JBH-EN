@@ -3,7 +3,7 @@
 检查 Redis 连接状态和 PubSub 频道
 
 用法：
-    python scripts/check_redis_connections.py
+python scripts/check_redis_connections.py
 """
 
 import asyncio
@@ -154,7 +154,7 @@ async def check_redis_connections():
 async def kill_idle_pubsub_connections(idle_threshold: int = 300):
     """
     杀死空闲的 PubSub 连接
-    
+
     Args:
         idle_threshold: 空闲时间阈值（秒），默认 300 秒（5 分钟）
     """

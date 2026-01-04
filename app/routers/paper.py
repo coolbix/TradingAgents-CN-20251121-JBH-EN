@@ -33,12 +33,12 @@ class PlaceOrderRequest(BaseModel):
 def _detect_market_and_code(code: str) -> Tuple[str, str]:
     """Test market type of stock code and standardize code
 
-Returns:
-(market, standardized code): Market type and standardized code
-- CN: Unit A (6-digit)
-- HK: Port Unit (4-5 digit or HK suffix)
-- US: United States shares (letter code)
-"""
+    Returns:
+        (market, standardized code): Market type and standardized code
+        - CN: Unit A (6-digit)
+        - HK: Port Unit (4-5 digit or HK suffix)
+        - US: United States shares (letter code)
+    """
     code = code.strip().upper()
 
     #Port Unit: with .HK suffix
@@ -193,13 +193,13 @@ async def _get_available_quantity(user_id: str, code: str, market: str) -> int:
 async def _get_last_price(code: str, market: str) -> Optional[float]:
     """Up-to-date prices for equities (support to multiple markets)
 
-Args:
-code: stock code
-Market type (CN/HK/US)
+    Args:
+        code: stock code
+        Market type (CN/HK/US)
 
-Returns:
-Latest price, notone if you fail to get back
-"""
+    Returns:
+        Latest price, notone if you fail to get back
+    """
     db = get_mongo_db()
 
     #Unit A: Access to database

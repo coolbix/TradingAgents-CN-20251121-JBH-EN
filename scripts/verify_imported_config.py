@@ -3,8 +3,8 @@
 验证导入后的配置数据
 
 使用方法：
-    # 在测试服务器的 Docker 容器内运行
-    docker exec tradingagents-backend python /tmp/verify_imported_config.py
+# 在测试服务器的 Docker 容器内运行
+docker exec tradingagents-backend python /tmp/verify_imported_config.py
 """
 
 import sys

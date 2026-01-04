@@ -7,8 +7,8 @@ from app.utils.timezone import now_tz
 
 def ok(data: Any = None, message: str = "ok") -> Dict[str, Any]:
     """Standard Successful Response
-Return structure:   FT 0 
-"""
+    Return structure:   FT 0 
+    """
     return {
         "success": True,
         "data": data,

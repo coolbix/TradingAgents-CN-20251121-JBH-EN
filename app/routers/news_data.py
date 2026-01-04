@@ -50,16 +50,16 @@ async def query_stock_news(
 ):
     """Query for stock news (intelligence access: priority databases, real-time access when data are not available)
 
-Args:
-symbol: stock code
-Hours back: backtrace hours
-Limited number of returns
-Category: News Category Filter
-Sentiment: Emotional Analysis Filter
+    Args:
+        symbol: stock code
+        Hours back: backtrace hours
+        Limited number of returns
+        Category: News Category Filter
+        Sentiment: Emotional Analysis Filter
 
-Returns:
-dict: News data list
-"""
+    Returns:
+        dict: News data list
+    """
     try:
         service = await get_news_data_service()
 
@@ -135,12 +135,12 @@ async def query_news_advanced(
 ):
     """Advanced news queries
 
-Args:
-request parameters
+    Args:
+        request parameters
 
-Returns:
-dict: News data list
-"""
+    Returns:
+        dict: News data list
+    """
     try:
         service = await get_news_data_service()
         
@@ -186,14 +186,14 @@ async def get_latest_news(
 ):
     """Get the latest news.
 
-Args:
-symbol: stock code, empty for all news
-Limited number of returns
-Hours back: backtrace hours
+    Args:
+        symbol: stock code, empty for all news
+        Limited number of returns
+        Hours back: backtrace hours
 
-Returns:
-dict: Newslist
-"""
+    Returns:
+        dict: Newslist
+    """
     try:
         service = await get_news_data_service()
         
@@ -230,14 +230,14 @@ async def search_news(
 ):
     """Full text search news
 
-Args:
-query: Search key Word
-symbol: stock code filter
-Limited number of returns
+    Args:
+        query: Search key Word
+        symbol: stock code filter
+        Limited number of returns
 
-Returns:
-dict: Search result list
-"""
+    Returns:
+        dict: Search result list
+    """
     try:
         service = await get_news_data_service()
         
@@ -272,13 +272,13 @@ async def get_news_statistics(
 ):
     """Access to news statistics
 
-Args:
-symbol: stock code
-Days back: Backtrace days
+    Args:
+        symbol: stock code
+        Days back: Backtrace days
 
-Returns:
-Dict: News statistics
-"""
+    Returns:
+        Dict: News statistics
+    """
     try:
         service = await get_news_data_service()
         
@@ -328,13 +328,13 @@ async def start_news_sync(
 ):
     """Synchronising folder
 
-Args:
-request parameters
-Background tasks: Backstage Tasks
+    Args:
+        request parameters
+        Background tasks: Backstage Tasks
 
-Returns:
-dict: Job startup result
-"""
+    Returns:
+        dict: Job startup result
+    """
     try:
         sync_service = await get_news_data_sync_service()
         
@@ -381,15 +381,15 @@ async def sync_single_stock_news(
 ):
     """Synchronization of Single Stock News (Sync execution)
 
-Args:
-symbol: stock code
-data sources: list of data sources
-Hours back: backtrace hours
-Max news per source: Maximum number of news per data source
+    Args:
+        symbol: stock code
+        data sources: list of data sources
+        Hours back: backtrace hours
+        Max news per source: Maximum number of news per data source
 
-Returns:
-dict: Sync Results
-"""
+    Returns:
+        dict: Sync Results
+    """
     try:
         sync_service = await get_news_data_sync_service()
         
@@ -430,12 +430,12 @@ async def cleanup_old_news(
 ):
     """Clean up outdated news
 
-Args:
-days to keep: Keep days
+    Args:
+        days to keep: Keep days
 
-Returns:
-dict: Cleanup result
-"""
+    Returns:
+        dict: Cleanup result
+    """
     try:
         service = await get_news_data_service()
         

@@ -45,8 +45,8 @@ def to_config_tz(dt: Optional[datetime]) -> Optional[datetime]:
 
 def ensure_timezone(dt: Optional[datetime]) -> Optional[datetime]:
     """Ensure that datetime objects contain time zone information
-If no time zone information is available, the configured time zone is assumed (default Asia/Shanghai)
-"""
+    If no time zone information is available, the configured time zone is assumed (default Asia/Shanghai)
+    """
     if dt is None:
         return None
     if dt.tzinfo is None:

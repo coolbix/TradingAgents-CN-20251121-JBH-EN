@@ -32,10 +32,10 @@ settings = get_settings()
 def generate_full_symbol(code: str) -> str:
     """
     根据股票代码生成完整标准化代码
-    
+
     Args:
         code: 6位股票代码
-        
+
     Returns:
         完整标准化代码，如果无法识别则返回原始代码（确保不为空）
     """

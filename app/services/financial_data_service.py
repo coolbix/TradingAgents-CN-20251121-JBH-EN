@@ -83,17 +83,17 @@ class FinancialDataService:
     ) -> int:
         """Save financial data to database
 
-Args:
-symbol: stock code
-Financial data: Financial data dictionary
-Data source: Data source (tushare/akshare/baostock)
-Market type (CN/HK/US)
-Report period: Reporting period (YYYYMMDD)
-Report type: Report type (quarterly/annual)
+        Args:
+            symbol: stock code
+            Financial data: Financial data dictionary
+            Data source: Data source (tushare/akshare/baostock)
+            Market type (CN/HK/US)
+            Report period: Reporting period (YYYYMMDD)
+            Report type: Report type (quarterly/annual)
 
-Returns:
-Number of records kept
-"""
+        Returns:
+            Number of records kept
+        """
         if self.db is None:
             await self.initialize()
         
@@ -169,16 +169,16 @@ Number of records kept
     ) -> List[Dict[str, Any]]:
         """Query financial data
 
-Args:
-symbol: stock code
-Report period: Screening for reporting period Select
-Data source: Data source filter
-Report type: report type screening Select
-Limited number of returns
+        Args:
+            symbol: stock code
+            Report period: Screening for reporting period Select
+            Data source: Data source filter
+            Report type: report type screening Select
+            Limited number of returns
 
-Returns:
-List of financial data
-"""
+        Returns:
+            List of financial data
+        """
         if self.db is None:
             await self.initialize()
         

@@ -82,12 +82,12 @@ class DataSourceConfig:
     def get_provider_config(self, provider_name: str) -> Dict[str, Any]:
         """Get the configuration of the specified provider
 
-Args:
-program name: Provider name
+        Args:
+            program name: Provider name
 
-Returns:
-Configure Dictionary
-"""
+        Returns:
+            Configure Dictionary
+        """
         config = self._configs.get(provider_name.lower(), {})
         if not config:
             logger.warning(f"Not found{provider_name}Configure")

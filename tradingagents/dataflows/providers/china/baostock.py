@@ -109,9 +109,9 @@ class BaoStockProvider(BaseStockDataProvider):
     async def get_stock_list(self) -> List[Dict[str, Any]]:
         """Get Stock List
 
-Returns:
-List of stocks, including codes and names
-"""
+        Returns:
+            List of stocks, including codes and names
+        """
         if not self.connected:
             return []
         
@@ -171,12 +171,12 @@ List of stocks, including codes and names
     async def get_stock_basic_info(self, code: str) -> Dict[str, Any]:
         """Access to basic stock information
 
-Args:
-code: stock code
+        Args:
+            code: stock code
 
-Returns:
-Standardized stock base information
-"""
+        Returns:
+            Standardized stock base information
+        """
         if not self.connected:
             return {}
 
@@ -205,13 +205,13 @@ Standardized stock base information
     async def get_valuation_data(self, code: str, trade_date: Optional[str] = None) -> Dict[str, Any]:
         """Acquisition of stock valuation data (PE, PB, PS, PCF, etc.)
 
-Args:
-code: stock code
-trade date: transaction date (YYYYY-MM-DD), default as last transaction date
+        Args:
+            code: stock code
+            trade date: transaction date (YYYYY-MM-DD), default as last transaction date
 
-Returns:
-Valuation data dictionary containing pe ttm, pb mrq, ps tm, pcf ttm, close, total shares, etc.
-"""
+        Returns:
+            Valuation data dictionary containing pe ttm, pb mrq, ps tm, pcf ttm, close, total shares, etc.
+        """
         if not self.connected:
             return {}
 
@@ -322,12 +322,12 @@ Valuation data dictionary containing pe ttm, pb mrq, ps tm, pcf ttm, close, tota
     async def get_stock_quotes(self, code: str) -> Dict[str, Any]:
         """Getting stock in real time
 
-Args:
-code: stock code
+        Args:
+            code: stock code
 
-Returns:
-Standardized practice data
-"""
+        Returns:
+            Standardized practice data
+        """
         if not self.connected:
             return {}
         
@@ -445,12 +445,12 @@ Standardized practice data
     def _get_full_symbol(self, code: str) -> str:
         """Get the full stock code
 
-Args:
-code: 6-bit stock code
+        Args:
+            code: 6-bit stock code
 
-Returns:
-Full standardized code, return original code if unidentifiable (ensure not to be empty)
-"""
+        Returns:
+            Full standardized code, return original code if unidentifiable (ensure not to be empty)
+        """
         #Make sure the code isn't empty.
         if not code:
             return ""
@@ -535,15 +535,15 @@ Full standardized code, return original code if unidentifiable (ensure not to be
                                 period: str = "daily") -> Optional[pd.DataFrame]:
         """Access to historical data
 
-Args:
-code: stock code
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-period: data cycle
+        Args:
+            code: stock code
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            period: data cycle
 
-Returns:
-DataFrame
-"""
+        Returns:
+            DataFrame
+        """
         if not self.connected:
             return None
 
@@ -632,14 +632,14 @@ DataFrame
                                quarter: Optional[int] = None) -> Dict[str, Any]:
         """Access to financial data
 
-Args:
-code: stock code
-year: year
-Qarter: Quarterly
+        Args:
+            code: stock code
+            year: year
+            Qarter: Quarterly
 
-Returns:
-Financial data dictionary
-"""
+        Returns:
+            Financial data dictionary
+        """
         if not self.connected:
             return {}
 

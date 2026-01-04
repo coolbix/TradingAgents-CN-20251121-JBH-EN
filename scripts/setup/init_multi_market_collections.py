@@ -16,7 +16,7 @@ MongoDB多市场集合初始化脚本（支持多数据源）
 - 美股支持：yfinance, alphavantage（可选）
 
 使用方法：
-    python scripts/setup/init_multi_market_collections.py
+python scripts/setup/init_multi_market_collections.py
 """
 
 import asyncio

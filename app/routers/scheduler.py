@@ -42,9 +42,9 @@ async def list_jobs(
 ):
     """Can not open message
 
-Returns:
-Other Organiser
-"""
+    Returns:
+        Other Organiser
+    """
     try:
         jobs = await service.list_jobs()
         return ok(data=jobs, message=f"获取到 {len(jobs)} 个定时任务")
@@ -61,13 +61,13 @@ async def update_job_metadata_route(
 ):
     """Update task metadata (trigger name and comment)
 
-Args:
-Job id: Task ID
-request for updates
+    Args:
+        Job id: Task ID
+        request for updates
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以更新任务元数据")
@@ -96,12 +96,12 @@ async def get_job_detail(
 ):
     """Can not open message
 
-Args:
-Job id: Task ID
+    Args:
+        Job id: Task ID
 
-Returns:
-Task details
-"""
+    Returns:
+        Task details
+    """
     try:
         job = await service.get_job(job_id)
         if not job:
@@ -121,12 +121,12 @@ async def pause_job(
 ):
     """Pause Task
 
-Args:
-Job id: Task ID
+    Args:
+        Job id: Task ID
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以暂停任务")
@@ -151,12 +151,12 @@ async def resume_job(
 ):
     """Resume Mission
 
-Args:
-Job id: Task ID
+    Args:
+        Job id: Task ID
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以恢复任务")
@@ -182,13 +182,13 @@ async def trigger_job(
 ):
     """Manually trigger mission execution
 
-Args:
-Job id: Task ID
-force: enforcement ( Skip transaction time check, etc.), default False
+    Args:
+        Job id: Task ID
+        force: enforcement ( Skip transaction time check, etc.), default False
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     #Check administrator privileges
     if not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="仅管理员可以手动触发任务")
@@ -223,14 +223,14 @@ async def get_job_history(
 ):
     """Get Task Execution History
 
-Args:
-Job id: Task ID
-Limited number of returns
-offset: offset
+    Args:
+        Job id: Task ID
+        Limited number of returns
+        offset: offset
 
-Returns:
-Mission performance history
-"""
+    Returns:
+        Mission performance history
+    """
     try:
         history = await service.get_job_history(job_id, limit=limit, offset=offset)
         total = await service.count_job_history(job_id)
@@ -259,15 +259,15 @@ async def get_all_history(
 ):
     """Get all tasks executed history
 
-Args:
-Limited number of returns
-offset: offset
-job id: Task ID filter
-status: status filter
+    Args:
+        Limited number of returns
+        offset: offset
+        job id: Task ID filter
+        status: status filter
 
-Returns:
-History of all assignments
-"""
+    Returns:
+        History of all assignments
+    """
     try:
         history = await service.get_all_history(
             limit=limit,
@@ -297,9 +297,9 @@ async def get_scheduler_stats(
 ):
     """Get statistics from the scheduler
 
-Returns:
-Scheduler statistical information, including total tasks, number of active tasks, number of suspended tasks, etc.
-"""
+    Returns:
+        Scheduler statistical information, including total tasks, number of active tasks, number of suspended tasks, etc.
+    """
     try:
         stats = await service.get_stats()
         return ok(data=stats, message="获取统计信息成功")
@@ -314,9 +314,9 @@ async def scheduler_health_check(
 ):
     """Dispatch health check
 
-Returns:
-Scheduler health status
-"""
+    Returns:
+        Scheduler health status
+    """
     try:
         health = await service.health_check()
         return ok(data=health, message="调度器运行正常")
@@ -336,16 +336,16 @@ async def get_job_executions(
 ):
     """Get Task Execution History
 
-Args:
-job id: Task ID filter (optional)
-status: status filter (optional)
-is manual: Manually triggered (optional)
-Limited number of returns
-offset: offset
+    Args:
+        job id: Task ID filter (optional)
+        status: status filter (optional)
+        is manual: Manually triggered (optional)
+        Limited number of returns
+        offset: offset
 
-Returns:
-Execute History List
-"""
+    Returns:
+        Execute History List
+    """
     try:
         executions = await service.get_job_executions(
             job_id=job_id,
@@ -377,16 +377,16 @@ async def get_single_job_executions(
 ):
     """Can not open message
 
-Args:
-Job id: Task ID
-status: status filter (optional)
-is manual: Manually triggered (optional)
-Limited number of returns
-offset: offset
+    Args:
+        Job id: Task ID
+        status: status filter (optional)
+        is manual: Manually triggered (optional)
+        Limited number of returns
+        offset: offset
 
-Returns:
-Execute History List
-"""
+    Returns:
+        Execute History List
+    """
     try:
         executions = await service.get_job_executions(
             job_id=job_id,
@@ -414,12 +414,12 @@ async def get_job_execution_stats(
 ):
     """Access to statistical information on mandate implementation
 
-Args:
-Job id: Task ID
+    Args:
+        Job id: Task ID
 
-Returns:
-Statistical information
-"""
+    Returns:
+        Statistical information
+    """
     try:
         stats = await service.get_job_execution_stats(job_id)
         return ok(data=stats, message="获取统计信息成功")
@@ -435,15 +435,15 @@ async def cancel_execution(
 ):
     """Mandate execution cancelled/terminated
 
-(a) For ongoing tasks, the demarking is set;
-For quit but still running in the database, directly marked as failed
+    (a) For ongoing tasks, the demarking is set;
+    For quit but still running in the database, directly marked as failed
 
-Args:
-Exection id: Execute Record ID (MongoDB id)
+    Args:
+        Exection id: Execute Record ID (MongoDB id)
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     try:
         success = await service.cancel_job_execution(execution_id)
         if success:
@@ -465,15 +465,15 @@ async def mark_execution_failed(
 ):
     """Mark execution record as a failed state
 
-Used to process outgoing but still running tasks in the database
+    Used to process outgoing but still running tasks in the database
 
-Args:
-Exection id: Execute Record ID (MongoDB id)
-Reason for failure
+    Args:
+        Exection id: Execute Record ID (MongoDB id)
+        Reason for failure
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     try:
         success = await service.mark_execution_as_failed(execution_id, reason)
         if success:
@@ -494,12 +494,12 @@ async def delete_execution(
 ):
     """Delete Execution Record
 
-Args:
-Exection id: Execute Record ID (MongoDB id)
+    Args:
+        Exection id: Execute Record ID (MongoDB id)
 
-Returns:
-Operation Results
-"""
+    Returns:
+        Operation Results
+    """
     try:
         success = await service.delete_execution(execution_id)
         if success:

@@ -32,16 +32,16 @@ except ImportError as e:
 def get_stock_info(stock_code: str) -> Dict[str, Any]:
     """Access to basic information on individual stocks
 
-Args:
-Stock code: Stock code (e. g. '000001')
+    Args:
+        Stock code: Stock code (e. g. '000001')
 
-Returns:
-Dict: Basic information on stocks
+    Returns:
+        Dict: Basic information on stocks
 
-Example:
->info = get stock info
-Peace Bank
-"""
+    Example:
+    >info = get stock info
+    Peace Bank
+    """
     if not SERVICE_AVAILABLE:
         return {
             'error': '股票数据服务不可用',
@@ -64,13 +64,13 @@ Peace Bank
 def get_all_stocks() -> List[Dict[str, Any]]:
     """Access to basic information on all stocks
 
-Returns:
-List [Dict]: List of basic information for all stocks
+    Returns:
+        List [Dict]: List of basic information for all stocks
 
-Example:
-> stocks = get all stocks()
-I don't know, logger.info.
-"""
+    Example:
+    > stocks = get all stocks()
+    I don't know, logger.info.
+    """
     if not SERVICE_AVAILABLE:
         return [{
             'error': '股票数据服务不可用',
@@ -91,18 +91,18 @@ I don't know, logger.info.
 def get_stock_data(stock_code: str, start_date: str = None, end_date: str = None) -> str:
     """Access to stock history data (degrading mechanism)
 
-Args:
-Stock code: Stock code
-Start date: Start date (format: YYYY-MM-DD), default 30 days ago
-End date: End date (format: YYYY-MM-DD), default to today
+    Args:
+        Stock code: Stock code
+        Start date: Start date (format: YYYY-MM-DD), default 30 days ago
+        End date: End date (format: YYYY-MM-DD), default to today
 
-Returns:
-str: Stock data string expression or error information
+    Returns:
+        str: Stock data string expression or error information
 
-Example:
->data = get stock data
->print(data)
-"""
+    Example:
+    >data = get stock data
+    >print(data)
+    """
     if not SERVICE_AVAILABLE:
         return "❌ 股票数据服务不可用，请检查服务配置"
     
@@ -119,17 +119,17 @@ Example:
 def search_stocks(keyword: str) -> List[Dict[str, Any]]:
     """Search stocks by keyword
 
-Args:
-Keyword: Search for keywords (part of stock code or name)
+    Args:
+        Keyword: Search for keywords (part of stock code or name)
 
-Returns:
-List [Dict]: Matching list of shares
+    Returns:
+        List [Dict]: Matching list of shares
 
-Example:
-{\\bord0\\shad0\\alphaH3D}Results =search stocks
-For stock in results:
-Logger.info(f" FMT 0: FMT 1 ")
-"""
+    Example:
+    {\\bord0\\shad0\\alphaH3D}Results =search stocks
+    For stock in results:
+    Logger.info(f" FMT 0: FMT 1 ")
+    """
     all_stocks = get_all_stocks()
     
     if not all_stocks or (len(all_stocks) == 1 and 'error' in all_stocks[0]):
@@ -154,13 +154,13 @@ Logger.info(f" FMT 0: FMT 1 ")
 def get_market_summary() -> Dict[str, Any]:
     """Access to market overview information
 
-Returns:
-Dict: Market statistics
+    Returns:
+        Dict: Market statistics
 
-Example:
->Summarry = get market summary()
-Loger.info (f "Quantity of market shares:   FT 0 ")
-"""
+    Example:
+    >Summarry = get market summary()
+    Loger.info (f "Quantity of market shares:   FT 0 ")
+    """
     all_stocks = get_all_stocks()
     
     if not all_stocks or (len(all_stocks) == 1 and 'error' in all_stocks[0]):
@@ -200,13 +200,13 @@ Loger.info (f "Quantity of market shares:   FT 0 ")
 def check_service_status() -> Dict[str, Any]:
     """Check service status
 
-Returns:
-Dict: Service status information
+    Returns:
+        Dict: Service status information
 
-Example:
-== sync, corrected by elderman == @elder man
-Logger.info (f "MongoDB State:   FT 0 ")
-"""
+    Example:
+    == sync, corrected by elderman == @elder man
+    Logger.info (f "MongoDB State:   FT 0 ")
+    """
     if not SERVICE_AVAILABLE:
         return {
             'service_available': False,

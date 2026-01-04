@@ -94,15 +94,15 @@ class NewsDataSyncService:
     ) -> NewsSyncStats:
         """Synchronization of single stock news data
 
-Args:
-symbol: stock code
-data sources: list of data sources, default on all available sources
-Hours back: backtrace hours
-Max news per source: Maximum number of news per data source
+        Args:
+            symbol: stock code
+            data sources: list of data sources, default on all available sources
+            Hours back: backtrace hours
+            Max news per source: Maximum number of news per data source
 
-Returns:
-Sync Statistical Information
-"""
+        Returns:
+            Sync Statistical Information
+        """
         stats = NewsSyncStats()
         
         try:
@@ -436,14 +436,14 @@ Sync Statistical Information
     ) -> NewsSyncStats:
         """Sync market news
 
-Args:
-data sources: list of data sources
-Hours back: backtrace hours
-Max news per source: Maximum number of news per data source
+        Args:
+            data sources: list of data sources
+            Hours back: backtrace hours
+            Max news per source: Maximum number of news per data source
 
-Returns:
-Sync Statistical Information
-"""
+        Returns:
+            Sync Statistical Information
+        """
         stats = NewsSyncStats()
         
         try:

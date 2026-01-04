@@ -69,12 +69,12 @@ class DatabaseScreeningService:
     async def can_handle_conditions(self, conditions: List[Dict[str, Any]]) -> bool:
         """Check if these conditions can be fully processed through database screening
 
-Args:
-Conditions: Filter Condition List
+        Args:
+            Conditions: Filter Condition List
 
-Returns:
-Bool: Can it be handled
-"""
+        Returns:
+            Bool: Can it be handled
+        """
         for condition in conditions:
             field = condition.get("field") if isinstance(condition, dict) else condition.field
             operator = condition.get("operator") if isinstance(condition, dict) else condition.operator
@@ -101,16 +101,16 @@ Bool: Can it be handled
     ) -> Tuple[List[Dict[str, Any]], int]:
         """Share screening based on database
 
-Args:
-Conditions: Filter Condition List
-Limited number of returns
-offset: offset
-Order by: Sort Conditions [  FMT 0   ]
-source: data source (optional), default use of highest priority data source
+        Args:
+            Conditions: Filter Condition List
+            Limited number of returns
+            offset: offset
+            Order by: Sort Conditions [  FMT 0   ]
+            source: data source (optional), default use of highest priority data source
 
-Returns:
-Tuple [List [Dict], int]: (screening results, total number)
-"""
+        Returns:
+            Tuple [List [Dict], int]: (screening results, total number)
+        """
         try:
             db = get_mongo_db()
             collection = db[self.collection_name]
@@ -250,10 +250,10 @@ Tuple [List [Dict], int]: (screening results, total number)
     async def _enrich_with_financial_data(self, results: List[Dict[str, Any]], codes: List[str]) -> None:
         """Batch search for financial data and fill in results
 
-Args:
-Results: Filter List
-codes: list of stock codes
-"""
+        Args:
+            Results: Filter List
+            codes: list of stock codes
+        """
         try:
             db = get_mongo_db()
             financial_collection = db['stock_financial_data']
@@ -386,12 +386,12 @@ codes: list of stock codes
     async def get_field_statistics(self, field: str) -> Dict[str, Any]:
         """Fetch field statistics
 
-Args:
-Field: First Name
+        Args:
+            Field: First Name
 
-Returns:
-Dict: Statistical information FMT 0 
-"""
+        Returns:
+            Dict: Statistical information FMT 0 
+        """
         try:
             db_field = self.basic_fields.get(field)
             if not db_field:
@@ -434,12 +434,12 @@ Dict: Statistical information FMT 0
     def _separate_conditions(self, conditions: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """Separation of basic information conditions and real-time conditions
 
-Args:
-Options: All filter conditions
+        Args:
+            Options: All filter conditions
 
-Returns:
-Tuple [list of basic information conditions, list of real-time line conditions]
-"""
+        Returns:
+            Tuple [list of basic information conditions, list of real-time line conditions]
+        """
         #Real-time line field (required from market quotes)
         quote_fields = {"pct_chg", "amount", "close", "volume"}
 
@@ -463,14 +463,14 @@ Tuple [list of basic information conditions, list of real-time line conditions]
     ) -> List[Dict[str, Any]]:
         """Second screening based on real-time patterns
 
-Args:
-Results: Preliminary screening
-codes: list of stock codes
-quote conditions: real-time line filter conditions
+        Args:
+            Results: Preliminary screening
+            codes: list of stock codes
+            quote conditions: real-time line filter conditions
 
-Returns:
-List [Dict]: Post-screen results
-"""
+        Returns:
+            List [Dict]: Post-screen results
+        """
         try:
             db = get_mongo_db()
             quotes_collection = db['market_quotes']
@@ -549,13 +549,13 @@ List [Dict]: Post-screen results
     async def get_available_values(self, field: str, limit: int = 100) -> List[str]:
         """List of optional values for fetching fields (for list type fields)
 
-Args:
-Field: First Name
-Limited number of returns
+        Args:
+            Field: First Name
+            Limited number of returns
 
-Returns:
-List [str]: Optional list
-"""
+        Returns:
+            List [str]: Optional list
+        """
         try:
             db_field = self.basic_fields.get(field)
             if not db_field:

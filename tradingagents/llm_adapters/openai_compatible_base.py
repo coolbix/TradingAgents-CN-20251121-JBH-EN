@@ -30,8 +30,8 @@ except ImportError:
 
 class OpenAICompatibleBase(ChatOpenAI):
     """OpenAI Compatible Adapter Base Category
-Provide uniform realization for all LLM providers supporting OpenAI interface
-"""
+    Provide uniform realization for all LLM providers supporting OpenAI interface
+    """
     
     def __init__(
         self,
@@ -46,16 +46,16 @@ Provide uniform realization for all LLM providers supporting OpenAI interface
     ):
         """Initialize OpenAI Compatibility Compatibility
 
-Args:
-provider name: Provider name (e. g. "deepseek", "dashscope")
-Model name
-api key env var: API Key Environment Variable First Name
-base url: API baseURL
-api key: API keys, if not available, from environmental variables
-temperature: temperature parameters
-max tokens: Max tokens
-**kwargs: Other parameters
-"""
+        Args:
+            provider name: Provider name (e. g. "deepseek", "dashscope")
+            Model name
+            api key env var: API Key Environment Variable First Name
+            base url: API baseURL
+            api key: API keys, if not available, from environmental variables
+            temperature: temperature parameters
+            max tokens: Max tokens
+            **kwargs: Other parameters
+        """
         
         #[DBUG] Read the log before the environment variable
         logger.info(f"🔍 [{provider_name}Initializing OpenAI Compatibility")
@@ -157,7 +157,7 @@ max tokens: Max tokens
         **kwargs: Any,
     ) -> ChatResult:
         """Generate chat responses and record token usage
-"""
+        """
         
         #Record start time
         start_time = time.time()

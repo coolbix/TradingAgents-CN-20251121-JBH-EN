@@ -195,12 +195,12 @@ class AKShareAdapter(DataSourceAdapter):
     def get_realtime_quotes(self, source: str = "eastmoney"):
         """Get a market-wide real-time snapshot and return a six-digit dictionary
 
-Args:
-Source selection, "east money" or "sina"
+        Args:
+            Source selection, "east money" or "sina"
 
-Returns:
-Dict [str, Dict]:
-"""
+        Returns:
+            Dict [str, Dict]:
+        """
         if not self.is_available():
             return None
 

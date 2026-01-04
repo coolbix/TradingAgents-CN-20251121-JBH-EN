@@ -9,15 +9,15 @@ import pandas as pd
 
 class BaseStockDataProvider(ABC):
     """Stock data provider base category
-A uniform interface for all data source providers is defined
-"""
+    A uniform interface for all data source providers is defined
+    """
     
     def __init__(self, provider_name: str):
         """Initialization data provider
 
-Args:
-program name: Provider name
-"""
+        Args:
+            program name: Provider name
+        """
         self.provider_name = provider_name
         self.connected = False
         self.logger = logging.getLogger(f"{__name__}.{provider_name}")
@@ -28,9 +28,9 @@ program name: Provider name
     async def connect(self) -> bool:
         """Connect to Data Source
 
-Returns:
-Bool: Successful connection
-"""
+        Returns:
+            Bool: Successful connection
+        """
         pass
     
     async def disconnect(self):
@@ -48,24 +48,24 @@ Bool: Successful connection
     async def get_stock_basic_info(self, symbol: str = None) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
         """Access to basic stock information
 
-Args:
-symbol: stock code, take all stocks for empty
+        Args:
+            symbol: stock code, take all stocks for empty
 
-Returns:
-Single stock dictionary or list of shares
-"""
+        Returns:
+            Single stock dictionary or list of shares
+        """
         pass
     
     @abstractmethod
     async def get_stock_quotes(self, symbol: str) -> Optional[Dict[str, Any]]:
         """Get Real Time Lines
 
-Args:
-symbol: stock code
+        Args:
+            symbol: stock code
 
-Returns:
-Real Time Line Data Dictionary
-"""
+        Returns:
+            Real Time Line Data Dictionary
+        """
         pass
     
     @abstractmethod
@@ -77,14 +77,14 @@ Real Time Line Data Dictionary
     ) -> Optional[pd.DataFrame]:
         """Access to historical data
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
+        Args:
+            symbol: stock code
+            Start date: Start date
+            End date: End date
 
-Returns:
-DataFrame
-"""
+        Returns:
+            DataFrame
+        """
         pass
     
     #== sync, corrected by elderman == @elder man
@@ -92,24 +92,24 @@ DataFrame
     async def get_stock_list(self, market: str = None) -> Optional[List[Dict[str, Any]]]:
         """Get Stock List
 
-Args:
-Market code (CN/HK/US)
+        Args:
+            Market code (CN/HK/US)
 
-Returns:
-List of stocks
-"""
+        Returns:
+            List of stocks
+        """
         return await self.get_stock_basic_info()
     
     async def get_financial_data(self, symbol: str, report_type: str = "annual") -> Optional[Dict[str, Any]]:
         """Access to financial data
 
-Args:
-symbol: stock code
-Report type: Report type (annual/quarterly)
+        Args:
+            symbol: stock code
+            Report type: Report type (annual/quarterly)
 
-Returns:
-Financial data dictionary
-"""
+        Returns:
+            Financial data dictionary
+        """
         #Default achieves return to None, subclasses can be rewrited
         return None
     
@@ -118,12 +118,12 @@ Financial data dictionary
     def standardize_basic_info(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """Standardized stock base information
 
-Args:
-Raw data: raw data
+        Args:
+            Raw data: raw data
 
-Returns:
-Standardized data
-"""
+        Returns:
+            Standardized data
+        """
         #Basic standardized logic
         return {
             "code": raw_data.get("code", raw_data.get("symbol", "")),
@@ -148,12 +148,12 @@ Standardized data
     def standardize_quotes(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """Standardized real-time behaviour data
 
-Args:
-Raw data: raw data
+        Args:
+            Raw data: raw data
 
-Returns:
-Standardized data
-"""
+        Returns:
+            Standardized data
+        """
         symbol = raw_data.get("symbol", raw_data.get("code", ""))
         
         return {

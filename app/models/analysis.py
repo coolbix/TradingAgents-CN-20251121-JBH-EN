@@ -32,13 +32,13 @@ class BatchStatus(str, Enum):
 class AnalysisParameters(BaseModel):
     """Analyzing parameter models
 
-The study depth indicates:
-- Quick: Level 1 - Quick analysis (2-4 minutes) I'm not sure.
-- Base: Level 2 - Basic analysis (4-6 minutes) I'm not sure.
-- Standard: Level 3 - Standard analysis (6-10 minutes, recommended)
-- Depth: Level 4 - Depth analysis (10-15 minutes) I'm not sure.
-- Comprehensive: Level 5 - Comprehensive analysis (15-25 minutes) I'm not sure.
-"""
+    The study depth indicates:
+    - Quick: Level 1 - Quick analysis (2-4 minutes) I'm not sure.
+    - Base: Level 2 - Basic analysis (4-6 minutes) I'm not sure.
+    - Standard: Level 3 - Standard analysis (6-10 minutes, recommended)
+    - Depth: Level 4 - Depth analysis (10-15 minutes) I'm not sure.
+    - Comprehensive: Level 5 - Comprehensive analysis (15-25 minutes) I'm not sure.
+    """
     market_type: str = "A股"
     analysis_date: Optional[datetime] = None
     research_depth: str = "标准"  #Default use of Level 3 standard analysis (recommended)

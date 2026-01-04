@@ -31,12 +31,12 @@ def _get_event_loop_running() -> bool:
 
 def _get_system_settings_sync() -> dict:
     """Optimal effort to get backend dynamics system settings.
-- If the backend is not available/not installed, return empty dict
-- If the current cycle of events is running, return empty dict to avoid a dead lock/dip
+    - If the backend is not available/not installed, return empty dict
+    - If the current cycle of events is running, return empty dict to avoid a dead lock/dip
 
-Note: In order to avoid a cycle of events and conflicts, the current reality is always to return to an empty dictionary.
-Use environment variables and defaults for configuration.
-"""
+    Note: In order to avoid a cycle of events and conflicts, the current reality is always to return to an empty dictionary.
+    Use environment variables and defaults for configuration.
+    """
     #Temporary solution: completely disable dynamic configuration acquisition to avoid cycle conflict
     #TODO: In the future, the use of thread pools or other means to secure dynamic configurations can be considered
     _logger.debug("Dynamic configuration capture disabled, using environment variables and defaults")
@@ -98,11 +98,11 @@ def _coerce(value: Any, caster: Callable[[Any], Any], default: Any) -> Any:
 
 def get_number(env_var: str, system_key: Optional[str], default: float | int, caster: Callable[[Any], Any]) -> float | int:
     """Acquiring numerical configuration by priority: DB(system settings) > ENV > default
-- env var: Environmental variables such as "TA US MIN API INTERVAL SECONDS"
--system key: Dynamic system setting keys such as "ta us min api interval seconds" (for None)
-- default:
--caster: Type conversion functions such as fload or int
-"""
+    - env var: Environmental variables such as "TA US MIN API INTERVAL SECONDS"
+    -system key: Dynamic system setting keys such as "ta us min api interval seconds" (for None)
+    - default:
+    -caster: Type conversion functions such as fload or int
+    """
     #1) DB Dynamic Settings
     if system_key:
         eff = _get_system_settings_sync()

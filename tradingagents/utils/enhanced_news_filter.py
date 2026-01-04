@@ -20,12 +20,12 @@ class EnhancedNewsFilter(NewsRelevanceFilter):
     def __init__(self, stock_code: str, company_name: str, use_semantic: bool = True, use_local_model: bool = False):
         """Initialize Enhanced Filter
 
-Args:
-Stock code: Stock code
-Company name: Company name
-use semantic: whether semantic similarity is used to filter
-use local model: using local classification models
-"""
+        Args:
+            Stock code: Stock code
+            Company name: Company name
+            use semantic: whether semantic similarity is used to filter
+            use local model: using local classification models
+        """
         super().__init__(stock_code, company_name)
         self.use_semantic = use_semantic
         self.use_local_model = use_local_model
@@ -107,13 +107,13 @@ use local model: using local classification models
     def calculate_semantic_similarity(self, title: str, content: str) -> float:
         """Calculate semantic similarity rating
 
-Args:
-title:
-Content:
+        Args:
+            title:
+            Content:
 
-Returns:
-float: Semantic Similarity Rating (0-100)
-"""
+        Returns:
+            float: Semantic Similarity Rating (0-100)
+        """
         if not self.use_semantic or self.sentence_model is None:
             return 0
         
@@ -148,13 +148,13 @@ float: Semantic Similarity Rating (0-100)
     def classify_news_relevance(self, title: str, content: str) -> float:
         """Use local models to classify news relevance
 
-Args:
-title:
-Content:
+        Args:
+            title:
+            Content:
 
-Returns:
-float: classification relevance rating (0-100)
-"""
+        Returns:
+            float: classification relevance rating (0-100)
+        """
         if not self.use_local_model or self.classification_model is None:
             return 0
         
@@ -201,13 +201,13 @@ float: classification relevance rating (0-100)
     def calculate_enhanced_relevance_score(self, title: str, content: str) -> Dict[str, float]:
         """Calculation of enhanced relevance ratings (integrated multiple methods)
 
-Args:
-title:
-Content:
+        Args:
+            title:
+            Content:
 
-Returns:
-Dict: Dictionary with various ratings
-"""
+        Returns:
+            Dict: Dictionary with various ratings
+        """
         scores = {}
         
         #1. Basic rule scoring
@@ -251,13 +251,13 @@ Dict: Dictionary with various ratings
     def filter_news_enhanced(self, news_df: pd.DataFrame, min_score: float = 40) -> pd.DataFrame:
         """Enhance news filtering
 
-Args:
-News df: RawDataFrame
-min score: Minimum integrated rating threshold
+        Args:
+            News df: RawDataFrame
+            min score: Minimum integrated rating threshold
 
-Returns:
-pd. DataFrame: Filtered NewsDataFrame with detailed rating information
-"""
+        Returns:
+            pd. DataFrame: Filtered NewsDataFrame with detailed rating information
+        """
         if news_df.empty:
             logger.warning("[enhanced filter] Enter NewsDataFrame empty")
             return news_df
@@ -298,14 +298,14 @@ pd. DataFrame: Filtered NewsDataFrame with detailed rating information
 def create_enhanced_news_filter(ticker: str, use_semantic: bool = True, use_local_model: bool = False) -> EnhancedNewsFilter:
     """Create a convenient function to enhance the news filter
 
-Args:
-ticker: Stock code
-use semantic: whether semantic similarity is used to filter
-use local model: using local classification models
+    Args:
+        ticker: Stock code
+        use semantic: whether semantic similarity is used to filter
+        use local model: using local classification models
 
-Returns:
-Enhanced NewsFilter: configured examples of enhanced filters
-"""
+    Returns:
+        Enhanced NewsFilter: configured examples of enhanced filters
+    """
     company_name = get_company_name(ticker)
     return EnhancedNewsFilter(ticker, company_name, use_semantic, use_local_model)
 

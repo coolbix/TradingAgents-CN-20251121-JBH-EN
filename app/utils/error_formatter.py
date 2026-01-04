@@ -56,13 +56,13 @@ class ErrorFormatter:
     def format_error(cls, error_message: str, context: Optional[Dict] = None) -> Dict[str, str]:
         """Format Error Information
 
-Args:
-Error message: Original error message
-context: context information (optional), including llm provider, model, data source, etc.
+        Args:
+            Error message: Original error message
+            context: context information (optional), including llm provider, model, data source, etc.
 
-Returns:
-FMT 0 
-"""
+        Returns:
+            FMT 0 
+        """
         context = context or {}
         
         #Category error
@@ -75,9 +75,9 @@ FMT 0
     def _categorize_error(cls, error_message: str, context: Dict) -> Tuple[ErrorCategory, Optional[str]]:
         """Category error
 
-Returns:
-(Error category, relevant manufacturer/data source name)
-"""
+        Returns:
+            (Error category, relevant manufacturer/data source name)
+        """
         error_lower = error_message.lower()
         
         #1. Check for LLM-related errors

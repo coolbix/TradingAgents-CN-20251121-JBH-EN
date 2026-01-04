@@ -60,14 +60,14 @@ class UnifiedStockService:
     ) -> Optional[Dict]:
         """Access to stock base information (support to multiple data sources)
 
-Args:
-Market type (CN/HK/US)
-code: stock code
-source: specify data source (optional)
+        Args:
+            Market type (CN/HK/US)
+            code: stock code
+            source: specify data source (optional)
 
-Returns:
-Basic stock dictionary
-"""
+        Returns:
+            Basic stock dictionary
+        """
         collection_name = self.collection_map[market]["basic_info"]
         collection = self.db[collection_name]
         
@@ -100,12 +100,12 @@ Basic stock dictionary
     async def _get_source_priority(self, market: str) -> List[str]:
         """Data source priority from database
 
-Args:
-Market type (CN/HK/US)
+        Args:
+            Market type (CN/HK/US)
 
-Returns:
-Data Source Priority List
-"""
+        Returns:
+            Data Source Priority List
+        """
         market_category_map = {
             "CN": "a_shares",
             "HK": "hk_stocks",
@@ -141,13 +141,13 @@ Data Source Priority List
     async def get_stock_quote(self, market: str, code: str) -> Optional[Dict]:
         """Get Real Time Lines
 
-Args:
-Market type (CN/HK/US)
-code: stock code
+        Args:
+            Market type (CN/HK/US)
+            code: stock code
 
-Returns:
-Real-time Dictionary
-"""
+        Returns:
+            Real-time Dictionary
+        """
         collection_name = self.collection_map[market]["quotes"]
         collection = self.db[collection_name]
         return await collection.find_one({"code": code}, {"_id": 0})
@@ -160,14 +160,14 @@ Real-time Dictionary
     ) -> List[Dict]:
         """Search for stocks (weighted, return only to the best data source for each stock)
 
-Args:
-Market type (CN/HK/US)
-query: Search key Word
-Limited number of returns
+        Args:
+            Market type (CN/HK/US)
+            query: Search key Word
+            Limited number of returns
 
-Returns:
-List of stocks
-"""
+        Returns:
+            List of stocks
+        """
         collection_name = self.collection_map[market]["basic_info"]
         collection = self.db[collection_name]
 
@@ -223,16 +223,16 @@ List of stocks
     ) -> List[Dict]:
         """Access to historical K-line data
 
-Args:
-Market type (CN/HK/US)
-code: stock code
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-Limited number of returns
+        Args:
+            Market type (CN/HK/US)
+            code: stock code
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            Limited number of returns
 
-Returns:
-K-line Data List
-"""
+        Returns:
+            K-line Data List
+        """
         collection_name = self.collection_map[market]["daily"]
         collection = self.db[collection_name]
         
@@ -250,9 +250,9 @@ K-line Data List
     async def get_supported_markets(self) -> List[Dict]:
         """List of markets to obtain support
 
-Returns:
-Market List
-"""
+        Returns:
+            Market List
+        """
         return [
             {
                 "code": "CN",

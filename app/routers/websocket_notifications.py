@@ -112,12 +112,12 @@ async def websocket_notifications_endpoint(
 ):
     """WebSocket Notifierend Points
 
-Client connection: ws://localhost: 8,000/api/ws/notifications?token=<jwt token>
+    Client connection: ws://localhost: 8,000/api/ws/notifications?token=<jwt token>
 
-Message format:
-FMT 0 
-♪ I'm sorry ♪
-"""
+    Message format:
+    FMT 0 
+    ♪ I'm sorry ♪
+    """
     #Authentication token
     token_data = AuthService.verify_token(token)
     if not token_data:
@@ -192,12 +192,12 @@ async def websocket_task_progress_endpoint(
 ):
     """WebSocket task progressend Points
 
-Client connection: ws://localhost: 8,000/api/ws/tasks/<task id>?token=<jwt token>
+    Client connection: ws://localhost: 8,000/api/ws/tasks/<task id>?token=<jwt token>
 
-Message format:
-FMT 0 
-♪ I'm sorry ♪
-"""
+    Message format:
+    FMT 0 
+    ♪ I'm sorry ♪
+    """
     #Authentication token
     token_data = AuthService.verify_token(token)
     if not token_data:
@@ -249,10 +249,10 @@ async def get_websocket_stats():
 async def send_notification_via_websocket(user_id: str, notification: dict):
     """Send notification via WebSocket
 
-Args:
-user id: userID
-Notification data
-"""
+    Args:
+        user id: userID
+        Notification data
+    """
     message = {
         "type": "notification",
         "data": notification
@@ -263,10 +263,10 @@ Notification data
 async def send_task_progress_via_websocket(task_id: str, progress_data: dict):
     """Send task progress via WebSocket
 
-Args:
-task id: task ID
-progress data: progress data
-"""
+    Args:
+        task id: task ID
+        progress data: progress data
+    """
     #Note: We need to know which user the task belongs to.
     #Sendable from database query or from project data
     #Simplified processing temporarily

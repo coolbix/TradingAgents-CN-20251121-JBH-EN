@@ -17,9 +17,9 @@ logger = get_logger('agents')
 
 class ChatDashScopeOpenAI(ChatOpenAI):
     """Aliberian OpenAI Compatibility Compatible
-Inherit ChatOpenAI, call the calorie model through OpenAI compatible interface
-Use original OpenAI compatibility of refined models to support original
-"""
+    Inherit ChatOpenAI, call the calorie model through OpenAI compatible interface
+    Use original OpenAI compatibility of refined models to support original
+    """
     
     def __init__(self, **kwargs):
         """Initialize DashScope OpenAI compatible client"""

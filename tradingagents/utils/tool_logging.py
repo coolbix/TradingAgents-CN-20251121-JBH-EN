@@ -24,11 +24,11 @@ tool_logger = get_logger("tools")
 def log_tool_call(tool_name: Optional[str] = None, log_args: bool = True, log_result: bool = False):
     """Tool Call Log Decorator
 
-Args:
-tool name: Tool name, use function name if not available
-log args: Whether to record parameters
-log result: record return results (note: may contain large amounts of data)
-"""
+    Args:
+        tool name: Tool name, use function name if not available
+        log args: Whether to record parameters
+        log result: record return results (note: may contain large amounts of data)
+    """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -117,9 +117,9 @@ log result: record return results (note: may contain large amounts of data)
 def log_data_source_call(source_name: str):
     """Data source call dedicated log decorator
 
-Args:
-Source name (e.g. tushare, kshare, yfinance)
-"""
+    Args:
+        Source name (e.g. tushare, kshare, yfinance)
+    """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -197,10 +197,10 @@ Source name (e.g. tushare, kshare, yfinance)
 def log_llm_call(provider: str, model: str):
     """LLM calls a dedicated log decorationer
 
-Args:
-Provider: LLM providers (e.g. openai, Deepseek, toongyi, etc.)
-Model name
-"""
+    Args:
+        Provider: LLM providers (e.g. openai, Deepseek, toongyi, etc.)
+        Model name
+    """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -260,11 +260,11 @@ Model name
 def log_tool_usage(tool_name: str, symbol: str = None, **extra_data):
     """Easy function to record tool usage
 
-Args:
-tool name: Tool name
-symbol: stock code (optional)
-**extra data: extra data
-"""
+    Args:
+        tool name: Tool name
+        symbol: stock code (optional)
+        **extra data: extra data
+    """
     extra = {
         'tool_name': tool_name,
         'event_type': 'tool_usage',
@@ -281,11 +281,11 @@ symbol: stock code (optional)
 def log_analysis_step(step_name: str, symbol: str, **extra_data):
     """A simple function to record the analysis steps
 
-Args:
-step name: step name
-symbol: stock code
-**extra data: extra data
-"""
+    Args:
+        step name: step name
+        symbol: stock code
+        **extra data: extra data
+    """
     extra = {
         'step_name': step_name,
         'symbol': symbol,
@@ -299,12 +299,12 @@ symbol: stock code
 
 def log_analysis_module(module_name: str, session_id: str = None):
     """Analyzing module log decorations
-Autorecord the start and end of the module
+    Autorecord the start and end of the module
 
-Args:
-Modeule name: module name (e. g. market analyst, fundamentals analyst, etc.)
-session id: Session ID (optional)
-"""
+    Args:
+        Modeule name: module name (e. g. market analyst, fundamentals analyst, etc.)
+        session id: Session ID (optional)
+    """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -392,25 +392,25 @@ session id: Session ID (optional)
 def log_analyst_module(analyst_type: str):
     """Special Decorator for Analyst Modules
 
-Args:
-Analyst type: Analyst type of analyst (e.g. market, fundamentals, technical, scientific, etc.)
-"""
+    Args:
+        Analyst type: Analyst type of analyst (e.g. market, fundamentals, technical, scientific, etc.)
+    """
     return log_analysis_module(f"{analyst_type}_analyst")
 
 
 def log_graph_module(graph_type: str):
     """Special Decorator for the Figure Processing Module
 
-Args:
-graph type: Figure processing type (e.g., signature processing, workflow)
-"""
+    Args:
+        graph type: Figure processing type (e.g., signature processing, workflow)
+    """
     return log_analysis_module(f"graph_{graph_type}")
 
 
 def log_dataflow_module(dataflow_type: str):
     """Data stream module special decorator
 
-Args:
-Dataflow type: data stream type (e.g. carche, interface, protocol, etc.)
-"""
+    Args:
+        Dataflow type: data stream type (e.g. carche, interface, protocol, etc.)
+    """
     return log_analysis_module(f"dataflow_{dataflow_type}")

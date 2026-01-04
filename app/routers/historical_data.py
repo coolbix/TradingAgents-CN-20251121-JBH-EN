@@ -43,14 +43,14 @@ async def get_historical_data(
 ):
     """Search for stock history data
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-Data source: Data source filter
-period: Data cycle filter
-Limited number of returns
-"""
+    Args:
+        symbol: stock code
+        Start date: Start date
+        End date: End date
+        Data source: Data source filter
+        period: Data cycle filter
+        Limited number of returns
+    """
     try:
         service = await get_historical_data_service()
         
@@ -92,7 +92,7 @@ Limited number of returns
 @router.post("/query", response_model=HistoricalDataResponse)
 async def query_historical_data(request: HistoricalDataQuery):
     """POST Query Historical Data
-"""
+    """
     try:
         service = await get_historical_data_service()
         
@@ -174,7 +174,7 @@ async def compare_data_sources(
     trade_date: str = Query(..., description="交易日期 (YYYY-MM-DD)")
 ):
     """Comparison of the same stock at the same date from different data sources
-"""
+    """
     try:
         service = await get_historical_data_service()
         

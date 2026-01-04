@@ -10,9 +10,9 @@ from chromadb.config import Settings
 def is_windows_11() -> bool:
     """Test for Windows 11
 
-Returns:
-Bool: If Windows 11 returns True, otherwise returns False
-"""
+    Returns:
+        Bool: If Windows 11 returns True, otherwise returns False
+    """
     if platform.system() != "Windows":
         return False
     
@@ -34,9 +34,9 @@ Bool: If Windows 11 returns True, otherwise returns False
 def get_win10_chromadb_client():
     """Get Windows 10 compatible ChromaDB client
 
-Returns:
-chromadb. Clinic: ChromaDB client example
-"""
+    Returns:
+        chromadb. Clinic: ChromaDB client example
+    """
     settings = Settings(
         allow_reset=True,
         anonymized_telemetry=False,
@@ -63,9 +63,9 @@ chromadb. Clinic: ChromaDB client example
 def get_win11_chromadb_client():
     """Get Windows 11 Optimized ChromaDB Client
 
-Returns:
-chromadb. Clinic: ChromaDB client example
-"""
+    Returns:
+        chromadb. Clinic: ChromaDB client example
+    """
     #Windows 11 Better support for ChromaDB, using a more modern configuration
     settings = Settings(
         allow_reset=True,
@@ -93,9 +93,9 @@ chromadb. Clinic: ChromaDB client example
 def get_optimal_chromadb_client():
     """Automatically select the preferred ChromaDB configuration from the operating system
 
-Returns:
-chromadb. Clinic: ChromaDB client example
-"""
+    Returns:
+        chromadb. Clinic: ChromaDB client example
+    """
     system = platform.system()
     
     if system == "Windows":

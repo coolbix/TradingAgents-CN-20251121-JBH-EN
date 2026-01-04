@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 class TushareProvider(BaseStockDataProvider):
     """Unified Tushare data provider
-Merge all advantages of the app layer and the TradingAGents layer
-"""
+    Merge all advantages of the app layer and the TradingAGents layer
+    """
     
     def __init__(self):
         super().__init__("Tushare")
@@ -38,9 +38,9 @@ Merge all advantages of the app layer and the TradingAGents layer
     def _get_token_from_database(self) -> Optional[str]:
         """Read from database Tushare Token
 
-Priority: Database Configuration > Environmental Variable
-This will take effect immediately after the user changes configuration in the Web backstage
-"""
+        Priority: Database Configuration > Environmental Variable
+        This will take effect immediately after the user changes configuration in the Web backstage
+        """
         try:
             self.logger.info("[DB query] Start reading Token...")
             from app.core.database import get_mongo_db_synchronous
@@ -349,12 +349,12 @@ This will take effect immediately after the user changes configuration in the We
     async def get_stock_quotes(self, symbol: str) -> Optional[Dict[str, Any]]:
         """Get a single stock in real time
 
- policy: use the Daily interface to obtain data for the latest day (without rt k batch interface)
--rt k interface is a volume interface, a single stock calls a waste quota
--Daily interface to get up-to-date dayline data on a single stock with more indicators
+        policy: use the Daily interface to obtain data for the latest day (without rt k batch interface)
+        -rt k interface is a volume interface, a single stock calls a waste quota
+        -Daily interface to get up-to-date dayline data on a single stock with more indicators
 
-Note: This method is suitable for small stock acquisition and a large number of stocks are recommended for use ()
-"""
+        Note: This method is suitable for small stock acquisition and a large number of stocks are recommended for use ()
+        """
         if not self.is_available():
             return None
 
@@ -410,12 +410,12 @@ Note: This method is suitable for small stock acquisition and a large number of 
 
     async def get_realtime_quotes_batch(self) -> Optional[Dict[str, Dict[str, Any]]]:
         """Batch access to market-wide real-time businesses
-Use the wildcard function of the rt k interface to get all A units in real time at once
+        Use the wildcard function of the rt k interface to get all A units in real time at once
 
-Returns:
-Dict [str, Dict]:
-For example:   FT 1  
-"""
+        Returns:
+            Dict [str, Dict]:
+            For example:   FT 1  
+        """
         if not self.is_available():
             return None
 
@@ -512,12 +512,12 @@ For example:   FT 1
     ) -> Optional[pd.DataFrame]:
         """Access to historical data
 
-Args:
-symbol: stock code
-Start date: Start date
-End date: End date
-period: data cycle (daily/weekly/montly)
-"""
+        Args:
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            period: data cycle (daily/weekly/montly)
+        """
         if not self.is_available():
             return None
 
@@ -647,15 +647,15 @@ period: data cycle (daily/weekly/montly)
                                 period: str = None, limit: int = 4) -> Optional[Dict[str, Any]]:
         """Access to financial data
 
-Args:
-symbol: stock code
-Report type: Report type (quarterly/annual)
-period: For the specified reporting period (YYYYMMDD format), obtain the latest data for empty
-Limited: number of access records, default 4 (last 4 quarters)
+        Args:
+            symbol: stock code
+            Report type: Report type (quarterly/annual)
+            period: For the specified reporting period (YYYYMMDD format), obtain the latest data for empty
+            Limited: number of access records, default 4 (last 4 quarters)
 
-Returns:
-Financial data dictionary with profit statement, balance sheet, cash flow statement and financial indicators
-"""
+        Returns:
+            Financial data dictionary with profit statement, balance sheet, cash flow statement and financial indicators
+        """
         if not self.is_available():
             return None
 
@@ -762,15 +762,15 @@ Financial data dictionary with profit statement, balance sheet, cash flow statem
                            hours_back: int = 24, src: str = None) -> Optional[List[Dict[str, Any]]]:
         """Access to stock news (needing Tushare access)
 
-Args:
-Symbol: Stock code, market news for None
-Limited number of returns
-Hours back: Backtrace hours, default 24 hours
-src: news source, default automatic selection
+        Args:
+            Symbol: Stock code, market news for None
+            Limited number of returns
+            Hours back: Backtrace hours, default 24 hours
+            src: news source, default automatic selection
 
-Returns:
-NewsList
-"""
+        Returns:
+            NewsList
+        """
         if not self.is_available():
             return None
 
@@ -1031,15 +1031,15 @@ NewsList
                                          end_period: str = None, report_type: str = "quarterly") -> Optional[List[Dict[str, Any]]]:
         """Time frame for obtaining financial data
 
-Args:
-symbol: stock code
-Start period: Initial reporting period (YYYYMMDD)
-End period: end reporting period (YYYYMMDD)
-Report type: Report type (quarterly/annual)
+        Args:
+            symbol: stock code
+            Start period: Initial reporting period (YYYYMMDD)
+            End period: end reporting period (YYYYMMDD)
+            Report type: Report type (quarterly/annual)
 
-Returns:
-List of financial data, in descending order of reporting period
-"""
+        Returns:
+            List of financial data, in descending order of reporting period
+        """
         if not self.is_available():
             return None
 
@@ -1094,13 +1094,13 @@ List of financial data, in descending order of reporting period
     async def get_financial_indicators_only(self, symbol: str, limit: int = 4) -> Optional[Dict[str, Any]]:
         """Access to financial indicator data only (light interface)
 
-Args:
-symbol: stock code
-number of records obtained
+        Args:
+            symbol: stock code
+            number of records obtained
 
-Returns:
-Data on financial indicators
-"""
+        Returns:
+            Data on financial indicators
+        """
         if not self.is_available():
             return None
 
@@ -1301,13 +1301,13 @@ Data on financial indicators
     def _standardize_tushare_financial_data(self, financial_data: Dict[str, Any], ts_code: str) -> Dict[str, Any]:
         """Standardized Tushare financial data
 
-Args:
-Financial data: Original Financial Data Dictionary
-ts code: Tushare stock code
+        Args:
+            Financial data: Original Financial Data Dictionary
+            ts code: Tushare stock code
 
-Returns:
-Standardized financial data
-"""
+        Returns:
+            Standardized financial data
+        """
         try:
             #Access to up-to-date data records (the first record is usually the latest)
             latest_income = financial_data.get('income_statement', [{}])[0] if financial_data.get('income_statement') else {}
@@ -1419,27 +1419,27 @@ Standardized financial data
     def _calculate_ttm_from_tushare(self, income_statements: list, field: str) -> Optional[float]:
         """Calculate TTM from Tushare profit statement data (most recent 12 months)
 
-Tushare profit statement data are cumulative values (cumulative from the beginning of the year to the reporting period):
-- 2025Q1 (20250331): Cumulative January-March 2025
-- 2025Q2 (20250630): Cumulative January-June 2025
-- 2025Q3 (20250930): Cumulative January-September 2025
-- 2025Q4 (202512131): Cumulative January-December 2025 (annual report)
+        Tushare profit statement data are cumulative values (cumulative from the beginning of the year to the reporting period):
+        - 2025Q1 (20250331): Cumulative January-March 2025
+        - 2025Q2 (20250630): Cumulative January-June 2025
+        - 2025Q3 (20250930): Cumulative January-September 2025
+        - 2025Q4 (202512131): Cumulative January-December 2025 (annual report)
 
-TTM formula:
-TTM = latest annual report after the same period last year + (cumulative for the current period - cumulative for the same period last year)
+        TTM formula:
+        TTM = latest annual report after the same period last year + (cumulative for the current period - cumulative for the same period last year)
 
-For example: 2025Q2 TTM = 2024 + (2025Q2 - 2024Q2)
-= January-December 2024 + (January-June 2025-January-2024)
-= July-December 2024 + January-June 2025
-= Last 12 months
+        For example: 2025Q2 TTM = 2024 + (2025Q2 - 2024Q2)
+        = January-December 2024 + (January-June 2025-January-2024)
+        = July-December 2024 + January-June 2025
+        = Last 12 months
 
-Args:
-Income statements: list of profit sheet data (in descending order of reporting period)
-Field: Field name ('revenue' or 'n income attr p')
+        Args:
+            Income statements: list of profit sheet data (in descending order of reporting period)
+            Field: Field name ('revenue' or 'n income attr p')
 
-Returns:
-TTM value, return None if uncalculated
-"""
+        Returns:
+            TTM value, return None if uncalculated
+        """
         if not income_statements or len(income_statements) < 1:
             return None
 

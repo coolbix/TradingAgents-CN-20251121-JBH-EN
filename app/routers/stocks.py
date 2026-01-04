@@ -30,15 +30,15 @@ def _zfill_code(code: str) -> str:
 def _detect_market_and_code(code: str) -> Tuple[str, str]:
     """Test market type of stock code and standardize code
 
-Args:
-code: stock code
+    Args:
+        code: stock code
 
-Returns:
-(market, standardized code): Market type and standardized code
-- CN: Unit A (6-digit)
-- HK: Port Unit (4-5 digit or HK suffix)
-- US: United States shares (letter code)
-"""
+    Returns:
+        (market, standardized code): Market type and standardized code
+        - CN: Unit A (6-digit)
+        - HK: Port Unit (4-5 digit or HK suffix)
+        - US: United States shares (letter code)
+    """
     code = code.strip().upper()
 
     #Port Unit: with .HK suffix
@@ -69,21 +69,21 @@ async def get_quote(
 ):
     """Access to real-time equity (support to Unit A/Hong Kong/United States)
 
-Automatic recognition of market type:
-- Six bits.
-- 4-digit number or. HK Port Unit
-- Pure letters.
+    Automatic recognition of market type:
+    - Six bits.
+    - 4-digit number or. HK Port Unit
+    - Pure letters.
 
-Parameters:
-- Code: Stock code
--Force refresh: forced refreshing (jumping cache)
+    Parameters:
+        - Code: Stock code
+        -Force refresh: forced refreshing (jumping cache)
 
-Return field (data inside, snake name):
--Code, name, market.
-- price(clos), change percent(pct chg), amount, prev close (estimate)
-- turnover rate, amplitude, substitution ratio
-I'm sorry.
-"""
+    Return field (data inside, snake name):
+    -Code, name, market.
+    - price(clos), change percent(pct chg), amount, prev close (estimate)
+    - turnover rate, amplitude, substitution ratio
+    I'm sorry.
+    """
     #Test market type
     market, normalized_code = _detect_market_and_code(code)
 
@@ -218,15 +218,15 @@ async def get_fundamentals(
 ):
     """Obtain basic snapshots (support Unit A/Hong Kong/US)
 
-Data source priorities:
-Stock basic info collection (basic information, valuation indicators)
-Stock financial data pool (financial indicators: ROE, liability ratio, etc.)
+    Data source priorities:
+    Stock basic info collection (basic information, valuation indicators)
+    Stock financial data pool (financial indicators: ROE, liability ratio, etc.)
 
-Parameters:
-- Code: Stock code
--source: Data source (optional), default by priority: tushare > multi source > akshare > baostock
--Force refresh: forced refreshing (jumping cache)
-"""
+    Parameters:
+        - Code: Stock code
+        -source: Data source (optional), default by priority: tushare > multi source > akshare > baostock
+        -Force refresh: forced refreshing (jumping cache)
+    """
     #Test market type
     market, normalized_code = _detect_market_and_code(code)
 
@@ -425,14 +425,14 @@ async def get_kline(
 ):
     """Access to K-line data (support to Unit A/Hong Kong/US)
 
-period: day/week/month/5m/15m/30m/60m
-Adj: none/qfq/hfq
-source refresh: whether to force refresh (jump cache)
+    period: day/week/month/5m/15m/30m/60m
+    Adj: none/qfq/hfq
+    source refresh: whether to force refresh (jump cache)
 
-Add function: real-time K-line data on the day
-- Time of transaction (09:30: 15:00): real time data from market quotes
-- After closing up: check if historical data are available for the day or not from market quotes
-"""
+    Add function: real-time K-line data on the day
+    - Time of transaction (09:30: 15:00): real time data from market quotes
+    - After closing up: check if historical data are available for the day or not from market quotes
+    """
     import logging
     from datetime import datetime, timedelta, time as dtime
     from zoneinfo import ZoneInfo

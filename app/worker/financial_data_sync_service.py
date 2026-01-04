@@ -81,16 +81,16 @@ class FinancialDataSyncService:
     ) -> Dict[str, FinancialSyncStats]:
         """Sync Financial Data
 
-Args:
-Symbols: list of stock codes. None means sync all stocks
-Data sources: list of data sources
-Report types: list of report types
-Watch size: Batch size
-Delay seconds: API call delay
+        Args:
+            Symbols: list of stock codes. None means sync all stocks
+            Data sources: list of data sources
+            Report types: list of report types
+            Watch size: Batch size
+            Delay seconds: API call delay
 
-Returns:
-Synchronization of statistical results by data source
-"""
+        Returns:
+            Synchronization of statistical results by data source
+        """
         if self.db is None:
             await self.initialize()
         

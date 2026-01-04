@@ -9,7 +9,7 @@
 4. 输出详细的验证报告
 
 使用方法：
-    python scripts/validation/test_market_analyst_lookback.py
+python scripts/validation/test_market_analyst_lookback.py
 """
 
 import os

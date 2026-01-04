@@ -8,8 +8,8 @@
 3. 尝试获取缺失股票的详细信息，分析失败原因
 
 使用方法：
-    python scripts/check_missing_stocks.py
-    python scripts/check_missing_stocks.py --test-fetch  # 测试获取缺失股票的信息
+python scripts/check_missing_stocks.py
+python scripts/check_missing_stocks.py --test-fetch  # 测试获取缺失股票的信息
 """
 
 import asyncio

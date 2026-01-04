@@ -19,22 +19,22 @@ logger = get_logger('agents')
 
 class ChatGoogleOpenAI(ChatGoogleGenerativeAI):
     """Google AI OpenAI Compatibility
-Inherit ChatGoogleGenerativeAI, optimize tool call and content format processing
-Solve the problem of the Google model tool calling for returns that do not match system expectations
-"""
+    Inherit ChatGoogleGenerativeAI, optimize tool call and content format processing
+    Solve the problem of the Google model tool calling for returns that do not match system expectations
+    """
 
     def __init__(self, base_url: Optional[str] = None, **kwargs):
         """Initialize Google AI OpenAI compatible client
 
-Args:
-Base url: Custom API endpoint (optional)
-If provided, pass it to Google AI SDK by channel options
-Support format:
-- https://generativelanguage.googleapis.com/v1beta
-- https://generativelanguage.googleapis.com/v1 (autoconvert to v1beta)
-- Custom proxy address
-**kwargs: Other parameters
-"""
+        Args:
+            Base url: Custom API endpoint (optional)
+            If provided, pass it to Google AI SDK by channel options
+            Support format:
+            - https://generativelanguage.googleapis.com/v1beta
+            - https://generativelanguage.googleapis.com/v1 (autoconvert to v1beta)
+            - Custom proxy address
+            **kwargs: Other parameters
+        """
 
         #[DBUG] Read the log before the environment variable
         logger.info("[Google Initializing]")
@@ -145,8 +145,8 @@ Support format:
     @property
     def model_name(self) -> str:
         """Returns model name (compatibility properties)
-Remove 'models/ 'prefix and return pure model name
-"""
+        Remove 'models/ 'prefix and return pure model name
+        """
         model = self.model
         if model and model.startswith("models/"):
             return model[7:]  #Remove "models/" Prefix
@@ -359,17 +359,17 @@ def create_google_openai_llm(
 ) -> ChatGoogleOpenAI:
     """A convenient function to create Google AI OpenAI compatible LLM examples
 
-Args:
-Model name
-Google api key: Google API Key
-Base url: Custom API endpoint (optional)
-temperature: temperature parameters
-max tokens: maximum number of token
-**kwargs: Other parameters
+    Args:
+        Model name
+        Google api key: Google API Key
+        Base url: Custom API endpoint (optional)
+        temperature: temperature parameters
+        max tokens: maximum number of token
+        **kwargs: Other parameters
 
-Returns:
-ChatGoogleOpenAI instance
-"""
+    Returns:
+        ChatGoogleOpenAI instance
+    """
 
     return ChatGoogleOpenAI(
         model=model,

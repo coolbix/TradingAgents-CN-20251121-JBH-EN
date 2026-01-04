@@ -77,9 +77,9 @@ class USSyncService:
     def _get_us_stock_list_from_finnhub(self) -> List[str]:
         """Can not open message
 
-Returns:
-List [str]: List of US stock codes
-"""
+        Returns:
+            List [str]: List of US stock codes
+        """
         try:
             from datetime import datetime, timedelta
 
@@ -130,9 +130,9 @@ List [str]: List of US stock codes
     def _get_fallback_stock_list(self) -> List[str]:
         """Get a list of back-up United States shares (main US shares)
 
-Returns:
-List [str]: List of US stock codes
-"""
+        Returns:
+            List [str]: List of US stock codes
+        """
         return [
             #The technology giant.
             "AAPL",   #Apple.
@@ -174,13 +174,13 @@ List [str]: List of US stock codes
     ) -> Dict[str, int]:
         """Synchronize U.S. fundamentals from specified data sources
 
-Args:
-source: data source name (default yfinance)
-force update: mandatory update (forced refreshing of list of shares)
+        Args:
+            source: data source name (default yfinance)
+            force update: mandatory update (forced refreshing of list of shares)
 
-Returns:
-Dict: Sync Statistical Information
-"""
+        Returns:
+            Dict: Sync Statistical Information
+        """
         if source != "yfinance":
             logger.error(f"Data sources not supported:{source}")
             return {"updated": 0, "inserted": 0, "failed": 0}
@@ -258,13 +258,13 @@ Dict: Sync Statistical Information
     def _normalize_stock_info(self, stock_info: Dict, source: str) -> Dict:
         """Standardized stock information format
 
-Args:
-stock info: raw stock information
-source:
+        Args:
+            stock info: raw stock information
+            source:
 
-Returns:
-Dict: Standardized stock information
-"""
+        Returns:
+            Dict: Standardized stock information
+        """
         #Extract General Fields
         normalized = {
             "name": stock_info.get("shortName", ""),
@@ -294,12 +294,12 @@ Dict: Standardized stock information
     ) -> Dict[str, int]:
         """Sync U.S.S. Real-time from specified data source
 
-Args:
-source: data source name (default yfinance)
+        Args:
+            source: data source name (default yfinance)
 
-Returns:
-Dict: Sync Statistical Information
-"""
+        Returns:
+            Dict: Sync Statistical Information
+        """
         if source != "yfinance":
             logger.error(f"Data sources not supported:{source}")
             return {"updated": 0, "inserted": 0, "failed": 0}

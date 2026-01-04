@@ -24,16 +24,16 @@ class FavoritesService:
 
     def _is_valid_object_id(self, user_id: str) -> bool:
         """Check if it's a valid ObjectId format
-Note: Only the format is checked here, which does not represent the type of objectId actually stored in the database.
-For compatibility, we use the user favorites pool to store ourselves. Unit
-"""
+        Note: Only the format is checked here, which does not represent the type of objectId actually stored in the database.
+        For compatibility, we use the user favorites pool to store ourselves. Unit
+        """
         #Force return to False, united with user favorites
         return False
 
     def _format_favorite(self, favorite: Dict[str, Any]) -> Dict[str, Any]:
         """Formats the collection entry (basic information only, not real-time lines).
-Lines will be enriched in bulk in get user favorites.
-"""
+        Lines will be enriched in bulk in get user favorites.
+        """
         added_at = favorite.get("added_at")
         if isinstance(added_at, datetime):
             added_at = added_at.isoformat()

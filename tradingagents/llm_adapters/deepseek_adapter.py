@@ -30,8 +30,8 @@ except ImportError:
 class ChatDeepSeek(ChatOpenAI):
     """DeepSeek chat model adapter to support Token use of statistics
 
-Inherited from ChatOpenAI, added Token Usage Statistics function
-"""
+    Inherited from ChatOpenAI, added Token Usage Statistics function
+    """
     
     def __init__(
         self,
@@ -44,14 +44,14 @@ Inherited from ChatOpenAI, added Token Usage Statistics function
     ):
         """Initialize DeepSeek adapter
 
-Args:
-Model: Model Name, default is Deepseek-chat
-api key: API key, if not available, from the environmental variable DEPESEK API KEY
-base url: API baseURL
-temperature: temperature parameters
-max tokens: Max tokens
-**kwargs: Other parameters
-"""
+        Args:
+            Model: Model Name, default is Deepseek-chat
+            api key: API key, if not available, from the environmental variable DEPESEK API KEY
+            base url: API baseURL
+            temperature: temperature parameters
+            max tokens: Max tokens
+            **kwargs: Other parameters
+        """
         
         #Get API Keys
         if api_key is None:
@@ -109,7 +109,7 @@ max tokens: Max tokens
         **kwargs: Any,
     ) -> ChatResult:
         """Generate chat responses and record token usage
-"""
+        """
 
         #Record start time
         start_time = time.time()
@@ -188,12 +188,12 @@ max tokens: Max tokens
     def _estimate_input_tokens(self, messages: List[BaseMessage]) -> int:
         """Estimating number of inputs tokens
 
-Args:
-Messages: Enter Message List
+        Args:
+            Messages: Enter Message List
 
-Returns:
-Estimated number of inputs tokens
-"""
+        Returns:
+            Estimated number of inputs tokens
+        """
         total_chars = 0
         for message in messages:
             if hasattr(message, 'content'):
@@ -207,12 +207,12 @@ Estimated number of inputs tokens
     def _estimate_output_tokens(self, result: ChatResult) -> int:
         """Estimated number of outputs tokens
 
-Args:
-result: chat results
+        Args:
+            result: chat results
 
-Returns:
-Estimated number of outputs tokens
-"""
+        Returns:
+            Estimated number of outputs tokens
+        """
         total_chars = 0
         for generation in result.generations:
             if hasattr(generation, 'message') and hasattr(generation.message, 'content'):
@@ -230,14 +230,14 @@ Estimated number of outputs tokens
     ) -> AIMessage:
         """Call model to generate response
 
-Args:
-input: input messages
-config: Configure parameters
-**kwargs: other parameters (including session id and anallysis  type)
+        Args:
+            input: input messages
+            config: Configure parameters
+            **kwargs: other parameters (including session id and anallysis  type)
 
-Returns:
-AI Message Response
-"""
+        Returns:
+            AI Message Response
+        """
         
         #Process Inputs
         if isinstance(input, str):
@@ -263,15 +263,15 @@ def create_deepseek_llm(
 ) -> ChatDeepSeek:
     """A convenient function to create the DeepSeek LLM instance
 
-Args:
-Model name
-temperature: temperature parameters
-max tokens: Max tokens
-**kwargs: Other parameters
+    Args:
+        Model name
+        temperature: temperature parameters
+        max tokens: Max tokens
+        **kwargs: Other parameters
 
-Returns:
-Example of Chat DeepSeek
-"""
+    Returns:
+        Example of Chat DeepSeek
+    """
     return ChatDeepSeek(
         model=model,
         temperature=temperature,

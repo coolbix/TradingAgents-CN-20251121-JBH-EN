@@ -38,7 +38,7 @@ async def start_multi_period_sync(
     background_tasks: BackgroundTasks
 ):
     """Start multi-cycle data sync
-"""
+    """
     try:
         service = await get_multi_period_sync_service()
         
@@ -267,7 +267,7 @@ async def compare_period_data(
     data_source: str = "tushare"
 ):
     """Comparison of data for different cycles of the same stock
-"""
+    """
     try:
         from app.services.historical_data_service import get_historical_data_service
         service = await get_historical_data_service()

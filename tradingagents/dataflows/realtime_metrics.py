@@ -14,20 +14,20 @@ def calculate_realtime_pe_pb(
 ) -> Optional[Dict[str, Any]]:
     """Calculate dynamics based on real-time patterns and Tushare TTM data
 
-Calculate logic:
-1. Fetch p ttm from stock basic info (based on yesterday 's closing price)
-2. Inverse TTM net profit = total market value / p ttm
-3. Real-time market value using real-time equity prices
-4. Calculation of dynamic PE TTM = real-time market value / TTM net profit
+    Calculate logic:
+    1. Fetch p ttm from stock basic info (based on yesterday 's closing price)
+    2. Inverse TTM net profit = total market value / p ttm
+    3. Real-time market value using real-time equity prices
+    4. Calculation of dynamic PE TTM = real-time market value / TTM net profit
 
-Args:
-symbol: 6-bit stock code
-db client: MongoDB client (optional, for simultaneous calls)
+    Args:
+        symbol: 6-bit stock code
+        db client: MongoDB client (optional, for simultaneous calls)
 
-Returns:
-FMT 0 
-None if calculation failed
-"""
+    Returns:
+        FMT 0 
+        None if calculation failed
+    """
     try:
         #Obtain database connection (ensure that it is synchronized with client)
         if db_client is None:
@@ -287,13 +287,13 @@ None if calculation failed
 def validate_pe_pb(pe: Optional[float], pb: Optional[float]) -> bool:
     """Validate whether PE/PB is within reasonable limits
 
-Args:
-p: Profits
-pb Net market ratio
+    Args:
+        p: Profits
+        pb Net market ratio
 
-Returns:
-Bool: Reasonable
-"""
+    Returns:
+        Bool: Reasonable
+    """
     #PE's reasonable range: -100 to 1000 (permissible negative value because the deficit enterprise PE is negative)
     if pe is not None and (pe < -100 or pe > 1000):
         logger.warning(f"PE anomaly:{pe}")
@@ -313,22 +313,22 @@ def get_pe_pb_with_fallback(
 ) -> Dict[str, Any]:
     """Get PE/PB, smart downgrade policy
 
-Policy:
-1. Prefer dynamic PE (based on real-time equity + Tushare TTM net profit)
-If dynamic calculations fail, downgrade to Tushare Static PE (based on yesterday's closing prices)
+    Policy:
+    1. Prefer dynamic PE (based on real-time equity + Tushare TTM net profit)
+    If dynamic calculations fail, downgrade to Tushare Static PE (based on yesterday's closing prices)
 
-Strengths:
-- Dynamic PE reflects real-time stock price changes
-- Use Tushare official TTM net profit (inverse) to avoid single-quarter data errors
-- The calculations are accurate, the logs are detailed.
+    Strengths:
+    - Dynamic PE reflects real-time stock price changes
+    - Use Tushare official TTM net profit (inverse) to avoid single-quarter data errors
+    - The calculations are accurate, the logs are detailed.
 
-Args:
-symbol: 6-bit stock code
-db client: MongoDB client (optional)
+    Args:
+        symbol: 6-bit stock code
+        db client: MongoDB client (optional)
 
-Returns:
-FMT 0 
-"""
+    Returns:
+        FMT 0 
+    """
     logger.info(f"[PE Smart Strategy]{symbol}PE/PB")
 
     #Prepare database connections

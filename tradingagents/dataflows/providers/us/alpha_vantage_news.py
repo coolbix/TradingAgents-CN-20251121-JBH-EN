@@ -23,20 +23,20 @@ def get_news(
 ) -> str:
     """Access to stock-related news and emotional analysis data
 
-Return real-time and historical market news and emotional data from major news outlets around the world.
-It covers the topics of stocks, encrypted currency, foreign exchange and fiscal policy, mergers and acquisitions, and IPO.
+    Return real-time and historical market news and emotional data from major news outlets around the world.
+    It covers the topics of stocks, encrypted currency, foreign exchange and fiscal policy, mergers and acquisitions, and IPO.
 
-Args:
-ticker: Stock code
-Start date: Start date, format YYYY-MM-DD
-End date: End date, format YYYY-MM-DD
+    Args:
+        ticker: Stock code
+        Start date: Start date, format YYYY-MM-DD
+        End date: End date, format YYYY-MM-DD
 
-Returns:
-Formatted news data string (JSON format)
+    Returns:
+        Formatted news data string (JSON format)
 
-Example:
-News = get news
-"""
+    Example:
+    News = get news
+    """
     try:
         logger.info(f"[Alpha Vantage]{ticker}, {start_date}to{end_date}")
         
@@ -111,17 +111,17 @@ def get_insider_transactions(
 ) -> str:
     """Get Inner Transaction Data
 
-Return to the latest and historical in-person transaction data of key stakeholders (founders, executives, board members, etc.).
+    Return to the latest and historical in-person transaction data of key stakeholders (founders, executives, board members, etc.).
 
-Args:
-symbol: stock code
+    Args:
+        symbol: stock code
 
-Returns:
-Formatted Inner Person Transactions Data String (JSON format)
+    Returns:
+        Formatted Inner Person Transactions Data String (JSON format)
 
-Example:
-> transports = get insider transactions ("AAPL")
-"""
+    Example:
+    > transports = get insider transactions ("AAPL")
+    """
     try:
         logger.info(f"[Alpha Vantage]{symbol}")
         
@@ -176,18 +176,18 @@ def get_market_news(
 ) -> str:
     """Access to market-wide news (without qualification of specific shares)
 
-Args:
-Topics: News themes, multiple themes separated by commas (optional)
-Start date: Start date (optional)
-End date: End Date (optional)
-Limited: returns the number of articles, default 50
+    Args:
+        Topics: News themes, multiple themes separated by commas (optional)
+        Start date: Start date (optional)
+        End date: End Date (optional)
+        Limited: returns the number of articles, default 50
 
-Returns:
-Formatted news data string
+    Returns:
+        Formatted news data string
 
-Example:
-{\\bord0\\shad0\\alphaH3D}news = get market news
-"""
+    Example:
+    {\\bord0\\shad0\\alphaH3D}news = get market news
+    """
     try:
         logger.info(f"[Alpha Vantage]{topics}")
         

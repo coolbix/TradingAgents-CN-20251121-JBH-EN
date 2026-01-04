@@ -7,11 +7,11 @@ logger = get_logger('default')
 def validate_stock_code(original_code: str, processed_content: str) -> str:
     """
     验证处理后的内容中是否包含正确的股票代码
-    
+
     Args:
         original_code: 原始股票代码
         processed_content: 处理后的内容
-        
+
     Returns:
         str: 验证并修正后的内容
     """

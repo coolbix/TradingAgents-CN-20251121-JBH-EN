@@ -18,9 +18,9 @@ from tradingagents.utils.logging_manager import setup_logging, get_logger
 def init_logging(config_override: Optional[dict] = None) -> None:
     """Initialise Project Log System
 
-Args:
-config override: optional configuration overlay
-"""
+    Args:
+        config override: optional configuration overlay
+    """
     #Setup Log System
     logger_manager = setup_logging(config_override)
     
@@ -45,13 +45,13 @@ config override: optional configuration overlay
 def get_session_logger(session_id: str, module_name: str = 'session') -> 'logging.Logger':
     """Get Session-specific logs
 
-Args:
-session id: sessionID
-Modeule name: module name
+    Args:
+        session id: sessionID
+        Modeule name: module name
 
-Returns:
-Configure Logs
-"""
+    Returns:
+        Configure Logs
+    """
     logger_name = f"{module_name}.{session_id[:8]}"  #Use first eight session ID
     
     #Add Session ID to all log records

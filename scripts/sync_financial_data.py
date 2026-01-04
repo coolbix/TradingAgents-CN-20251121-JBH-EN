@@ -8,9 +8,9 @@
 3. 创建/更新 stock_financial_data 集合
 
 使用方法：
-    python scripts/sync_financial_data.py 600036  # 同步单只股票
-    python scripts/sync_financial_data.py --all   # 同步所有股票
-    python scripts/sync_financial_data.py --batch 100  # 批量同步前100只
+python scripts/sync_financial_data.py 600036  # 同步单只股票
+python scripts/sync_financial_data.py --all   # 同步所有股票
+python scripts/sync_financial_data.py --batch 100  # 批量同步前100只
 """
 
 import asyncio
@@ -44,7 +44,7 @@ async def sync_single_stock_financial_data(
 ) -> bool:
     """
     同步单只股票的财务数据
-    
+
     Returns:
         bool: 是否成功
     """

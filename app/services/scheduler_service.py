@@ -29,9 +29,9 @@ UTC_8 = timezone(timedelta(hours=8))
 def get_utc8_now():
     """Fetch UTC+8 Current Time
 
-Note: returns a given datetime (without time zone information), MongoDB stores local time values as they are
-This allows the frontend to directly add +08:00 suffix display
-"""
+    Note: returns a given datetime (without time zone information), MongoDB stores local time values as they are
+    This allows the frontend to directly add +08:00 suffix display
+    """
     return now_tz().replace(tzinfo=None)
 
 
@@ -46,9 +46,9 @@ class SchedulerService:
     def __init__(self, scheduler: AsyncIOScheduler):
         """Initialization services
 
-Args:
-Scheduler: Example of APScheduler Scheduler
-"""
+        Args:
+            Scheduler: Example of APScheduler Scheduler
+        """
         self.scheduler = scheduler
         self.db = None
 
@@ -64,9 +64,9 @@ Scheduler: Example of APScheduler Scheduler
     async def list_jobs(self) -> List[Dict[str, Any]]:
         """Can not open message
 
-Returns:
-Chile
-"""
+        Returns:
+            Chile
+        """
         jobs = []
         for job in self.scheduler.get_jobs():
             job_dict = self._job_to_dict(job)
@@ -83,12 +83,12 @@ Chile
     async def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Can not open message
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Task details, return None if not available
-"""
+        Returns:
+            Task details, return None if not available
+        """
         job = self.scheduler.get_job(job_id)
         if job:
             job_dict = self._job_to_dict(job, include_details=True)
@@ -103,12 +103,12 @@ Task details, return None if not available
     async def pause_job(self, job_id: str) -> bool:
         """Pause Task
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             self.scheduler.pause_job(job_id)
             logger.info(f"Mission{job_id}Paused")
@@ -124,12 +124,12 @@ Success
     async def resume_job(self, job_id: str) -> bool:
         """Resume Mission
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             self.scheduler.resume_job(job_id)
             logger.info(f"Mission{job_id}Restored")
@@ -145,15 +145,15 @@ Success
     async def trigger_job(self, job_id: str, kwargs: Optional[Dict[str, Any]] = None) -> bool:
         """Manually trigger mission execution
 
-Note: if the task is suspended, the task will be temporarily resumed and will not be automatically suspended after one execution
+        Note: if the task is suspended, the task will be temporarily resumed and will not be automatically suspended after one execution
 
-Args:
-Job id: Task ID
-kwargs: Keyword parameters passed to task function (optional)
+        Args:
+            Job id: Task ID
+            kwargs: Keyword parameters passed to task function (optional)
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             job = self.scheduler.get_job(job_id)
             if not job:
@@ -218,14 +218,14 @@ Success
     ) -> List[Dict[str, Any]]:
         """Get Task Execution History
 
-Args:
-Job id: Task ID
-Limited number of returns
-offset: offset
+        Args:
+            Job id: Task ID
+            Limited number of returns
+            offset: offset
 
-Returns:
-Execution history
-"""
+        Returns:
+            Execution history
+        """
         try:
             db = self._get_db()
             cursor = db.scheduler_history.find(
@@ -245,12 +245,12 @@ Execution history
     async def count_job_history(self, job_id: str) -> int:
         """Number of statistical missions performed
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Number of historical records
-"""
+        Returns:
+            Number of historical records
+        """
         try:
             db = self._get_db()
             count = await db.scheduler_history.count_documents({"job_id": job_id})
@@ -268,15 +268,15 @@ Number of historical records
     ) -> List[Dict[str, Any]]:
         """Get all tasks executed history
 
-Args:
-Limited number of returns
-offset: offset
-job id: Task ID filter
-status: status filter
+        Args:
+            Limited number of returns
+            offset: offset
+            job id: Task ID filter
+            status: status filter
 
-Returns:
-Execution history
-"""
+        Returns:
+            Execution history
+        """
         try:
             db = self._get_db()
             
@@ -306,13 +306,13 @@ Execution history
     ) -> int:
         """Statistics of all tasks performed
 
-Args:
-job id: Task ID filter
-status: status filter
+        Args:
+            job id: Task ID filter
+            status: status filter
 
-Returns:
-Number of historical records
-"""
+        Returns:
+            Number of historical records
+        """
         try:
             db = self._get_db()
 
@@ -339,16 +339,16 @@ Number of historical records
     ) -> List[Dict[str, Any]]:
         """Get Task Execution History
 
-Args:
-job id: Task ID (optional, return all tasks if not specified)
-status: status filter (session/failed/missed/running)
-is manual: manual trigger (True = manual, False = automatic, Noe = all)
-Limited number of returns
-offset: offset
+        Args:
+            job id: Task ID (optional, return all tasks if not specified)
+            status: status filter (session/failed/missed/running)
+            is manual: manual trigger (True = manual, False = automatic, Noe = all)
+            Limited number of returns
+            offset: offset
 
-Returns:
-Execute History List
-"""
+        Returns:
+            Execute History List
+        """
         try:
             db = self._get_db()
 
@@ -401,14 +401,14 @@ Execute History List
     ) -> int:
         """Number of statistical missions performed
 
-Args:
-job id: Task ID (optional)
-status: status filter (optional)
-is manual: Manually triggered (optional)
+        Args:
+            job id: Task ID (optional)
+            status: status filter (optional)
+            is manual: Manually triggered (optional)
 
-Returns:
-Number of implementation history
-"""
+        Returns:
+            Number of implementation history
+        """
         try:
             db = self._get_db()
 
@@ -437,15 +437,15 @@ Number of implementation history
     async def cancel_job_execution(self, execution_id: str) -> bool:
         """Mandate execution cancelled/terminated
 
-(a) For ongoing tasks, the demarking is set;
-For quit but still running in the database, directly marked as failed
+        (a) For ongoing tasks, the demarking is set;
+        For quit but still running in the database, directly marked as failed
 
-Args:
-Exection id: Execute Record ID (MongoDB id)
+        Args:
+            Exection id: Execute Record ID (MongoDB id)
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             from bson import ObjectId
             db = self._get_db()
@@ -481,15 +481,15 @@ Success
     async def mark_execution_as_failed(self, execution_id: str, reason: str = "用户手动标记为失败") -> bool:
         """Mark execution record as a failed state
 
-Used to process outgoing but still running tasks in the database
+        Used to process outgoing but still running tasks in the database
 
-Args:
-Exection id: Execute Record ID (MongoDB id)
-Reason for failure
+        Args:
+            Exection id: Execute Record ID (MongoDB id)
+            Reason for failure
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             from bson import ObjectId
             db = self._get_db()
@@ -522,12 +522,12 @@ Success
     async def delete_execution(self, execution_id: str) -> bool:
         """Delete Execution Record
 
-Args:
-Exection id: Execute Record ID (MongoDB id)
+        Args:
+            Exection id: Execute Record ID (MongoDB id)
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             from bson import ObjectId
             db = self._get_db()
@@ -560,12 +560,12 @@ Success
     async def get_job_execution_stats(self, job_id: str) -> Dict[str, Any]:
         """Access to statistical information on mandate implementation
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Statistical information
-"""
+        Returns:
+            Statistical information
+        """
         try:
             db = self._get_db()
 
@@ -617,9 +617,9 @@ Statistical information
     async def get_stats(self) -> Dict[str, Any]:
         """Get statistics from the scheduler
 
-Returns:
-Statistical information
-"""
+        Returns:
+            Statistical information
+        """
         jobs = self.scheduler.get_jobs()
         
         total = len(jobs)
@@ -637,9 +637,9 @@ Statistical information
     async def health_check(self) -> Dict[str, Any]:
         """Dispatch health check
 
-Returns:
-Health status
-"""
+        Returns:
+            Health status
+        """
         return {
             "status": "healthy" if self.scheduler.running else "stopped",
             "running": self.scheduler.running,
@@ -650,13 +650,13 @@ Health status
     def _job_to_dict(self, job: Job, include_details: bool = False) -> Dict[str, Any]:
         """Convert Job Object to Dictionary
 
-Args:
-Job: Job Object
-include details: contains details
+        Args:
+            Job: Job Object
+            include details: contains details
 
-Returns:
-Dictionary
-"""
+        Returns:
+            Dictionary
+        """
         result = {
             "id": job.id,
             "name": job.name or job.id,
@@ -800,17 +800,17 @@ Dictionary
     ):
         """Record mission execution history
 
-Args:
-Job id: Task ID
-Status: Status (running/success/failed/missed)
-Scheduled time: scheduled implementation time
-Exection time: actual execution time (sec)
-Return value
-error message
-trackback: Error stack
-Progress in implementation (0-100)
-is manual: manual trigger
-"""
+        Args:
+            Job id: Task ID
+            Status: Status (running/success/failed/missed)
+            Scheduled time: scheduled implementation time
+            Exection time: actual execution time (sec)
+            Return value
+            error message
+            trackback: Error stack
+            Progress in implementation (0-100)
+            is manual: manual trigger
+        """
         try:
             db = self._get_db()
 
@@ -915,12 +915,12 @@ is manual: manual trigger
     ):
         """Log Task Operation History
 
-Args:
-Job id: Task ID
-action: operation type (pause/resume/trigger)
-status: status/failed
-error message
-"""
+        Args:
+            Job id: Task ID
+            action: operation type (pause/resume/trigger)
+            status: status/failed
+            error message
+        """
         try:
             db = self._get_db()
             await db.scheduler_history.insert_one({
@@ -936,12 +936,12 @@ error message
     async def _get_job_metadata(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Fetch task metadata (trigger name and comment)
 
-Args:
-Job id: Task ID
+        Args:
+            Job id: Task ID
 
-Returns:
-Metadata dictionary, return None if not available
-"""
+        Returns:
+            Metadata dictionary, return None if not available
+        """
         try:
             db = self._get_db()
             metadata = await db.scheduler_metadata.find_one({"job_id": job_id})
@@ -961,14 +961,14 @@ Metadata dictionary, return None if not available
     ) -> bool:
         """Update Task Metadata
 
-Args:
-Job id: Task ID
-Display name: trigger name
-description:
+        Args:
+            Job id: Task ID
+            Display name: trigger name
+            description:
 
-Returns:
-Success
-"""
+        Returns:
+            Success
+        """
         try:
             #Check if the mission exists.
             job = self.scheduler.get_job(job_id)
@@ -1009,9 +1009,9 @@ _scheduler_instance: Optional[AsyncIOScheduler] = None
 def set_scheduler_instance(scheduler: AsyncIOScheduler):
     """Setup Scheduler instance
 
-Args:
-Scheduler: Example of APScheduler Scheduler
-"""
+    Args:
+        Scheduler: Example of APScheduler Scheduler
+    """
     global _scheduler_instance
     _scheduler_instance = scheduler
     logger.info("The instance of the scheduler has been set")
@@ -1020,9 +1020,9 @@ Scheduler: Example of APScheduler Scheduler
 def get_scheduler_service() -> SchedulerService:
     """Example of accessing scheduler service
 
-Returns:
-Scheduler service instance
-"""
+    Returns:
+        Scheduler service instance
+    """
     global _scheduler_service, _scheduler_instance
 
     if _scheduler_instance is None:
@@ -1045,14 +1045,14 @@ async def update_job_progress(
 ):
     """Update on progress in mandate implementation (for internal call in time)
 
-Args:
-Job id: Task ID
-Progress: percentage of progress (0-100)
-message: progress message
-current item: Current processing
-Total items: total
-Processed items: processed
-"""
+    Args:
+        Job id: Task ID
+        Progress: percentage of progress (0-100)
+        message: progress message
+        current item: Current processing
+        Total items: total
+        Processed items: processed
+    """
     try:
         from pymongo import MongoClient
         from app.core.config import settings

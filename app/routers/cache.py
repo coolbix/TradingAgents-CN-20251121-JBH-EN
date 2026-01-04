@@ -18,9 +18,9 @@ router = APIRouter(prefix="/api/cache", tags=["cache"])
 async def get_cache_stats(current_user: dict = Depends(get_current_user)):
     """Get cache statistical information
 
-Returns:
-dict: Cache Statistics
-"""
+    Returns:
+        dict: Cache Statistics
+    """
     try:
         from tradingagents.dataflows.cache import get_cache
         
@@ -58,12 +58,12 @@ async def cleanup_old_cache(
 ):
     """Clear Expired Cache
 
-Args:
-Days: Clear how many days ago's caches
+    Args:
+        Days: Clear how many days ago's caches
 
-Returns:
-dict: Cleanup result
-"""
+    Returns:
+        dict: Cleanup result
+    """
     try:
         from tradingagents.dataflows.cache import get_cache
         
@@ -91,9 +91,9 @@ dict: Cleanup result
 async def clear_all_cache(current_user: dict = Depends(get_current_user)):
     """Clear all caches
 
-Returns:
-dict: Cleanup result
-"""
+    Returns:
+        dict: Cleanup result
+    """
     try:
         from tradingagents.dataflows.cache import get_cache
 
@@ -126,13 +126,13 @@ async def get_cache_details(
 ):
     """Get Cache Details List
 
-Args:
-Page: Page Number
-Page size: Number per page
+    Args:
+        Page: Page Number
+        Page size: Number per page
 
-Returns:
-dict: Cache Details List
-"""
+    Returns:
+        dict: Cache Details List
+    """
     try:
         from tradingagents.dataflows.cache import get_cache
         
@@ -170,9 +170,9 @@ dict: Cache Details List
 async def get_cache_backend_info(current_user: dict = Depends(get_current_user)):
     """Fetch Cache Backend Information
 
-Returns:
-dict: Cachebackend Configuration Information
-"""
+    Returns:
+        dict: Cachebackend Configuration Information
+    """
     try:
         from tradingagents.dataflows.cache import get_cache
         

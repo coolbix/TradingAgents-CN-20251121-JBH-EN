@@ -77,8 +77,8 @@ class BatchInitRequest(BaseModel):
 async def get_default_model_configs():
     """Get all default model capability configurations
 
-Returns the predefined common model capability configuration for reference and initialization.
-"""
+    Returns the predefined common model capability configuration for reference and initialization.
+    """
     try:
         #Convert to Sequencable Format
         configs = {}
@@ -107,8 +107,8 @@ Returns the predefined common model capability configuration for reference and i
 async def get_depth_requirements():
     """Obtain analysis depth requirements
 
-Returns the minimum requirements for the model for each analytical depth.
-"""
+    Returns the minimum requirements for the model for each analytical depth.
+    """
     try:
         #Convert to Sequencable Format
         requirements = {}
@@ -141,8 +141,8 @@ async def get_capability_descriptions():
 async def get_all_badges():
     """Get all badge styles
 
-Returns the insignia style configuration of the level of ability, role, character.
-"""
+    Returns the insignia style configuration of the level of ability, role, character.
+    """
     try:
         badges = {
             "capability_levels": {
@@ -169,8 +169,8 @@ Returns the insignia style configuration of the level of ability, role, characte
 async def recommend_models(request: ModelRecommendationRequest):
     """Recommended Model
 
-The most appropriate model pairs are recommended based on the depth of the analysis.
-"""
+    The most appropriate model pairs are recommended based on the depth of the analysis.
+    """
     try:
         capability_service = get_model_capability_service()
 
@@ -230,8 +230,8 @@ The most appropriate model pairs are recommended based on the depth of the analy
 async def validate_models(request: ModelValidationRequest):
     """Validate model pairs
 
-Verifys whether the selected model is suitable for the specified depth of analysis.
-"""
+    Verifys whether the selected model is suitable for the specified depth of analysis.
+    """
     try:
         capability_service = get_model_capability_service()
 
@@ -252,8 +252,8 @@ Verifys whether the selected model is suitable for the specified depth of analys
 async def batch_init_capabilities(request: BatchInitRequest):
     """Batch initialization model capability
 
-Configures automatic filling capacity parameters for models in databases.
-"""
+    Configures automatic filling capacity parameters for models in databases.
+    """
     try:
         #Get All LLM Configurations
         llm_configs = unified_config.get_llm_configs()
@@ -307,9 +307,9 @@ Configures automatic filling capacity parameters for models in databases.
 async def get_model_capability(model_name: str):
     """Capability information for acquiring specified models
 
-Args:
-Model name: Model name
-"""
+    Args:
+        Model name: Model name
+    """
     try:
         capability_service = get_model_capability_service()
         config = capability_service.get_model_config(model_name)

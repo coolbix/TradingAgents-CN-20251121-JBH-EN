@@ -26,8 +26,8 @@ class ChineseFinanceDataAggregator:
     
     def get_stock_sentiment_summary(self, ticker: str, days: int = 7) -> Dict:
         """Stock acquisition emotional analysis summary
-Integration of multiple available Chinese financial and economic data sources
-"""
+        Integration of multiple available Chinese financial and economic data sources
+        """
         try:
             #1. Access to financial journalism
             news_sentiment = self._get_finance_news_sentiment(ticker, days)
@@ -255,7 +255,7 @@ Integration of multiple available Chinese financial and economic data sources
 
 def get_chinese_social_sentiment(ticker: str, curr_date: str) -> str:
     """Main interface function to access Chinese social media emotional analysis
-"""
+    """
     aggregator = ChineseFinanceDataAggregator()
     
     try:

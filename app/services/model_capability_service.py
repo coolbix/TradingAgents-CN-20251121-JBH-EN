@@ -24,12 +24,12 @@ class ModelCapabilityService:
     def _parse_aggregator_model_name(self, model_name: str) -> Tuple[Optional[str], str]:
         """The model name for the solver channel
 
-Args:
-Model name: Model name, which may contain prefixes (e. g. openai/gpt-4, anthropic/claude-3-sonnet)
+        Args:
+            Model name: Model name, which may contain prefixes (e. g. openai/gpt-4, anthropic/claude-3-sonnet)
 
-Returns:
-(original manufacturer, original model name)
-"""
+        Returns:
+            (original manufacturer, original model name)
+        """
         #Common polymer channel model name format:
         # - openai/gpt-4
         # - anthropic/claude-3-sonnet
@@ -62,9 +62,9 @@ Returns:
     def _get_model_capability_with_mapping(self, model_name: str) -> Tuple[int, Optional[str]]:
         """Acquisition of model capability level (support for aggregate channel mapping)
 
-Returns:
-(Capacity level, map original model name)
-"""
+        Returns:
+            (Capacity level, map original model name)
+        """
         #1. First attempt direct matching
         if model_name in DEFAULT_MODEL_CAPABILITIES:
             return DEFAULT_MODEL_CAPABILITIES[model_name]["capability_level"], None
@@ -84,12 +84,12 @@ Returns:
     def get_model_capability(self, model_name: str) -> int:
         """Level of capability to acquire the model (support the polymer channel model mapping)
 
-Args:
-model name: Model name (possibly containing prefixes to aggregate channels, e.g. openai/gpt-4)
+        Args:
+            model name: Model name (possibly containing prefixes to aggregate channels, e.g. openai/gpt-4)
 
-Returns:
-Capacity level (1-5)
-"""
+        Returns:
+            Capacity level (1-5)
+        """
         #1. Prioritize reading from database configuration
         try:
             llm_configs = unified_config.get_llm_configs()
@@ -109,12 +109,12 @@ Capacity level (1-5)
     def get_model_config(self, model_name: str) -> Dict[str, Any]:
         """Get complete configuration information for the model (support for polymer channel model mapping)
 
-Args:
-Model name: Model name (possibly containing prefixes to aggregate channels)
+        Args:
+            Model name: Model name (possibly containing prefixes to aggregate channels)
 
-Returns:
-Model Configuration Dictionary
-"""
+        Returns:
+            Model Configuration Dictionary
+        """
         #1. Prioritize reading from MongoDB database configuration (using sync client)
         try:
             from pymongo import MongoClient
@@ -217,14 +217,14 @@ Model Configuration Dictionary
     ) -> Dict[str, Any]:
         """Verify whether the model is suitable for the current analysis depth
 
-Args:
-Quick model: Quick Analysis Model Name
-Deep model: Depth Analysis Model Name
-Research depth: Research depth (quick/basis/standard/deep/full)
+        Args:
+            Quick model: Quick Analysis Model Name
+            Deep model: Depth Analysis Model Name
+            Research depth: Research depth (quick/basis/standard/deep/full)
 
-Returns:
-Valid, warnings, verifications
-"""
+        Returns:
+            Valid, warnings, verifications
+        """
         logger.info(f"Starting to verify model pairs: Quick={quick_model}, deep={deep_model}, depth={research_depth}")
 
         requirements = ANALYSIS_DEPTH_REQUIREMENTS.get(research_depth, ANALYSIS_DEPTH_REQUIREMENTS["标准"])
@@ -309,12 +309,12 @@ Valid, warnings, verifications
     ) -> Tuple[str, str]:
         """Based on the depth of analysis, recommend a suitable model.
 
-Args:
-Research depth: Research depth (quick/basis/standard/deep/full)
+        Args:
+            Research depth: Research depth (quick/basis/standard/deep/full)
 
-Returns:
-(quick model, Deep model)
-"""
+        Returns:
+            (quick model, Deep model)
+        """
         requirements = ANALYSIS_DEPTH_REQUIREMENTS.get(research_depth, ANALYSIS_DEPTH_REQUIREMENTS["标准"])
         
         #Fetch all enabled models

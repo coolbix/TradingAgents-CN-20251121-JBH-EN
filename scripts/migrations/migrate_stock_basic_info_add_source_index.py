@@ -14,7 +14,7 @@
 5. 验证迁移结果
 
 运行方式：
-    python scripts/migrations/migrate_stock_basic_info_add_source_index.py
+python scripts/migrations/migrate_stock_basic_info_add_source_index.py
 """
 
 import asyncio

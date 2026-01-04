@@ -46,9 +46,9 @@ class SyncRequest(BaseModel):
 async def get_database_status():
     """Get database status
 
-Returns:
-Database status information
-"""
+    Returns:
+        Database status information
+    """
     try:
         db = get_mongo_db()
         
@@ -107,9 +107,9 @@ Database status information
 async def test_akshare_connection():
     """Testing AKShare Connection
 
-Returns:
-Connection Test Results
-"""
+    Returns:
+        Connection Test Results
+    """
     try:
         service = await get_akshare_sync_service()
         connected = await service.provider.test_connection()
@@ -147,14 +147,14 @@ async def start_full_initialization(
 ):
     """Start full data initialization
 
-Args:
-request parameters
-Background tasks: Backstage Job Manager
-current user: Current user information
+    Args:
+        request parameters
+        Background tasks: Backstage Job Manager
+        current user: Current user information
 
-Returns:
-Initialise Start Results
-"""
+    Returns:
+        Initialise Start Results
+    """
     global _initialization_status
     
     if _initialization_status["is_running"]:
@@ -204,14 +204,14 @@ async def start_basic_sync(
 ):
     """Other Organiser
 
-Args:
-request parameters
-Background tasks: Backstage Job Manager
-current user: Current user information
+    Args:
+        request parameters
+        Background tasks: Backstage Job Manager
+        current user: Current user information
 
-Returns:
-Sync Start Results
-"""
+    Returns:
+        Sync Start Results
+    """
     global _initialization_status
     
     if _initialization_status["is_running"]:
@@ -255,9 +255,9 @@ Sync Start Results
 async def get_initialization_status():
     """Get Initialised Task Status
 
-Returns:
-Current Task Status
-"""
+    Returns:
+        Current Task Status
+    """
     global _initialization_status
     
     return {
@@ -281,12 +281,12 @@ Current Task Status
 async def stop_initialization(current_user: dict = Depends(get_current_user)):
     """Stop the current initialization task
 
-Args:
-current user: Current user information
+    Args:
+        current user: Current user information
 
-Returns:
-Stop result
-"""
+    Returns:
+        Stop result
+    """
     global _initialization_status
     
     if not _initialization_status["is_running"]:

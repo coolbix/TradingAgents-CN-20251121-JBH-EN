@@ -2,7 +2,7 @@
 快速检查 MongoDB 中 analysis_tasks 集合的字段结构与示例数据。
 
 用法（在项目根目录）：
-  python scripts/validation/inspect_analysis_tasks_schema.py
+python scripts/validation/inspect_analysis_tasks_schema.py
 
 脚本会：
 - 读取 app.core.config.Settings 中的 Mongo 连接配置

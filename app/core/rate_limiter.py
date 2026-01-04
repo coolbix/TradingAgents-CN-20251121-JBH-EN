@@ -13,17 +13,17 @@ logger = logging.getLogger(__name__)
 class RateLimiter:
     """Slide window speed limiter
 
-Use slide window algorithm to accurately control API call frequency
-"""
+    Use slide window algorithm to accurately control API call frequency
+    """
     
     def __init__(self, max_calls: int, time_window: float, name: str = "RateLimiter"):
         """Initialization speed limiter
 
-Args:
-max calls: Maximum number of calls within the time window
-Time window: Time window size (sec)
-Name: Limiter name (for logs)
-"""
+        Args:
+            max calls: Maximum number of calls within the time window
+            Time window: Time window size (sec)
+            Name: Limiter name (for logs)
+        """
         self.max_calls = max_calls
         self.time_window = time_window
         self.name = name
@@ -39,8 +39,8 @@ Name: Limiter name (for logs)
     
     async def acquire(self):
         """Access to call permission
-If you exceed the speed limit, you wait until you can call.
-"""
+        If you exceed the speed limit, you wait until you can call.
+        """
         async with self.lock:
             now = time.time()
             
@@ -96,8 +96,8 @@ If you exceed the speed limit, you wait until you can call.
 class TushareRateLimiter(RateLimiter):
     """Tushare special speed limitr
 
-Automatically adjust the flow limit policy to Tushare's grade
-"""
+    Automatically adjust the flow limit policy to Tushare's grade
+    """
     
     #Tushare Accumulation Level Limit Configuration
     TIER_LIMITS = {
@@ -111,10 +111,10 @@ Automatically adjust the flow limit policy to Tushare's grade
     def __init__(self, tier: str = "standard", safety_margin: float = 0.8):
         """Initialize Tushare Speed Limiter
 
-Args:
-tier: Score (free/basic/standard/premium/vip)
-Safe margin: security margin (0-1), actual limit as a percentage of theoretical limitation That's right.
-"""
+        Args:
+            tier: Score (free/basic/standard/premium/vip)
+            Safe margin: security margin (0-1), actual limit as a percentage of theoretical limitation That's right.
+        """
         if tier not in self.TIER_LIMITS:
             logger.warning(f"Unknown Tushare score:{tier}, use default 'standard '")
             tier = "standard"
@@ -141,16 +141,16 @@ Safe margin: security margin (0-1), actual limit as a percentage of theoretical 
 class AKShareRateLimiter(RateLimiter):
     """AKShare Special Speed Limiter
 
-AKShare has no clear limit on flow and uses conservative restriction tactics.
-"""
+    AKShare has no clear limit on flow and uses conservative restriction tactics.
+    """
     
     def __init__(self, max_calls: int = 60, time_window: float = 60):
         """Initialize AKShare Speed Limiter
 
-Args:
-max calls: maximum number of calls within the time window (default 60 times/minute)
-Time window: Time window size (sec)
-"""
+        Args:
+            max calls: maximum number of calls within the time window (default 60 times/minute)
+            Time window: Time window size (sec)
+        """
         super().__init__(
             max_calls=max_calls,
             time_window=time_window,
@@ -161,16 +161,16 @@ Time window: Time window size (sec)
 class BaoStockRateLimiter(RateLimiter):
     """BaoStock special speed limiter
 
-BaoStock does not have a clear limit on flow and uses conservative restriction tactics
-"""
+    BaoStock does not have a clear limit on flow and uses conservative restriction tactics
+    """
     
     def __init__(self, max_calls: int = 100, time_window: float = 60):
         """Initializing BaoStock Rate Limiter
 
-Args:
-max calls: maximum number of calls within the time window (default 100 times/minute)
-Time window: Time window size (sec)
-"""
+        Args:
+            max calls: maximum number of calls within the time window (default 100 times/minute)
+            Time window: Time window size (sec)
+        """
         super().__init__(
             max_calls=max_calls,
             time_window=time_window,

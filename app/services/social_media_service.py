@@ -82,12 +82,12 @@ class SocialMediaService:
     ) -> Dict[str, int]:
         """Batch Save Media Messages
 
-Args:
-Messages: Social Message List
+        Args:
+            Messages: Social Message List
 
-Returns:
-Save statistical information
-"""
+        Returns:
+            Save statistical information
+        """
         if not messages:
             return {"saved": 0, "failed": 0}
         
@@ -139,12 +139,12 @@ Save statistical information
     ) -> List[Dict[str, Any]]:
         """Search for media messages
 
-Args:
-Params: query parameters
+        Args:
+            Params: query parameters
 
-Returns:
-Social Message List
-"""
+        Returns:
+            Social Message List
+        """
         try:
             collection = await self._get_collection()
             

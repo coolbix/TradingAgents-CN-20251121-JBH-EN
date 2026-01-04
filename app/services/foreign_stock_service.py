@@ -58,20 +58,20 @@ class ForeignStockService:
     async def get_quote(self, market: str, code: str, force_refresh: bool = False) -> Dict:
         """Get Real Time Lines
 
-Args:
-market: Market type (HK/US)
-code: stock code
-source refresh: whether to force refresh (jump cache)
+        Args:
+            market: Market type (HK/US)
+            code: stock code
+            source refresh: whether to force refresh (jump cache)
 
-Returns:
-Real-time line data
+        Returns:
+            Real-time line data
 
-Process:
-1. Check for compulsory refreshing
-2. Access from cache (Redis → MongoDB → File)
-3. Cache outstanding data source API (priority)
-4. Save to cache
-"""
+        Process:
+        1. Check for compulsory refreshing
+        2. Access from cache (Redis → MongoDB → File)
+        3. Cache outstanding data source API (priority)
+        4. Save to cache
+        """
         if market == 'HK':
             return await self._get_hk_quote(code, force_refresh)
         elif market == 'US':
@@ -82,14 +82,14 @@ Process:
     async def get_basic_info(self, market: str, code: str, force_refresh: bool = False) -> Dict:
         """Access to basic information
 
-Args:
-market: Market type (HK/US)
-code: stock code
-source refresh: whether to forcibly refresh
+        Args:
+            market: Market type (HK/US)
+            code: stock code
+            source refresh: whether to forcibly refresh
 
-Returns:
-Basic information data
-"""
+        Returns:
+            Basic information data
+        """
         if market == 'HK':
             return await self._get_hk_info(code, force_refresh)
         elif market == 'US':
@@ -101,16 +101,16 @@ Basic information data
                        limit: int = 120, force_refresh: bool = False) -> List[Dict]:
         """Get K-line data
 
-Args:
-market: Market type (HK/US)
-code: stock code
-period: Cycle (day/week/month)
-number of data bars
-source refresh: whether to forcibly refresh
+        Args:
+            market: Market type (HK/US)
+            code: stock code
+            period: Cycle (day/week/month)
+            number of data bars
+            source refresh: whether to forcibly refresh
 
-Returns:
-K-line Data List
-"""
+        Returns:
+            K-line Data List
+        """
         if market == 'HK':
             return await self._get_hk_kline(code, period, limit, force_refresh)
         elif market == 'US':
@@ -120,9 +120,9 @@ K-line Data List
     
     async def _get_hk_quote(self, code: str, force_refresh: bool = False) -> Dict:
         """Access to real-time accommodation (with heavy requests)
- Call API according to the data source priorities configured in the database
-To prevent simultaneous calls to API
-"""
+        Call API according to the data source priorities configured in the database
+        To prevent simultaneous calls to API
+        """
         #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
@@ -233,8 +233,8 @@ To prevent simultaneous calls to API
 
     async def _get_source_priority(self, market: str) -> List[str]:
         """Data source priorities from databases (harmonized methodology)
-Re-enactment of Unified StockService
-"""
+        Re-enactment of Unified StockService
+        """
         market_category_map = {
             "CN": "a_shares",
             "HK": "hk_stocks",
@@ -289,9 +289,9 @@ Re-enactment of Unified StockService
     
     async def _get_us_quote(self, code: str, force_refresh: bool = False) -> Dict:
         """Get U.S. stock in real time.
- Call API according to the data source priorities configured in the database
-To prevent simultaneous calls to API
-"""
+        Call API according to the data source priorities configured in the database
+        To prevent simultaneous calls to API
+        """
         #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
@@ -521,8 +521,8 @@ To prevent simultaneous calls to API
     
     async def _get_hk_info(self, code: str, force_refresh: bool = False) -> Dict:
         """Access to basic information on port units
- Call API according to the data source priorities configured in the database
-"""
+        Call API according to the data source priorities configured in the database
+        """
         #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
@@ -599,8 +599,8 @@ To prevent simultaneous calls to API
 
     async def _get_us_info(self, code: str, force_refresh: bool = False) -> Dict:
         """Access to basic United States information
- Call API according to the data source priorities configured in the database
-"""
+        Call API according to the data source priorities configured in the database
+        """
         #1. Check the cache (unless mandatory updating)
         if not force_refresh:
             cache_key = self.cache.find_cached_stock_data(
@@ -701,8 +701,8 @@ To prevent simultaneous calls to API
 
     async def _get_hk_kline(self, code: str, period: str, limit: int, force_refresh: bool = False) -> List[Dict]:
         """Access to K-line data
- Call API according to the data source priorities configured in the database
-"""
+        Call API according to the data source priorities configured in the database
+        """
         #1. Check the cache (unless mandatory updating)
         cache_key_str = f"hk_kline_{period}_{limit}"
         if not force_refresh:
@@ -777,8 +777,8 @@ To prevent simultaneous calls to API
 
     async def _get_us_kline(self, code: str, period: str, limit: int, force_refresh: bool = False) -> List[Dict]:
         """Get the K-line data.
- Call API according to the data source priorities configured in the database
-"""
+        Call API according to the data source priorities configured in the database
+        """
         #1. Check the cache (unless mandatory updating)
         cache_key_str = f"us_kline_{period}_{limit}"
         if not force_refresh:
@@ -1193,14 +1193,14 @@ To prevent simultaneous calls to API
     async def get_hk_news(self, code: str, days: int = 2, limit: int = 50) -> Dict:
         """Access to information in the Port Unit
 
-Args:
-code: stock code
-Days: Backtrace days
-Limited number of returns
+        Args:
+            code: stock code
+            Days: Backtrace days
+            Limited number of returns
 
-Returns:
-Dictionary containing newslists and data sources
-"""
+        Returns:
+            Dictionary containing newslists and data sources
+        """
         from datetime import datetime, timedelta
 
         logger.info(f"We're starting to get information from the Port Unit:{code}, days={days}, limit={limit}")
@@ -1288,14 +1288,14 @@ Dictionary containing newslists and data sources
     async def get_us_news(self, code: str, days: int = 2, limit: int = 50) -> Dict:
         """Access to American News
 
-Args:
-code: stock code
-Days: Backtrace days
-Limited number of returns
+        Args:
+            code: stock code
+            Days: Backtrace days
+            Limited number of returns
 
-Returns:
-Dictionary containing newslists and data sources
-"""
+        Returns:
+            Dictionary containing newslists and data sources
+        """
         from datetime import datetime, timedelta
 
         logger.info(f"Here we go.{code}, days={days}, limit={limit}")

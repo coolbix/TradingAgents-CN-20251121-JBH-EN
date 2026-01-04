@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 class AKShareProvider(BaseStockDataProvider):
     """AKShare Unified Data Provider
 
-Provide standardized stock data interfaces to support:
-- Access to basic stock information
-- Historical data.
-- Timeline data
-- Financial data
-- Port Unit data support
-"""
+    Provide standardized stock data interfaces to support:
+    - Access to basic stock information
+    - Historical data.
+    - Timeline data
+    - Financial data
+    - Port Unit data support
+    """
     
     def __init__(self):
         super().__init__("AKShare")
@@ -56,9 +56,9 @@ Provide standardized stock data interfaces to support:
 
                 def patched_get(url, **kwargs):
                     """Packaging lists.get method, automatically adding necessary headers and request delay
-Fixing the AKShare stock news em() function missing headers problem
-Simulate real browser TLS fingerprints with curl cffi, if available
-"""
+                    Fixing the AKShare stock news em() function missing headers problem
+                    Simulate real browser TLS fingerprints with curl cffi, if available
+                    """
                     #Add request delay to avoid anti-crawling Seal Ban
                     #Add delay only to requests for Eastern Wealth Network
                     if 'eastmoney.com' in url:
@@ -164,15 +164,15 @@ Simulate real browser TLS fingerprints with curl cffi, if available
 
     def _get_stock_news_direct(self, symbol: str, limit: int = 10) -> Optional[pd.DataFrame]:
         """Direct to East Wealth Network News, API.
-Simulate real browser using curl cffi for Docker environment
+        Simulate real browser using curl cffi for Docker environment
 
-Args:
-symbol: stock code
-Limited number of returns
+        Args:
+            symbol: stock code
+            Limited number of returns
 
-Returns:
-News DataFrame or None
-"""
+        Returns:
+            News DataFrame or None
+        """
         try:
             from curl_cffi import requests as curl_requests
             import json
@@ -307,9 +307,9 @@ News DataFrame or None
     async def get_stock_list(self) -> List[Dict[str, Any]]:
         """Get Stock List
 
-Returns:
-List of stocks, including codes and names
-"""
+        Returns:
+            List of stocks, including codes and names
+        """
         if not self.connected:
             return []
 
@@ -345,12 +345,12 @@ List of stocks, including codes and names
     async def get_stock_basic_info(self, code: str) -> Optional[Dict[str, Any]]:
         """Access to basic stock information
 
-Args:
-code: stock code
+        Args:
+            code: stock code
 
-Returns:
-Standardized stock base information
-"""
+        Returns:
+            Standardized stock base information
+        """
         if not self.connected:
             return None
         
@@ -486,12 +486,12 @@ Standardized stock base information
     def _get_full_symbol(self, code: str) -> str:
         """Get the full stock code
 
-Args:
-code: 6-bit stock code
+        Args:
+            code: 6-bit stock code
 
-Returns:
-Full standardized code, return original code if unidentifiable (ensure not to be empty)
-"""
+        Returns:
+            Full standardized code, return original code if unidentifiable (ensure not to be empty)
+        """
         #Make sure the code isn't empty.
         if not code:
             return ""
@@ -548,14 +548,14 @@ Full standardized code, return original code if unidentifiable (ensure not to be
     async def get_batch_stock_quotes(self, codes: List[str]) -> Dict[str, Dict[str, Any]]:
         """Batch acquisition of real-time equity performance (optimized version: a market-wide snapshot)
 
-Give priority to the New Wave financial interface (more stable) and back to the East wealth interface when it fails
+        Give priority to the New Wave financial interface (more stable) and back to the East wealth interface when it fails
 
-Args:
-codes: list of stock codes
+        Args:
+            codes: list of stock codes
 
-Returns:
-Stock code to line data map dictionary
-"""
+        Returns:
+            Stock code to line data map dictionary
+        """
         if not self.connected:
             return {}
 
@@ -694,16 +694,16 @@ Stock code to line data map dictionary
     async def get_stock_quotes(self, code: str) -> Optional[Dict[str, Any]]:
         """Get a single stock real time line
 
- policy: use stock bid ask em interface to obtain real-time intelligence prices for individual stocks
-- Advantages: capture single stock data only, fast, no waste of resources
-- Application scenario: manual synchronization of individual stocks
+        policy: use stock bid ask em interface to obtain real-time intelligence prices for individual stocks
+        - Advantages: capture single stock data only, fast, no waste of resources
+        - Application scenario: manual synchronization of individual stocks
 
-Args:
-code: stock code
+        Args:
+            code: stock code
 
-Returns:
-Standardized practice data
-"""
+        Returns:
+            Standardized practice data
+        """
         if not self.connected:
             return None
 
@@ -893,15 +893,15 @@ Standardized practice data
     ) -> Optional[pd.DataFrame]:
         """Get Historical Status Data
 
-Args:
-code: stock code
-Start date: Start date (YYYYY-MM-DD)
-End date: End Date (YYYYY-MM-DD)
-period: daily, weekly, monthly
+        Args:
+            code: stock code
+            Start date: Start date (YYYYY-MM-DD)
+            End date: End Date (YYYYY-MM-DD)
+            period: daily, weekly, monthly
 
-Returns:
-HistorylineDataFrame
-"""
+        Returns:
+            HistorylineDataFrame
+        """
         if not self.connected:
             return None
 
@@ -990,12 +990,12 @@ HistorylineDataFrame
     async def get_financial_data(self, code: str) -> Dict[str, Any]:
         """Access to financial data
 
-Args:
-code: stock code
+        Args:
+            code: stock code
 
-Returns:
-Financial data dictionary
-"""
+        Returns:
+            Financial data dictionary
+        """
         if not self.connected:
             return {}
 
@@ -1066,9 +1066,9 @@ Financial data dictionary
     async def get_market_status(self) -> Dict[str, Any]:
         """Access to market status information
 
-Returns:
-Market status information
-"""
+        Returns:
+            Market status information
+        """
         try:
             #AKShare has no direct market status API.
             now = datetime.now()
@@ -1098,13 +1098,13 @@ Market status information
     def get_stock_news_sync(self, symbol: str = None, limit: int = 10) -> Optional[pd.DataFrame]:
         """Get Stock News (Sync version, return original DataFrame)
 
-Args:
-Symbol: Stock code, market news for None
-Limited number of returns
+        Args:
+            Symbol: Stock code, market news for None
+            Limited number of returns
 
-Returns:
-News DataFrame or None
-"""
+        Returns:
+            News DataFrame or None
+        """
         if not self.is_available():
             return None
 
@@ -1170,13 +1170,13 @@ News DataFrame or None
     async def get_stock_news(self, symbol: str = None, limit: int = 10) -> Optional[List[Dict[str, Any]]]:
         """Access to stock news (show, return structured list)
 
-Args:
-Symbol: Stock code, market news for None
-Limited number of returns
+        Args:
+            Symbol: Stock code, market news for None
+            Limited number of returns
 
-Returns:
-NewsList
-"""
+        Returns:
+            NewsList
+        """
         if not self.is_available():
             return None
 
@@ -1389,13 +1389,13 @@ NewsList
     def _analyze_news_sentiment(self, content: str, title: str) -> str:
         """Analysis of news moods
 
-Args:
-Content:
-title:
+        Args:
+            Content:
+            title:
 
-Returns:
-Organisation
-"""
+        Returns:
+            Organisation
+        """
         text = f"{title} {content}".lower()
 
         #Positive keywords
@@ -1427,13 +1427,13 @@ Organisation
     def _calculate_sentiment_score(self, content: str, title: str) -> float:
         """Calculate Emotional Scores
 
-Args:
-Content:
-title:
+        Args:
+            Content:
+            title:
 
-Returns:
-Emotional score: -1.0 to 1.0
-"""
+        Returns:
+            Emotional score: -1.0 to 1.0
+        """
         text = f"{title} {content}".lower()
 
         #Positive keyword weights
@@ -1468,13 +1468,13 @@ Emotional score: -1.0 to 1.0
     def _extract_keywords(self, content: str, title: str) -> List[str]:
         """Extract Keywords
 
-Args:
-Content:
-title:
+        Args:
+            Content:
+            title:
 
-Returns:
-List of keywords
-"""
+        Returns:
+            List of keywords
+        """
         text = f"{title} {content}"
 
         #Common financial keywords
@@ -1496,13 +1496,13 @@ List of keywords
     def _assess_news_importance(self, content: str, title: str) -> str:
         """Assessing the importance of information
 
-Args:
-Content:
-title:
+        Args:
+            Content:
+            title:
 
-Returns:
-Importance level: high/media/low
-"""
+        Returns:
+            Importance level: high/media/low
+        """
         text = f"{title} {content}".lower()
 
         #High-profile keywords
@@ -1532,13 +1532,13 @@ Importance level: high/media/low
     def _classify_news(self, content: str, title: str) -> str:
         """Classified News
 
-Args:
-Content:
-title:
+        Args:
+            Content:
+            title:
 
-Returns:
-Category of information
-"""
+        Returns:
+            Category of information
+        """
         text = f"{title} {content}".lower()
 
         #Company announcement

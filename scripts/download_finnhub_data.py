@@ -7,9 +7,9 @@ Finnhub数据下载脚本
 支持批量下载和增量更新。
 
 使用方法:
-    python scripts/download_finnhub_data.py --data-type news --symbols AAPL,TSLA,MSFT
-    python scripts/download_finnhub_data.py --all
-    python scripts/download_finnhub_data.py --force-refresh
+python scripts/download_finnhub_data.py --data-type news --symbols AAPL,TSLA,MSFT
+python scripts/download_finnhub_data.py --all
+python scripts/download_finnhub_data.py --force-refresh
 """
 
 import os
@@ -42,7 +42,7 @@ class FinnhubDataDownloader:
     def __init__(self, api_key: str = None, data_dir: str = None):
         """
         初始化下载器
-        
+
         Args:
             api_key: Finnhub API密钥
             data_dir: 数据存储目录
@@ -75,11 +75,11 @@ class FinnhubDataDownloader:
     def _make_request(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """
         发送API请求
-        
+
         Args:
             endpoint: API端点
             params: 请求参数
-            
+
         Returns:
             API响应数据
         """
@@ -105,7 +105,7 @@ class FinnhubDataDownloader:
     def download_news_data(self, symbols: List[str], days: int = 7, force_refresh: bool = False):
         """
         下载新闻数据
-        
+
         Args:
             symbols: 股票代码列表
             days: 下载多少天的数据
@@ -192,7 +192,7 @@ class FinnhubDataDownloader:
     def download_insider_sentiment(self, symbols: List[str], force_refresh: bool = False):
         """
         下载内部人情绪数据
-        
+
         Args:
             symbols: 股票代码列表
             force_refresh: 是否强制刷新
@@ -231,7 +231,7 @@ class FinnhubDataDownloader:
     def download_insider_transactions(self, symbols: List[str], force_refresh: bool = False):
         """
         下载内部人交易数据
-        
+
         Args:
             symbols: 股票代码列表
             force_refresh: 是否强制刷新

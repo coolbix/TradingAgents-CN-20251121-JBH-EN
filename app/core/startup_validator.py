@@ -123,12 +123,12 @@ class StartupValidator:
     def _is_valid_api_key(self, api_key: str) -> bool:
         """Determines whether API Key is valid (not placeholder)
 
-Args:
-api key: API Key to be validated
+        Args:
+            api key: API Key to be validated
 
-Returns:
-Bool: True is valid, False is invalid or occupied Arguments
-"""
+        Returns:
+            Bool: True is valid, False is invalid or occupied Arguments
+        """
         if not api_key:
             return False
 
@@ -156,9 +156,9 @@ Bool: True is valid, False is invalid or occupied Arguments
     def validate(self) -> ValidationResult:
         """Authentication Configuration
 
-Returns:
-ValidationResult: Validation results
-"""
+        Returns:
+            ValidationResult: Validation results
+        """
         logger.info("Start authenticating startup configuration...")
         
         #Authentication Required Configuration
@@ -312,12 +312,12 @@ class ConfigurationError(Exception):
 def validate_startup_config() -> ValidationResult:
     """Validate startup configuration (facility function)
 
-Returns:
-ValidationResult: Validation results
+    Returns:
+        ValidationResult: Validation results
 
-Rices:
-Configuration Error: If authentication fails
-"""
+    Rices:
+    Configuration Error: If authentication fails
+    """
     validator = StartupValidator()
     result = validator.validate()
     validator.raise_if_failed()

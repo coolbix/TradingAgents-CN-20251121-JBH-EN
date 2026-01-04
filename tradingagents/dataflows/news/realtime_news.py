@@ -48,13 +48,13 @@ class RealtimeNewsAggregator:
 
     def get_realtime_stock_news(self, ticker: str, hours_back: int = 6, max_news: int = 10) -> List[NewsItem]:
         """Access to real-time stock news
-Priority: Professional API > News API > search engine
+        Priority: Professional API > News API > search engine
 
-Args:
-ticker: Stock code
-Hours back: backtrace hours
-max news: Maximum number of news, default 10
-"""
+        Args:
+            ticker: Stock code
+            Hours back: backtrace hours
+            max news: Maximum number of news, default 10
+        """
         logger.info(f"[News Aggregator]{ticker}Real time news, back in time:{hours_back}Hours")
         start_time = datetime.now(ZoneInfo(get_timezone_name()))
         all_news = []
@@ -680,7 +680,7 @@ max news: Maximum number of news, default 10
 
 def get_realtime_stock_news(ticker: str, curr_date: str, hours_back: int = 6) -> str:
     """Main interface function to access real-time stock news
-"""
+    """
     logger.info(f"== sync, corrected by elderman ==")
     logger.info(f"Function: get realtime stock news")
     logger.info(f"[Press analysis] Parameter: ticker={ticker}, curr_date={curr_date}, hours_back={hours_back}")

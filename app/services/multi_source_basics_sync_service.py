@@ -104,14 +104,14 @@ class MultiSourceBasicsSyncService:
     ) -> Tuple[int, int]:
         """Implementation batch writing with retry mechanism
 
-Args:
-db: Example of MongoDB database
-Organisations: Batch Operations List
-max retries: maximum number of retries
+        Args:
+            db: Example of MongoDB database
+            Organisations: Batch Operations List
+            max retries: maximum number of retries
 
-Returns:
-(Add, Update)
-"""
+        Returns:
+            (Add, Update)
+        """
         inserted = 0
         updated = 0
         retry_count = 0
@@ -143,8 +143,8 @@ Returns:
     async def run_full_sync(self, force: bool = False, preferred_sources: List[str] = None) -> Dict[str, Any]:
         """Run Full Sync
         Args:
-        force: whether to enforce (even if already in operation)
-        Prefered sources: Priority list of data sources
+            force: whether to enforce (even if already in operation)
+            Prefered sources: Priority list of data sources
         """
 
         async with self._lock:
@@ -350,12 +350,12 @@ Returns:
     def _generate_full_symbol(self, code: str) -> str:
         """Generate full standard code by stock code
 
-Args:
-code: 6-bit stock code
+        Args:
+            code: 6-bit stock code
 
-Returns:
-Full standardized code, return original code if unidentifiable (ensure not to be empty)
-"""
+        Returns:
+            Full standardized code, return original code if unidentifiable (ensure not to be empty)
+        """
         #Make sure the code isn't empty.
         if not code:
             return ""

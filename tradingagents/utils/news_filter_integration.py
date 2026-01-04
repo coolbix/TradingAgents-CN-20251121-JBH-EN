@@ -12,26 +12,26 @@ logger = logging.getLogger(__name__)
 def integrate_news_filtering(original_get_stock_news_em):
     """Decorators: Add news filter to the Get stock news em function
 
-Args:
-Original get stock news em: original Get stock news em function
+    Args:
+        Original get stock news em: original Get stock news em function
 
-Returns:
-Packed Functions with News Filters
-"""
+    Returns:
+        Packed Functions with News Filters
+    """
     def filtered_get_stock_news_em(symbol: str, enable_filter: bool = True, min_score: float = 30, 
                                   use_semantic: bool = False, use_local_model: bool = False) -> pd.DataFrame:
         """Enhanced set stock news em, integrated news filtering
 
-Args:
-symbol: stock code
-enabled file: Enable news filters
-min score: Minimum relevance rating threshold
-use semantic: whether semantic similarity is used to filter
-use local model: using local classification models
+        Args:
+            symbol: stock code
+            enabled file: Enable news filters
+            min score: Minimum relevance rating threshold
+            use semantic: whether semantic similarity is used to filter
+            use local model: using local classification models
 
-Returns:
-DataFrame: Filtered News Data
-"""
+        Returns:
+            DataFrame: Filtered News Data
+        """
         logger.info(f"[news filter integration] Start getting{symbol}News, filter switch:{enable_filter}")
         
         #Call original to get news
@@ -104,28 +104,28 @@ DataFrame: Filtered News Data
 def patch_akshare_utils():
     """Add filter function for the Get stock news em function of the kshare utils module
 
- Abandoned: akshare utils module has been removed and this function is reserved for backward compatibility only
-"""
+    Abandoned: akshare utils module has been removed and this function is reserved for backward compatibility only
+    """
     logger.warning("[newsfiltration integration]  Patch akshare utils > Wasted: akshare utils module has been removed")
 
 
 def create_filtered_realtime_news_function():
     """Create an enhanced real-time news acquisition function
-"""
+    """
     def get_filtered_realtime_stock_news(ticker: str, curr_date: str, hours_back: int = 6, 
                                        enable_filter: bool = True, min_score: float = 30) -> str:
         """Enhanced real-time news acquisition function, integrated news filter
 
-Args:
-ticker: Stock code
-Curr date: Current date
-Hours back: backtrace hours
-enabled file: Enable news filters
-min score: Minimum relevance rating threshold
+        Args:
+            ticker: Stock code
+            Curr date: Current date
+            Hours back: backtrace hours
+            enabled file: Enable news filters
+            min score: Minimum relevance rating threshold
 
-Returns:
-str: Formatted news reports
-"""
+        Returns:
+            str: Formatted news reports
+        """
         logger.info(f"[enhanced real-time news]{ticker}Other Organiser")
         
         try:
@@ -178,7 +178,7 @@ str: Formatted news reports
 #Automatically apply patches
 def apply_news_filtering_patches():
     """Automatically apply news filter patches
-"""
+    """
     logger.info("[news filter integration] Start applying news filter patches...")
     
     #1. Enhancement of kshare utils

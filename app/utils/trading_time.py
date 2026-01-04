@@ -13,22 +13,22 @@ from app.core.config import settings
 def is_trading_time(now: Optional[datetime] = None) -> bool:
     """Judge whether or not the buffer period occurs at the time of A-stock trading or after closing
 
-Transaction time:
-- 9.30-11.30 a.m.
-- 15:00 to 15:00
-- Post-disclose buffer period: 15:00-15:30 (ensure that closing prices are obtained)
+    Transaction time:
+    - 9.30-11.30 a.m.
+    - 15:00 to 15:00
+    - Post-disclose buffer period: 15:00-15:30 (ensure that closing prices are obtained)
 
-Description of the buffer period after closing:
-- 30 minutes after the transaction.
-- Assuming six minutes at a time, we can add five opportunities for synchronization.
-- significantly reduce the risk of missing closing prices
+    Description of the buffer period after closing:
+    - 30 minutes after the transaction.
+    - Assuming six minutes at a time, we can add five opportunities for synchronization.
+    - significantly reduce the risk of missing closing prices
 
-Args:
-Now: Specify the time, default to the current time (use the configured time zone)
+    Args:
+        Now: Specify the time, default to the current time (use the configured time zone)
 
-Returns:
-Bool: Is it within the trading time
-"""
+    Returns:
+        Bool: Is it within the trading time
+    """
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
@@ -51,16 +51,16 @@ Bool: Is it within the trading time
 def is_strict_trading_time(now: Optional[datetime] = None) -> bool:
     """Determination of whether or not to be within strict A stock trading time (not including buffer period)
 
-Transaction time:
-- 9.30-11.30 a.m.
-- 15:00 to 15:00
+    Transaction time:
+    - 9.30-11.30 a.m.
+    - 15:00 to 15:00
 
-Args:
-Now: Specify the time, default to the current time (use the configured time zone)
+    Args:
+        Now: Specify the time, default to the current time (use the configured time zone)
 
-Returns:
-Bool: In strict trading time Internal
-"""
+    Returns:
+        Bool: In strict trading time Internal
+    """
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
@@ -82,12 +82,12 @@ Bool: In strict trading time Internal
 def is_pre_market_time(now: Optional[datetime] = None) -> bool:
     """Adjudication of pre-discretion time (9-9:30)
 
-Args:
-Now: Specify the time, default to the current time (use the configured time zone)
+    Args:
+        Now: Specify the time, default to the current time (use the configured time zone)
 
-Returns:
-Bool: Whether the time is before the disk
-"""
+    Returns:
+        Bool: Whether the time is before the disk
+    """
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
@@ -105,12 +105,12 @@ Bool: Whether the time is before the disk
 def is_after_market_time(now: Optional[datetime] = None) -> bool:
     """Post-disbursement time (15-5:30)
 
-Args:
-Now: Specify the time, default to the current time (use the configured time zone)
+    Args:
+        Now: Specify the time, default to the current time (use the configured time zone)
 
-Returns:
-Bool: Is it after schedule time?
-"""
+    Returns:
+        Bool: Is it after schedule time?
+    """
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     
@@ -128,18 +128,18 @@ Bool: Is it after schedule time?
 def get_trading_status(now: Optional[datetime] = None) -> str:
     """Get Current Transaction Status
 
-Args:
-Now: Specify the time, default to the current time (use the configured time zone)
+    Args:
+        Now: Specify the time, default to the current time (use the configured time zone)
 
-Returns:
-str: Transaction status
-- "pre market":
-- "Morning session" :
-- "noon break":
-- "afternoon session":
-- "after market": Post-drive buffer period
-- "Closed":
-"""
+    Returns:
+        str: Transaction status
+        - "pre market":
+        - "Morning session" :
+        - "noon break":
+        - "afternoon session":
+        - "after market": Post-drive buffer period
+        - "Closed":
+    """
     tz = ZoneInfo(settings.TIMEZONE)
     now = now or datetime.now(tz)
     

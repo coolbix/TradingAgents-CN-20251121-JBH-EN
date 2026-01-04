@@ -63,9 +63,9 @@ class HKDataService:
     def _get_hk_stock_list_from_akshare(self) -> List[str]:
         """Can not open message
 
-Returns:
-List [str]: List of port unit codes
-"""
+        Returns:
+            List [str]: List of port unit codes
+        """
         try:
             import akshare as ak
             from datetime import datetime, timedelta
@@ -108,9 +108,9 @@ List [str]: List of port unit codes
     def _get_fallback_stock_list(self) -> List[str]:
         """Getting a list of stand-by port units (based on major port markers)
 
-Returns:
-List [str]: List of port unit codes
-"""
+        Returns:
+            List [str]: List of port unit codes
+        """
         return [
             "00700",  #Information Control
             "09988",  #Ali Baba.
@@ -141,13 +141,13 @@ List [str]: List of port unit codes
     ) -> Dict[str, int]:
         """Synchronize basic information from specified data sources
 
-Args:
-Source name (yfinance/akshare)
-force update: mandatory update (forced refreshing of list of shares)
+        Args:
+            Source name (yfinance/akshare)
+            force update: mandatory update (forced refreshing of list of shares)
 
-Returns:
-Dict: Sync Statistical Information
-"""
+        Returns:
+            Dict: Sync Statistical Information
+        """
         #AKShare data source using batch sync
         if source == "akshare":
             return await self._sync_basic_info_from_akshare_batch(force_update)
@@ -231,12 +231,12 @@ Dict: Sync Statistical Information
     async def _sync_basic_info_from_akshare_batch(self, force_update: bool = False) -> Dict[str, int]:
         """Basic information (one API call for all data) from the AKShare Batch Synchronization Unit
 
-Args:
-force update: mandatory update (forced update of data)
+        Args:
+            force update: mandatory update (forced update of data)
 
-Returns:
-Dict: Sync Statistical Information
-"""
+        Returns:
+            Dict: Sync Statistical Information
+        """
         try:
             import akshare as ak
             from datetime import datetime
@@ -337,13 +337,13 @@ Dict: Sync Statistical Information
     def _normalize_stock_info(self, stock_info: Dict, source: str) -> Dict:
         """Standardized stock information format
 
-Args:
-stock info: raw stock information
-source:
+        Args:
+            stock info: raw stock information
+            source:
 
-Returns:
-Dict: Standardized stock information
-"""
+        Returns:
+            Dict: Standardized stock information
+        """
         #Extract General Fields
         normalized = {
             "name": stock_info.get("name", ""),
@@ -373,12 +373,12 @@ Dict: Standardized stock information
     ) -> Dict[str, int]:
         """Synchronization of port units from specified data sources
 
-Args:
-source: data source name (default yfinance)
+        Args:
+            source: data source name (default yfinance)
 
-Returns:
-Dict: Sync Statistical Information
-"""
+        Returns:
+            Dict: Sync Statistical Information
+        """
         provider = self.providers.get(source)
         if not provider:
             logger.error(f"Data sources not supported:{source}")

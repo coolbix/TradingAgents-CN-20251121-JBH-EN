@@ -65,8 +65,8 @@ def _get_tushare_snapshot(symbol: str) -> Dict[str, Optional[float]]:
 
 def get_cn_fund_snapshot(symbol: str) -> Dict[str, Optional[float]]:
     """Obtain basic base profile of Unit A (pe/pb/roe/market cap).
-To give priority to Tushare, the failure returns to an empty dictionary (a follow-up extension of AKShare/Oriental Wealth, etc.).
-"""
+    To give priority to Tushare, the failure returns to an empty dictionary (a follow-up extension of AKShare/Oriental Wealth, etc.).
+    """
     snap = _get_tushare_snapshot(symbol)
     if snap:
         return snap

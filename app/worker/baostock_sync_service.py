@@ -36,8 +36,8 @@ class BaoStockSyncService:
     def __init__(self):
         """Initializing Sync Service
 
-Note: Database connection initialized in initialize() method
-"""
+        Note: Database connection initialized in initialize() method
+        """
         try:
             self.settings = get_settings()
             self.provider = BaoStockProvider()
@@ -69,12 +69,12 @@ Note: Database connection initialized in initialize() method
     async def sync_stock_basic_info(self, batch_size: int = 100) -> BaoStockSyncStats:
         """Sync Equation Basic Information
 
-Args:
-Watch size: Batch size
+        Args:
+            Watch size: Batch size
 
-Returns:
-Sync Statistical Information
-"""
+        Returns:
+            Sync Statistical Information
+        """
         stats = BaoStockSyncStats()
         
         try:
@@ -169,12 +169,12 @@ Sync Statistical Information
     async def _get_total_shares(self, code: str) -> Optional[float]:
         """Acquisition of gross equity (millions of shares)
 
-Args:
-code: stock code
+        Args:
+            code: stock code
 
-Returns:
-Total equity (one million shares) if no one returns
-"""
+        Returns:
+            Total equity (one million shares) if no one returns
+        """
         try:
             #Attempt to obtain total equity from financial data
             financial_data = await self.provider.get_financial_data(code)
@@ -250,14 +250,14 @@ Total equity (one million shares) if no one returns
     async def sync_daily_quotes(self, batch_size: int = 50) -> BaoStockSyncStats:
         """Sync day K-line data (latest transaction date)
 
-Note: BaoStock does not support real-time lines, which captures Japanese-K-line data on the latest transaction date
+        Note: BaoStock does not support real-time lines, which captures Japanese-K-line data on the latest transaction date
 
-Args:
-Watch size: Batch size
+        Args:
+            Watch size: Batch size
 
-Returns:
-Sync Statistical Information
-"""
+        Returns:
+            Sync Statistical Information
+        """
         stats = BaoStockSyncStats()
 
         try:
@@ -343,15 +343,15 @@ Sync Statistical Information
     async def sync_historical_data(self, days: int = 30, batch_size: int = 20, period: str = "daily", incremental: bool = True) -> BaoStockSyncStats:
         """Sync Historical Data
 
-Args:
-Days: Synchronization Days (if > = 3650 sync all history, if <0 use incremental mode)
-Watch size: Batch size
-period: data cycle (daily/weekly/montly)
-Incremental: Does the incremental synchronize (each stock starts on its own final date)
+        Args:
+            Days: Synchronization Days (if > = 3650 sync all history, if <0 use incremental mode)
+            Watch size: Batch size
+            period: data cycle (daily/weekly/montly)
+            Incremental: Does the incremental synchronize (each stock starts on its own final date)
 
-Returns:
-Sync Statistical Information
-"""
+        Returns:
+            Sync Statistical Information
+        """
         stats = BaoStockSyncStats()
 
         try:
@@ -487,12 +487,12 @@ Sync Statistical Information
     async def _get_last_sync_date(self, symbol: str = None) -> str:
         """Get Last Sync Date
 
-Args:
-symbol: stock code, due date to return the stock if provided + 1 day
+        Args:
+            symbol: stock code, due date to return the stock if provided + 1 day
 
-Returns:
-Date string (YYYY-MM-DD)
-"""
+        Returns:
+            Date string (YYYY-MM-DD)
+        """
         try:
             if self.historical_service is None:
                 self.historical_service = await get_historical_data_service()

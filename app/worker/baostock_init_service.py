@@ -50,8 +50,8 @@ class BaoStockInitService:
     def __init__(self):
         """Initialization services
 
-Note: Database connection initialized in initialize() method
-"""
+        Note: Database connection initialized in initialize() method
+        """
         try:
             self.settings = get_settings()
             self.db = None  #Delayed initialization
@@ -118,14 +118,14 @@ Note: Database connection initialized in initialize() method
                                 enable_multi_period: bool = False) -> BaoStockInitializationStats:
         """Full Data Initialization
 
-Args:
-History days: History data days
-Forced re-initiation
-enabled multi-cycle data sync (daily, weekly, moon)
+        Args:
+            History days: History data days
+            Forced re-initiation
+            enabled multi-cycle data sync (daily, weekly, moon)
 
-Returns:
-Initialize statistical information
-"""
+        Returns:
+            Initialize statistical information
+        """
         stats = BaoStockInitializationStats()
         stats.total_steps = 8 if enable_multi_period else 6
         stats.start_time = datetime.now()

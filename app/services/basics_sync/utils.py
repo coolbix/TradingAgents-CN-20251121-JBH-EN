@@ -10,10 +10,10 @@ from typing import Dict
 
 def fetch_stock_basic_df():
     """Gets the stock base list (DataFrame format) from Tushare, which requires that it be configured and connected correctly.
-Reliance on environmental variables: TUSHARE ENABLED=tru and .env provides TUSHARE TOKEN.
+    Reliance on environmental variables: TUSHARE ENABLED=tru and .env provides TUSHARE TOKEN.
 
-Note: This is a synchronized function that will wait for the Tushare connection to complete.
-"""
+    Note: This is a synchronized function that will wait for the Tushare connection to complete.
+    """
     import time
     import logging
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
@@ -90,9 +90,9 @@ Note: This is a synchronized function that will wait for the Tushare connection 
 
 def find_latest_trade_date() -> str:
     """Detection of the latest available trading day (YYYYMMDD).
-- A maximum of five days from today;
-- If not, back to yesterday's date.
-"""
+    - A maximum of five days from today;
+    - If not, back to yesterday's date.
+    """
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
 
     provider = get_tushare_provider()
@@ -114,8 +114,8 @@ def find_latest_trade_date() -> str:
 
 def fetch_daily_basic_mv_map(trade_date: str) -> Dict[str, Dict[str, float]]:
     """Maps the basic daily indicators according to the date of transaction.
-Overwrite field: Total mv/circ mv/pe/pb/ps/turnover rate/volume ratio/pe ttm/pb mrq/ps ttm
-"""
+    Overwrite field: Total mv/circ mv/pe/pb/ps/turnover rate/volume ratio/pe ttm/pb mrq/ps ttm
+    """
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
 
     provider = get_tushare_provider()
@@ -163,8 +163,8 @@ Overwrite field: Total mv/circ mv/pe/pb/ps/turnover rate/volume ratio/pe ttm/pb 
 
 def fetch_latest_roe_map() -> Dict[str, Dict[str, float]]:
     """Gets the RoE map (ts code-> FMT 0   ) of the latest available financial period.
-Priority is given to finding the first non-empty data in reverse sequence for the latest quarter.
-"""
+    Priority is given to finding the first non-empty data in reverse sequence for the latest quarter.
+    """
     from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
     from datetime import datetime
 

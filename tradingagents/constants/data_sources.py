@@ -16,11 +16,11 @@ from dataclasses import dataclass
 class DataSourceCode(str, Enum):
     """Data source encoded entries
 
-Name code:
-- Use capital letters and underlineds
-- Values with lowercase letters and underlineds
-- Keep it simple and clear.
-"""
+    Name code:
+    - Use capital letters and underlineds
+    - Values with lowercase letters and underlineds
+    - Keep it simple and clear.
+    """
     
     #== sync, corrected by elderman == @elder man
     MONGODB = "mongodb"  #MongoDB database cache (highest priority)
@@ -280,33 +280,33 @@ DATA_SOURCE_REGISTRY: Dict[str, DataSourceInfo] = {
 def get_data_source_info(code: str) -> Optional[DataSourceInfo]:
     """Access to data source information
 
-Args:
-code: Data source encoding
+    Args:
+        code: Data source encoding
 
-Returns:
-Data source information, return None if not available
-"""
+    Returns:
+        Data source information, return None if not available
+    """
     return DATA_SOURCE_REGISTRY.get(code)
 
 
 def list_all_data_sources() -> List[DataSourceInfo]:
     """List all data sources
 
-Returns:
-List of all data sources
-"""
+    Returns:
+        List of all data sources
+    """
     return list(DATA_SOURCE_REGISTRY.values())
 
 
 def list_data_sources_by_market(market: str) -> List[DataSourceInfo]:
     """List the data sources supporting the specified market
 
-Args:
-Market type (a shares, us stocks, hk stocks, etc.)
+    Args:
+        Market type (a shares, us stocks, hk stocks, etc.)
 
-Returns:
-List of data sources supporting the market
-"""
+    Returns:
+        List of data sources supporting the market
+    """
     return [
         info for info in DATA_SOURCE_REGISTRY.values()
         if market in info.supported_markets
@@ -316,9 +316,9 @@ List of data sources supporting the market
 def list_free_data_sources() -> List[DataSourceInfo]:
     """List all free data sources
 
-Returns:
-Free Data Source List
-"""
+    Returns:
+        Free Data Source List
+    """
     return [
         info for info in DATA_SOURCE_REGISTRY.values()
         if info.is_free
@@ -328,11 +328,11 @@ Free Data Source List
 def is_data_source_supported(code: str) -> bool:
     """Check if data sources support
 
-Args:
-code: Data source encoding
+    Args:
+        code: Data source encoding
 
-Returns:
-Supported
-"""
+    Returns:
+        Supported
+    """
     return code in DATA_SOURCE_REGISTRY
 

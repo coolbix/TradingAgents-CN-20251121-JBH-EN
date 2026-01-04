@@ -32,17 +32,17 @@ class GoogleToolCallHandler:
     ) -> Tuple[str, List[Any]]:
         """Harmonization of tools for processing Google models
 
-Args:
-result: LLM first call
-llm: example of a language model
-lists: available tools
-State: Current status
-Analysis prompt template: Analytictography Board
-analyser's name
+        Args:
+            result: LLM first call
+            llm: example of a language model
+            lists: available tools
+            State: Current status
+            Analysis prompt template: Analytictography Board
+            analyser's name
 
-Returns:
-Tuple [str, List]: (analytical, message list)
-"""
+        Returns:
+            Tuple [str, List]: (analytical, message list)
+        """
         
         #Validate input parameters
         logger.info(f"[{analyst_name}Start Google Tool Call Processing...")
@@ -470,14 +470,14 @@ Tuple [str, List]: (analytical, message list)
     ) -> str:
         """Process a simple Google model response (no tool to call)
 
-Args:
-result: LLM calls
-llm: example of a language model
-analyser's name
+        Args:
+            result: LLM calls
+            llm: example of a language model
+            analyser's name
 
-Returns:
-str: Analytical reports
-"""
+        Returns:
+            str: Analytical reports
+        """
         
         if not GoogleToolCallHandler.is_google_model(llm):
             return result.content
@@ -495,14 +495,14 @@ str: Analytical reports
     def generate_final_analysis_report(llm, messages: List, analyst_name: str) -> str:
         """Generate final analysis - enhanced version to support retesting and model switching
 
-Args:
-llm: LLM example
-Messages: Message List
-analyser's name
+        Args:
+            llm: LLM example
+            Messages: Message List
+            analyser's name
 
-Returns:
-str: Analytical reports
-"""
+        Returns:
+            str: Analytical reports
+        """
         if not GoogleToolCallHandler.is_google_model(llm):
             logger.warning(f"⚠️ [{analyst_name}:: Non-Google model, skip Google tool processing Device")
             return ""
@@ -626,13 +626,13 @@ str: Analytical reports
     def _optimize_message_sequence(messages: List, analysis_prompt: str) -> List:
         """Optimize the message sequence to ensure a reasonable length Internal
 
-Args:
-Messages: Original Message List
-Analysis prompt: Analytic tip
+        Args:
+            Messages: Original Message List
+            Analysis prompt: Analytic tip
 
-Returns:
-List: Optimized list of messages
-"""
+        Returns:
+            List: Optimized list of messages
+        """
         from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
         
         #Calculate total length
@@ -678,13 +678,13 @@ List: Optimized list of messages
     def _generate_fallback_report(messages: List, analyst_name: str) -> str:
         """Generate downgrade reports
 
-Args:
-Messages: Message List
-analyser's name
+        Args:
+            Messages: Message List
+            analyser's name
 
-Returns:
-str: Deduction report
-"""
+        Returns:
+            str: Deduction report
+        """
         from langchain_core.messages import ToolMessage
         
         #Extract Tool Results
@@ -713,15 +713,15 @@ str: Deduction report
     ) -> str:
         """Create standard analytical tips
 
-Args:
-ticker: Stock code
-Company name: Company name
-Analyst type: Analyst type of analyst (e.g. "Technology" and "Basic Analysis" etc.)
-Special requirements:
+        Args:
+            ticker: Stock code
+            Company name: Company name
+            Analyst type: Analyst type of analyst (e.g. "Technology" and "Basic Analysis" etc.)
+            Special requirements:
 
-Returns:
-st: Analyze hints
-"""
+        Returns:
+            st: Analyze hints
+        """
         
         base_prompt = f"""现在请基于上述工具获取的数据，生成详细的{analyst_type}报告。
 

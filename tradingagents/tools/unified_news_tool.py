@@ -16,23 +16,23 @@ class UnifiedNewsAnalyzer:
     def __init__(self, toolkit):
         """Initialize unified news analyst
 
-Args:
-Toolkit: Toolkit containing various news access tools
-"""
+        Args:
+            Toolkit: Toolkit containing various news access tools
+        """
         self.toolkit = toolkit
         
     def get_stock_news_unified(self, stock_code: str, max_news: int = 10, model_info: str = "") -> str:
         """Unified news access interface
-Automatically identify stock types according to stock code and obtain corresponding news
+        Automatically identify stock types according to stock code and obtain corresponding news
 
-Args:
-Stock code: Stock code
-Max news: Maximum number of news
-Model info: Model information currently in use for special handling
+        Args:
+            Stock code: Stock code
+            Max news: Maximum number of news
+            Model info: Model information currently in use for special handling
 
-Returns:
-st: Formatted news content
-"""
+        Returns:
+            st: Formatted news content
+        """
         logger.info(f"[Unified News Tool] Start accessing{stock_code}News, models:{model_info}")
         logger.info(f"[Uniform News Tool]  Current model information:{model_info}")
         
@@ -91,13 +91,13 @@ st: Formatted news content
     def _get_news_from_database(self, stock_code: str, max_news: int = 10) -> str:
         """Get news from the database
 
-Args:
-Stock code: Stock code
-Max news: Maximum number of news
+        Args:
+            Stock code: Stock code
+            Max news: Maximum number of news
 
-Returns:
-str: formatted news content, return empty string if no news
-"""
+        Returns:
+            str: formatted news content, return empty string if no news
+        """
         try:
             from tradingagents.dataflows.cache.app_adapter import get_mongodb_client
             from datetime import timedelta
@@ -183,15 +183,15 @@ str: formatted news content, return empty string if no news
 
     def _sync_news_from_akshare(self, stock_code: str, max_news: int = 10) -> bool:
         """Sync News from AKShare to Database (Sync Method)
-Use synchronized database client and event cycle in new threads to avoid incident cycle conflicts
+        Use synchronized database client and event cycle in new threads to avoid incident cycle conflicts
 
-Args:
-Stock code: Stock code
-Max news: Maximum number of news
+        Args:
+            Stock code: Stock code
+            Max news: Maximum number of news
 
-Returns:
-Bool: Successfully synchronized
-"""
+        Returns:
+            Bool: Successfully synchronized
+        """
         try:
             import asyncio
             import concurrent.futures
@@ -552,14 +552,14 @@ def create_unified_news_tool(toolkit):
     def get_stock_news_unified(stock_code: str, max_news: int = 100, model_info: str = ""):
         """Unified news access tool
 
-Args:
-Stock code(str): Equities code (support A shares like 000001, Hong Kong shares like 0.700.HK, United States shares like AAPL)
-max news(int): Maximum number of news, default 100
-Model info(str): Model information currently in use for special handling
+        Args:
+            Stock code(str): Equities code (support A shares like 000001, Hong Kong shares like 0.700.HK, United States shares like AAPL)
+            max news(int): Maximum number of news, default 100
+            Model info(str): Model information currently in use for special handling
 
-Returns:
-st: Formatted news content
-"""
+        Returns:
+            st: Formatted news content
+        """
         if not stock_code:
             return "❌ 错误: 未提供股票代码"
         

@@ -308,7 +308,7 @@ def update_display(layout, spinner_text=None):
     """
     更新CLI界面显示内容
     Update CLI interface display content
-    
+
     Args:
         layout: Rich Layout对象
         spinner_text: 可选的spinner文本
@@ -948,7 +948,7 @@ def update_research_team_status(status):
     """
     更新所有研究团队成员和交易员的状态
     Update status for all research team members and trader
-    
+
     Args:
         status: 新的状态值
     """
@@ -960,10 +960,10 @@ def extract_content_string(content):
     """
     从各种消息格式中提取字符串内容
     Extract string content from various message formats
-    
+
     Args:
         content: 消息内容，可能是字符串、列表或其他格式
-    
+
     Returns:
         str: 提取的字符串内容
     """

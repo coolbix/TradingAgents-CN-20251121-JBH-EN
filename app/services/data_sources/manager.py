@@ -105,13 +105,13 @@ class DataSourceManager:
     def get_stock_list_with_fallback(self, preferred_sources: Optional[List[str]] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """Get a list of shares to support the designation of priority data sources
 
-Args:
-Prefered sources: list of preferred data sources, such as ['akshare', 'baostock']
-If None, in the default priority order
+        Args:
+            Prefered sources: list of preferred data sources, such as ['akshare', 'baostock']
+            If None, in the default priority order
 
-Returns:
-(DataFrame, source name) or (None, None)
-"""
+        Returns:
+            (DataFrame, source name) or (None, None)
+        """
         available_adapters = self.get_available_adapters()
 
         #Reorder if priority data sources are specified
@@ -141,13 +141,13 @@ Returns:
     def get_daily_basic_with_fallback(self, trade_date: str, preferred_sources: Optional[List[str]] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """Access to daily basic data to support the designation of priority data sources
 
-Args:
-trade date: transaction date
-Prefered sources: Priority list of data sources
+        Args:
+            trade date: transaction date
+            Prefered sources: Priority list of data sources
 
-Returns:
-(DataFrame, source name) or (None, None)
-"""
+        Returns:
+            (DataFrame, source name) or (None, None)
+        """
         available_adapters = self.get_available_adapters()
 
         #Reorder if priority data sources are specified
@@ -172,12 +172,12 @@ Returns:
     def find_latest_trade_date_with_fallback(self, preferred_sources: Optional[List[str]] = None) -> Optional[str]:
         """Find the latest transaction date and support the designation of priority data Source
 
-Args:
-Prefered sources: Priority list of data sources
+        Args:
+            Prefered sources: Priority list of data sources
 
-Returns:
-Transaction Date String (YYYMMDD format) or None
-"""
+        Returns:
+            Transaction Date String (YYYMMDD format) or None
+        """
         available_adapters = self.get_available_adapters()
 
         #Reorder if priority data sources are specified
@@ -200,9 +200,9 @@ Transaction Date String (YYYMMDD format) or None
 
     def get_realtime_quotes_with_fallback(self) -> Tuple[Optional[Dict], Optional[str]]:
         """Get market-wide real-time snapshots, try in order of adaptor priority, and return the first successful result
-RETURNS: (quates dict, source name)
-Quotes dict forms    FMT 0,...}
-"""
+        RETURNS: (quates dict, source name)
+        Quotes dict forms    FMT 0,...}
+        """
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
             try:
@@ -221,9 +221,9 @@ Quotes dict forms    FMT 0,...}
     ) -> Tuple[Optional[pd.DataFrame], Optional[str], Optional[Dict]]:
         """Access to daily basic data using consistency checks
 
-Returns:
-Tuple.
-"""
+        Returns:
+            Tuple.
+        """
         available_adapters = self.get_available_adapters()
         if len(available_adapters) < 2:
             df, source = self.get_daily_basic_with_fallback(trade_date)

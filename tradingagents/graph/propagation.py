@@ -56,7 +56,7 @@ class Propagator:
 
         Args:
             use_progress_callback: If True, use 'updates' mode for node-level progress tracking.
-                                  If False, use 'values' mode for complete state updates.
+            If False, use 'values' mode for complete state updates.
         """
         #Use 'updates' to get updates at node level for progress tracking
         #Use 'values' mode to get complete status updates

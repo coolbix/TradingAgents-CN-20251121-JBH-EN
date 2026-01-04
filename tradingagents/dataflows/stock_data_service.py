@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 class StockDataService:
     """Common stock data acquisition services
-Complete downscaling mechanism: MongoDB ->Tushare data interface ->Cache -> Error processing
-"""
+    Complete downscaling mechanism: MongoDB ->Tushare data interface ->Cache -> Error processing
+    """
     
     def __init__(self):
         self.db_manager = None
@@ -59,12 +59,12 @@ Complete downscaling mechanism: MongoDB ->Tushare data interface ->Cache -> Erro
     def get_stock_basic_info(self, stock_code: str = None) -> Optional[Dict[str, Any]]:
         """Access to basic equity information (individual or total stocks)
 
-Args:
-Stock code: Stock code, return all shares if None
+        Args:
+            Stock code: Stock code, return all shares if None
 
-Returns:
-Dict: Basic information on stocks
-"""
+        Returns:
+            Dict: Basic information on stocks
+        """
         logger.info(f"Access to basic stock information:{stock_code or 'All stocks'}")
         
         #1. Priority access from MongoDB
@@ -254,8 +254,8 @@ Dict: Basic information on stocks
     
     def get_stock_data_with_fallback(self, stock_code: str, start_date: str, end_date: str) -> str:
         """Acquisition of stock data (degrading mechanism)
-This is the enhancement of the existing Get china stock data function.
-"""
+        This is the enhancement of the existing Get china stock data function.
+        """
         logger.info(f"Access to stock data:{stock_code} ({start_date}Present.{end_date})")
         
         #First, make sure that basic stock information is available.

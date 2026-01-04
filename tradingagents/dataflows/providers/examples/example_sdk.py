@@ -19,18 +19,18 @@ from ..base_provider import BaseStockDataProvider
 class ExampleSDKProvider(BaseStockDataProvider):
     """Example: SDK data provider (tradingagents layer)
 
-Duties:
-- Connect external SDK API
-- Access to raw data
-- Standardization of data processing
-- returns standard format data
+    Duties:
+    - Connect external SDK API
+    - Access to raw data
+    - Standardization of data processing
+    - returns standard format data
 
-Note:
-- Not about database operations
-- Not business logic.
-- Focus on data acquisition and formatting
-- Called by the HotSync service on the app layer
-"""
+    Note:
+    - Not about database operations
+    - Not business logic.
+    - Focus on data acquisition and formatting
+    - Called by the HotSync service on the app layer
+    """
     
     def __init__(self, api_key: str = None, base_url: str = None, **kwargs):
         super().__init__("ExampleSDK")

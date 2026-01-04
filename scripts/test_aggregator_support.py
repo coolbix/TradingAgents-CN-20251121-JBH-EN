@@ -2,7 +2,7 @@
 测试聚合渠道支持功能
 
 使用方法:
-    python scripts/test_aggregator_support.py
+python scripts/test_aggregator_support.py
 """
 
 import asyncio

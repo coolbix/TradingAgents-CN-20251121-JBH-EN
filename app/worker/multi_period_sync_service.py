@@ -73,14 +73,14 @@ class MultiPeriodSyncService:
     ) -> MultiPeriodSyncStats:
         """Synchronize multi-cycle historical data
 
-Args:
-Symbols: list of stock codes, None means all stocks
-periods: periodic list (daily/weekly/montly)
-Data sources: list of data sources (tushare/akshare/baostock)
-Start date: Start date
-End date: End date
-all history: whether to sync all historical data (overlooking time frames)
-"""
+        Args:
+            Symbols: list of stock codes, None means all stocks
+            periods: periodic list (daily/weekly/montly)
+            Data sources: list of data sources (tushare/akshare/baostock)
+            Start date: Start date
+            End date: End date
+            all history: whether to sync all historical data (overlooking time frames)
+        """
         if self.historical_service is None:
             await self.initialize()
         

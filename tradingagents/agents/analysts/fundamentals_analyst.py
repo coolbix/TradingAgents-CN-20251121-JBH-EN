@@ -19,13 +19,13 @@ from tradingagents.agents.utils.google_tool_handler import GoogleToolCallHandler
 def _get_company_name_for_fundamentals(ticker: str, market_info: dict) -> str:
     """Get company names for basic face analysts
 
-Args:
-ticker: Stock code
-market info: market information dictionary
+    Args:
+        ticker: Stock code
+        market info: market information dictionary
 
-Returns:
-str: Company name
-"""
+    Returns:
+        str: Company name
+    """
     try:
         if market_info['is_china']:
             #China Unit A: Access to stock information using a unified interface

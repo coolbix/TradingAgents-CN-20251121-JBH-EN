@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 class StockDataService:
     """Equities Data Services - Unified Data Access Level
-Based on existing pools, maintain backward compatibility
-"""
+    Based on existing pools, maintain backward compatibility
+    """
     
     def __init__(self):
         self.basic_info_collection = "stock_basic_info"
@@ -34,12 +34,12 @@ Based on existing pools, maintain backward compatibility
         source: Optional[str] = None
     ) -> Optional[StockBasicInfoExtended]:
         """Access to basic stock information
-Args:
-symbol: 6-bit stock code
-Source: Data source (tushare/akshare/baostock/multi source), default priority: tushare > multi source > akshare > baostock
-Returns:
-StockBasicInfoExtended: extended stock base information
-"""
+        Args:
+            symbol: 6-bit stock code
+            Source: Data source (tushare/akshare/baostock/multi source), default priority: tushare > multi source > akshare > baostock
+        Returns:
+            StockBasicInfoExtended: extended stock base information
+        """
         try:
             db = get_mongo_db()
             symbol6 = str(symbol).zfill(6)
@@ -87,11 +87,11 @@ StockBasicInfoExtended: extended stock base information
     
     async def get_market_quotes(self, symbol: str) -> Optional[MarketQuotesExtended]:
         """Get Real Time Line Data
-Args:
-symbol: 6-bit stock code
-Returns:
-MarketQuotesExtended: extended real-time behavioral data
-"""
+        Args:
+            symbol: 6-bit stock code
+        Returns:
+            MarketQuotesExtended: extended real-time behavioral data
+        """
         try:
             db = get_mongo_db()
             symbol6 = str(symbol).zfill(6)
@@ -123,15 +123,15 @@ MarketQuotesExtended: extended real-time behavioral data
         source: Optional[str] = None
     ) -> List[StockBasicInfoExtended]:
         """Get Stock List
-Args:
-Market screening Select
-industry:
-Page: Page Number
-Page size: per page size
-source: data source (optional), default use of highest priority data source
-Returns:
-List [Stock BasicInfoExtended]:
-"""
+        Args:
+            Market screening Select
+            industry:
+            Page: Page Number
+            Page size: per page size
+            source: data source (optional), default use of highest priority data source
+        Returns:
+            List [Stock BasicInfoExtended]:
+        """
         try:
             db = get_mongo_db()
 
@@ -187,13 +187,13 @@ List [Stock BasicInfoExtended]:
         source: str = "tushare"
     ) -> bool:
         """Update stock base information
-Args:
-symbol: 6-bit stock code
-update data: Update data
-source: data source (tushare/akshare/baostock), default Tushare
-Returns:
-Bool: Successful update
-"""
+        Args:
+            symbol: 6-bit stock code
+            update data: Update data
+            source: data source (tushare/akshare/baostock), default Tushare
+        Returns:
+            Bool: Successful update
+        """
         try:
             db = get_mongo_db()
             symbol6 = str(symbol).zfill(6)
@@ -232,12 +232,12 @@ Bool: Successful update
         quote_data: Dict[str, Any]
     ) -> bool:
         """Update Real Time Line Data
-Args:
-symbol: 6-bit stock code
-Quote data: fine data
-Returns:
-Bool: Successful update
-"""
+        Args:
+            symbol: 6-bit stock code
+            Quote data: fine data
+        Returns:
+            Bool: Successful update
+        """
         try:
             db = get_mongo_db()
             symbol6 = str(symbol).zfill(6)
@@ -266,8 +266,8 @@ Bool: Successful update
     
     def _standardize_basic_info(self, doc: Dict[str, Any]) -> Dict[str, Any]:
         """Standardized stock basic information data
-Map existing fields to standardized fields
-"""
+        Map existing fields to standardized fields
+        """
         #Keep existing fields unchanged
         result = doc.copy()
 
@@ -344,8 +344,8 @@ Map existing fields to standardized fields
     
     def _standardize_market_quotes(self, doc: Dict[str, Any]) -> Dict[str, Any]:
         """Standardized real-time behaviour data
-Map existing fields to standardized fields
-"""
+        Map existing fields to standardized fields
+        """
         #Keep existing fields unchanged
         result = doc.copy()
         

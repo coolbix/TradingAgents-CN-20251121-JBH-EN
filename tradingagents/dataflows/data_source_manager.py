@@ -27,9 +27,9 @@ from tradingagents.constants import DataSourceCode
 class ChinaDataSource(Enum):
     """Chinese Stock Data Sources
 
-Note: This count is synchronized with trafficas.constants. DataSurceCode
-Value using uniform data source code
-"""
+    Note: This count is synchronized with trafficas.constants. DataSurceCode
+    Value using uniform data source code
+    """
     MONGODB = DataSourceCode.MONGODB  #MongoDB database cache (highest priority)
     TUSHARE = DataSourceCode.TUSHARE
     AKSHARE = DataSourceCode.AKSHARE
@@ -39,9 +39,9 @@ Value using uniform data source code
 class USDataSource(Enum):
     """United States stock data source count
 
-Note: This count is synchronized with trafficas.constants. DataSurceCode
-Value using uniform data source code
-"""
+    Note: This count is synchronized with trafficas.constants. DataSurceCode
+    Value using uniform data source code
+    """
     MONGODB = DataSourceCode.MONGODB  #MongoDB database cache (highest priority)
     YFINANCE = DataSourceCode.YFINANCE  #Yahoo Finance (free, stock prices and technical indicators)
     ALPHA_VANTAGE = DataSourceCode.ALPHA_VANTAGE  #Alpha Vantage (basic and news)
@@ -55,6 +55,9 @@ class DataSourceManager:
     """
     Data Source Manager
     NOTE: there is another DataSourceManager in app/services/data_sources/manager.py
+    NOTE: consider unifying them in the future
+    NOTE: DataSourceManager   is for China stock data sources only.
+    NOTE: USDataSourceManager is for US stock data sources only.
     NOTE: consider unifying them in the future
     """
 
@@ -92,10 +95,10 @@ class DataSourceManager:
     def _get_data_source_priority_order(self, symbol: Optional[str] = None) -> List[ChinaDataSource]:
         """Data source prioritization from database (for downgrading)
         Args:
-        Symbol: Equities code to identify market types (A/US/Hong Kong)
+            Symbol: Equities code to identify market types (A/US/Hong Kong)
 
         Returns:
-        List of data sources in order of priority (not including MongoDB because MongoDB is the highest priority)
+            List of data sources in order of priority (not including MongoDB because MongoDB is the highest priority)
         """
         #Identification of market types
         market_category = self._identify_market_category(symbol)
@@ -172,10 +175,10 @@ class DataSourceManager:
     def _identify_market_category(self, symbol: Optional[str]) -> Optional[str]:
         """Identification of market classifications to which stock codes belong
         Args:
-        symbol: stock code
+            symbol: stock code
 
         Returns:
-        Market classification ID (a shares/us stocks/hk stocks) returns Noone if it cannot be identified
+            Market classification ID (a shares/us stocks/hk stocks) returns Noone if it cannot be identified
         """
         if not symbol:
             return None
@@ -223,12 +226,12 @@ class DataSourceManager:
     def get_china_stock_data_tushare(self, symbol: str, start_date: str, end_date: str) -> str:
         """Using Tushare to access Chinese stock A historical data
         Args:
-        symbol: stock code
-        Start date: Start date
-        End date: End date
-        
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+
         Returns:
-        str: Formatted Stock Data Reports
+            str: Formatted Stock Data Reports
         """
         #Switch to Tushare Data Source
         original_source = self.current_source
@@ -246,10 +249,10 @@ class DataSourceManager:
         Priority: MongoDB →Tushare →AKShare → Generate Analysis
 
         Args:
-        symbol: stock code
+            symbol: stock code
 
         Returns:
-        str: Basic analysis reports
+            str: Basic analysis reports
         """
         logger.info(f"[Data source:{self.current_source.value}Start access to basic data:{symbol}",
                    extra={
@@ -310,10 +313,10 @@ class DataSourceManager:
     def get_china_stock_fundamentals_tushare(self, symbol: str) -> str:
         """Access to Chinese stock fundamentals using Tushare (old interface compatible)
         Args:
-        symbol: stock code
+            symbol: stock code
 
         Returns:
-        str: Basic analysis reports
+            str: Basic analysis reports
         """
         #Redirect to Unified Interface
         return self._get_tushare_fundamentals(symbol)
@@ -323,12 +326,12 @@ class DataSourceManager:
         Priority: MongoDB → Tushare → AKShare
 
         Args:
-        Symbol: stock code, market news for empty
-        Hours back: backtrace hours
-        Limited number of returns
+            Symbol: stock code, market news for empty
+            Hours back: backtrace hours
+            Limited number of returns
 
         Returns:
-        List [Dict]: News Data List
+            List [Dict]: News Data List
         """
         logger.info(f"[Data source:{self.current_source.value}Start access to news data:{symbol or 'Market News'}Backtracking{hours_back}Hours",
                    extra={
@@ -397,7 +400,7 @@ class DataSourceManager:
         2. Check whether the database configuration is enabled (business availability)
 
         Returns:
-        List of available and enabled data sources
+            List of available and enabled data sources
         """
         available = []
 
@@ -416,14 +419,12 @@ class DataSourceManager:
 
             if config_data and config_data.get('data_source_configs'):
                 data_source_configs = config_data.get('data_source_configs', [])
-
                 #Extracting enabled data source type
                 for ds in data_source_configs:
                     if ds.get('enabled', True):
                         ds_type = ds.get('type', '').lower()
                         enabled_sources_in_db.add(ds_type)
-
-                logger.info(f"✅ [Data Source Configuration] Read from database to enabled data sources:{enabled_sources_in_db}")
+                logger.info(f"✅ [Data Source Configuration] Read enabled data sources list from database:{enabled_sources_in_db}")
             else:
                 logger.warning("⚠️ [Data source configuration] There is no data source configuration in the database and all installed data sources will be checked")
                 #Default all data sources enabled if database is not configured
@@ -446,10 +447,18 @@ class DataSourceManager:
             except Exception as e:
                 logger.warning(f"MongoDB data sources are not available:{e}")
         elif self.use_mongodb_cache and 'mongodb' not in enabled_sources_in_db:
-            logger.info("ℹ️ MongoDB data source disabled in database")
+            logger.info("ℹ️ MongoDB data source is NOT enabled in database")
 
         #Read data source configuration from the database
         datasource_configs = self._get_datasource_configs_from_db()
+        """
+        {'akshare':       {'api_key': '', 'api_secret': '', 'config_params': {}},
+         'tushare':       {'api_key': '', 'api_secret': '', 'config_params': {}},
+         'finnhub':       {'api_key': '', 'api_secret': '', 'config_params': {}},
+         'baostock':      {'api_key': '', 'api_secret': '', 'config_params': {}},
+         'alpha_vantage': {'api_key': '', 'api_secret': '', 'config_params': {}},
+         'yahoo_finance': {'api_key': '', 'api_secret': '', 'config_params': {}}}
+        """
 
         #Check Tushare.
         if 'tushare' in enabled_sources_in_db:
@@ -597,13 +606,13 @@ class DataSourceManager:
     def _get_cached_data(self, symbol: str, start_date: str = None, end_date: str = None, max_age_hours: int = 24) -> Optional[pd.DataFrame]:
         """Fetch data from cache
         Args:
-        symbol: stock code
-        Start date: Start date
-        End date: End date
-        max age hours: maximum cache time (hours)
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            max age hours: maximum cache time (hours)
 
         Returns:
-        DataFrame: Cache data, if not returnedNone
+            DataFrame: Cache data, if not returnedNone
         """
         if not self.cache_enabled or not self.cache_manager:
             return None
@@ -629,10 +638,10 @@ class DataSourceManager:
     def _save_to_cache(self, symbol: str, data: pd.DataFrame, start_date: str = None, end_date: str = None):
         """Save Data to Cache
         Args:
-        symbol: stock code
-        Data:
-        Start date: Start date
-        End date: End date
+            symbol: stock code
+            Data:
+            Start date: Start date
+            End date: End date
         """
         if not self.cache_enabled or not self.cache_manager:
             return
@@ -647,10 +656,10 @@ class DataSourceManager:
     def _get_volume_safely(self, data: pd.DataFrame) -> float:
         """Secure access to traffic data
         Args:
-        Data: Stock data DataFrame
-        
+            Data: Stock data DataFrame
+
         Returns:
-        float: barter, return 0 if access failed
+            float: barter, return 0 if access failed
         """
         try:
             if 'volume' in data.columns:
@@ -666,14 +675,14 @@ class DataSourceManager:
                                     start_date: str, end_date: str) -> str:
         """Formatting of stock data responses (including technical indicators)
         Args:
-        Data: Stock data DataFrame
-        symbol: stock code
-        Stock name: Stock name
-        Start date: Start date
-        End date: End date
+            Data: Stock data DataFrame
+            symbol: stock code
+            Stock name: Stock name
+            Start date: Start date
+            End date: End date
 
         Returns:
-        str: Formatted data reports (including technical indicators)
+            str: Formatted data reports (including technical indicators)
         """
         try:
             original_data_count = len(data)
@@ -892,13 +901,13 @@ class DataSourceManager:
     def get_stock_dataframe(self, symbol: str, start_date: str = None, end_date: str = None, period: str = "daily") -> pd.DataFrame:
         """DataFrame interface to capture stock data, support multiple data sources and automatically downgrade
         Args:
-        symbol: stock code
-        Start date: Start date
-        End date: End date
-        period: data cycle (daily/weekly/monthly), default is Daily
-        
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            period: data cycle (daily/weekly/monthly), default is Daily
+
         Returns:
-        DataFrame: DataFrame, column: open, high, low, close, vol, amount, date
+            DataFrame: DataFrame, column: open, high, low, close, vol, amount, date
         """
         logger.info(f"[DataFrame interface]{symbol} ({start_date}Present.{end_date})")
 
@@ -966,12 +975,12 @@ class DataSourceManager:
     def _standardize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         """Standardize DataFrame listing and format
 
-Args:
-df: Original DataFrame
+        Args:
+            df: Original DataFrame
 
-Returns:
-DataFrame: Standardized DataFrame
-"""
+        Returns:
+            DataFrame: Standardized DataFrame
+        """
         if df is None or df.empty:
             return pd.DataFrame()
 
@@ -1009,13 +1018,13 @@ DataFrame: Standardized DataFrame
     def get_stock_data(self, symbol: str, start_date: str = None, end_date: str = None, period: str = "daily") -> str:
         """Integrated interface to capture stock data to support multi-cycle data
         Args:
-        symbol: stock code
-        Start date: Start date
-        End date: End date
-        period: data cycle (daily/weekly/monthly), default is Daily
-        
+            symbol: stock code
+            Start date: Start date
+            End date: End date
+            period: data cycle (daily/weekly/monthly), default is Daily
+
         Returns:
-        str: Formatted Stock Data
+            str: Formatted Stock Data
         """
         #Record detailed input parameters
         logger.info(f"[Data source:{self.current_source.value}Start acquisition{period}Data:{symbol}",
@@ -1119,7 +1128,7 @@ DataFrame: Standardized DataFrame
     def _get_mongodb_data(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> tuple[str, str | None]:
         """Obtain multi-cycle data from MongoDB - with calculation of technical indicators
         Returns:
-        tuple[str, str|None]: (result string, actual data source name)
+            tuple[str, str|None]: (result string, actual data source name)
         """
         logger.debug(f"[MongoDB] Call parameters: symbol={symbol}, start_date={start_date}, end_date={end_date}, period={period}")
 
@@ -1356,9 +1365,9 @@ DataFrame: Standardized DataFrame
     def _try_fallback_sources(self, symbol: str, start_date: str, end_date: str, period: str = "daily") -> tuple[str, str | None]:
         """Try backup data source - avoid recursive callback
 
-Returns:
-tuple[str, str|None]: (result string, actual data source name)
-"""
+        Returns:
+            tuple[str, str|None]: (result string, actual data source name)
+        """
         logger.info(f"🔄 [{self.current_source.value}Failure to attempt secondary data source acquisition{period}Data:{symbol}")
 
         # Data source priority (identify market according to stock code)
@@ -1507,10 +1516,10 @@ tuple[str, str|None]: (result string, actual data source name)
     def get_stock_basic_info(self, stock_code: str = None) -> Optional[Dict[str, Any]]:
         """Access to stock base information (compatible stock data service interface)
         Args:
-        Stock code: Stock code, return all stock lists if None
+            Stock code: Stock code, return all stock lists if None
 
         Returns:
-        Dict: Stock Dictionary, or error words containing error fields General
+            Dict: Stock Dictionary, or error words containing error fields General
         """
         if stock_code is None:
             #Returns all stock lists
@@ -1545,12 +1554,12 @@ tuple[str, str|None]: (result string, actual data source name)
     def get_stock_data_with_fallback(self, stock_code: str, start_date: str, end_date: str) -> str:
         """Get Stock Data (compatible stock data service interface)
         Args:
-        Stock code: Stock code
-        Start date: Start date
-        End date: End date
+            Stock code: Stock code
+            Start date: Start date
+            End date: End date
 
         Returns:
-        str: Formatted Stock Data Reports
+            str: Formatted Stock Data Reports
         """
         logger.info(f"Access to stock data:{stock_code} ({start_date}Present.{end_date})")
 
@@ -2110,12 +2119,12 @@ def get_china_stock_data_unified(symbol: str, start_date: str, end_date: str) ->
     Automatically use configured data sources to support backup data Source
 
     Args:
-    symbol: stock code
-    Start date: Start date
-    End date: End date
+        symbol: stock code
+        Start date: Start date
+        End date: End date
 
     Returns:
-    str: Formatted Stock Data
+        str: Formatted Stock Data
     """
     from tradingagents.utils.logging_init import get_logger
 
@@ -2144,10 +2153,10 @@ def get_china_stock_data_unified(symbol: str, start_date: str, end_date: str) ->
 def get_china_stock_info_unified(symbol: str) -> Dict:
     """Unified Chinese stock access interface
     Args:
-    symbol: stock code
+        symbol: stock code
 
     Returns:
-    Dict: Stock Basic Information
+        Dict: Stock Basic Information
     """
     manager = get_data_source_manager()
     return manager.get_stock_info(symbol)
@@ -2210,10 +2219,10 @@ class USDataSourceManager:
     def _get_data_source_priority_order(self, symbol: Optional[str] = None) -> List[USDataSource]:
         """Acquiring US stock data source priorities from the database (for downgrading)
         Args:
-        symbol: stock code
+            symbol: stock code
 
         Returns:
-        List of data sources in order of priority (excluding MongoDB)
+            List of data sources in order of priority (excluding MongoDB)
         """
         try:
             #Read data source configuration from the database

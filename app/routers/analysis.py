@@ -774,9 +774,9 @@ async def submit_batch_analysis(
 ):
     """Submission of batch analysis tasks (real concurrent execution)
 
-Attention: Don't use Background Tasks because it's carried out in a string!
-Change to asyncio.create task for real simultaneous execution.
-"""
+    Attention: Don't use Background Tasks because it's carried out in a string!
+    Change to asyncio.create task for real simultaneous execution.
+    """
     try:
         logger.info(f"[volume analysis]{request.title}")
 
@@ -1117,8 +1117,8 @@ async def get_zombie_tasks(
 ):
     """Fetch Zombie Job List (administrator only)
 
-Zombie missions: long-term in procrastination/runing/ping
-"""
+    Zombie missions: long-term in procrastination/runing/ping
+    """
     #Check administrator privileges
     if user.get("username") != "admin":
         raise HTTPException(status_code=403, detail="仅管理员可访问")
@@ -1145,8 +1145,8 @@ async def cleanup_zombie_tasks(
 ):
     """Clean-up of zombie missions (administrators only)
 
-Could not close temporary folder: %s
-"""
+    Could not close temporary folder: %s
+    """
     #Check administrator privileges
     if user.get("username") != "admin":
         raise HTTPException(status_code=403, detail="仅管理员可访问")
@@ -1172,8 +1172,8 @@ async def mark_task_as_failed(
 ):
     """Could not close temporary folder: %s
 
-For manual cleansing of stuck tasks
-"""
+    For manual cleansing of stuck tasks
+    """
     try:
         svc = get_simple_analysis_service()
 
@@ -1227,8 +1227,8 @@ async def delete_task(
 ):
     """Other Organiser
 
-Remove task records from memory and database
-"""
+    Remove task records from memory and database
+    """
     try:
         svc = get_simple_analysis_service()
 

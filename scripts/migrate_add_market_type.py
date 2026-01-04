@@ -3,10 +3,10 @@
 数据迁移脚本：为已有的分析报告添加 market_type 字段
 
 使用方法：
-    python scripts/migrate_add_market_type.py [--dry-run]
+python scripts/migrate_add_market_type.py [--dry-run]
 
 参数：
-    --dry-run: 只显示将要更新的数据，不实际执行更新
+--dry-run: 只显示将要更新的数据，不实际执行更新
 """
 
 import sys

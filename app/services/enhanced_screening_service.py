@@ -43,19 +43,19 @@ class EnhancedScreeningService:
     ) -> Dict[str, Any]:
         """Smart stock filter
 
-Args:
-Conditions: Filter Condition List
-Market:
-date: transaction date
-Adj: By way of reinstatement
-Limited number of returns
-offset: offset
-order by: Sort Conditions
-use database optimisation: using database optimization
+        Args:
+            Conditions: Filter Condition List
+            Market:
+            date: transaction date
+            Adj: By way of reinstatement
+            Limited number of returns
+            offset: offset
+            order by: Sort Conditions
+            use database optimisation: using database optimization
 
-Returns:
-Dict: Filter Results
-"""
+        Returns:
+            Dict: Filter Results
+        """
         start_time = time.time()
 
         try:
@@ -210,12 +210,12 @@ Dict: Filter Results
     async def _enrich_results_with_realtime_metrics(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Add PE/PB to filter results (use static data to avoid performance problems)
 
-Args:
-Organisation
+        Args:
+            Organisation
 
-Returns:
-List [Dict]: List of results after enrichment
-"""
+        Returns:
+            List [Dict]: List of results after enrichment
+        """
         # Stock screening scene: Directly using static PE/PB in stock basic info
         #Reason: Bulk calculation dynamics PE can cause serious performance problems (each stock is asked for multiple pools)
         #Static PE based on the closing price of the last trading date, is accurate enough for the screening scene.
@@ -230,12 +230,12 @@ List [Dict]: List of results after enrichment
     async def get_field_info(self, field: str) -> Optional[Dict[str, Any]]:
         """Get Field Information
 
-Args:
-Field: First Name
+        Args:
+            Field: First Name
 
-Returns:
-Dict: Field Information
-"""
+        Returns:
+            Dict: Field Information
+        """
         if field in BASIC_FIELDS_INFO:
             field_info = BASIC_FIELDS_INFO[field]
 
@@ -275,12 +275,12 @@ Dict: Field Information
     async def validate_conditions(self, conditions: List[ScreeningCondition]) -> Dict[str, Any]:
         """Verify Filter Conditions
 
-Args:
-Conditions: Filter Condition List
+        Args:
+            Conditions: Filter Condition List
 
-Returns:
-Dict: Verify Results
-"""
+        Returns:
+            Dict: Verify Results
+        """
         validation_result = {
             "valid": True,
             "errors": [],
