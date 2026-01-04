@@ -31,17 +31,17 @@ def test_config_manager_import():
     print("=" * 50)
     
     try:
-        from tradingagents.config.config_manager import config_manager, token_tracker
+        from tradingagents.config.config_manager import CONFIG_MANAGER, TOKEN_TRACKER
         print("✅ 配置管理器导入成功")
         
         # 测试基本功能
-        models = config_manager.load_models()
+        models = CONFIG_MANAGER.load_models()
         print(f"📋 加载了 {len(models)} 个模型配置")
         
-        pricing = config_manager.load_pricing()
+        pricing = CONFIG_MANAGER.load_pricing()
         print(f"💰 加载了 {len(pricing)} 个定价配置")
         
-        settings = config_manager.load_settings()
+        settings = CONFIG_MANAGER.load_settings()
         print(f"⚙️ 加载了 {len(settings)} 个系统设置")
         
         return True

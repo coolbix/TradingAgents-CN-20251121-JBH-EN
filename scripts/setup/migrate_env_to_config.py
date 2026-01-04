@@ -16,7 +16,7 @@ logger = get_logger('scripts')
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from tradingagents.config.config_manager import config_manager, ModelConfig
+from tradingagents.config.config_manager import CONFIG_MANAGER, ModelConfig
 
 def load_env_config():
     """加载 .env 文件配置"""
@@ -44,7 +44,7 @@ def migrate_model_configs(env_config):
     logger.info(f"🔄 迁移模型配置...")
     
     # 加载现有配置
-    models = config_manager.load_models()
+    models = CONFIG_MANAGER.load_models()
     
     # 更新API密钥
     updated = False
@@ -78,7 +78,7 @@ def migrate_model_configs(env_config):
                 logger.info(f"✅ 更新 {model.provider} - {model.model_name} API密钥")
     
     if updated:
-        config_manager.save_models(models)
+        CONFIG_MANAGER.save_models(models)
         logger.info(f"💾 模型配置已保存")
     else:
         logger.info(f"ℹ️ 模型配置无需更新")
@@ -87,7 +87,7 @@ def migrate_system_settings(env_config):
     """迁移系统设置"""
     logger.info(f"\n🔄 迁移系统设置...")
     
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
     
     # 更新设置
     updated = False
@@ -123,7 +123,7 @@ def migrate_system_settings(env_config):
         logger.info(f"✅ 添加 Reddit 用户代理")
     
     if updated:
-        config_manager.save_settings(settings)
+        CONFIG_MANAGER.save_settings(settings)
         logger.info(f"💾 系统设置已保存")
     else:
         logger.info(f"ℹ️ 系统设置无需更新")

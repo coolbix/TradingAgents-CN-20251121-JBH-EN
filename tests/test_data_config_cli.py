@@ -15,7 +15,7 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from tradingagents.config.config_manager import config_manager
+from tradingagents.config.config_manager import CONFIG_MANAGER
 from tradingagents.dataflows.config import get_data_dir, set_data_dir, initialize_config
 
 def test_data_dir_configuration():
@@ -86,7 +86,7 @@ def test_data_dir_configuration():
     
     # 4. 测试配置管理器集成
     print("\n4. 测试配置管理器集成 | Testing Configuration Manager Integration")
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
     print(f"配置管理器设置 | Configuration manager settings:")
     for key, value in settings.items():
         if 'dir' in key.lower():
@@ -94,7 +94,7 @@ def test_data_dir_configuration():
     
     # 5. 测试目录自动创建功能
     print("\n5. 测试目录自动创建功能 | Testing Auto Directory Creation")
-    config_manager.ensure_directories_exist()
+    CONFIG_MANAGER.ensure_directories_exist()
     print("✅ 目录自动创建功能测试完成 | Auto directory creation test completed")
     
     print("\n=== 数据目录配置测试完成 | Data Directory Configuration Test Completed ===")

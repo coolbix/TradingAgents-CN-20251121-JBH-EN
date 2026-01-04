@@ -26,7 +26,7 @@ logger = setup_web_logging()
 
 # 添加配置管理器
 try:
-    from tradingagents.config.config_manager import token_tracker
+    from tradingagents.config.config_manager import TOKEN_TRACKER
     TOKEN_TRACKING_ENABLED = True
     logger.info("✅ Token跟踪功能已启用")
 except ImportError:
@@ -195,7 +195,7 @@ def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, ll
     if TOKEN_TRACKING_ENABLED:
         estimated_input = 2000 * len(analysts)  # 估算每个分析师2000个输入token
         estimated_output = 1000 * len(analysts)  # 估算每个分析师1000个输出token
-        estimated_cost_result = token_tracker.estimate_cost(llm_provider, llm_model, estimated_input, estimated_output)
+        estimated_cost_result = TOKEN_TRACKER.estimate_cost(llm_provider, llm_model, estimated_input, estimated_output)
 
         # estimate_cost 返回 tuple (cost, currency)
         if isinstance(estimated_cost_result, tuple):
@@ -489,7 +489,7 @@ def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, ll
             actual_input_tokens = len(analysts) * (1500 if research_depth == "快速" else 2500 if research_depth == "标准" else 4000)
             actual_output_tokens = len(analysts) * (800 if research_depth == "快速" else 1200 if research_depth == "标准" else 2000)
 
-            usage_record = token_tracker.track_usage(
+            usage_record = TOKEN_TRACKER.track_usage(
                 provider=llm_provider,
                 model_name=llm_model,
                 input_tokens=actual_input_tokens,
@@ -526,7 +526,7 @@ def run_stock_analysis(stock_symbol, analysis_date, analysts, research_depth, ll
         total_cost = 0.0
         if TOKEN_TRACKING_ENABLED:
             try:
-                total_cost = token_tracker.get_session_cost(session_id)
+                total_cost = TOKEN_TRACKER.get_session_cost(session_id)
             except:
                 pass
 

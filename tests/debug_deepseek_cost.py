@@ -52,10 +52,10 @@ def test_token_tracking():
     """测试Token跟踪"""
     print("\n📝 测试Token跟踪...")
     
-    from tradingagents.config.config_manager import token_tracker
+    from tradingagents.config.config_manager import TOKEN_TRACKER
     
     # 测试DeepSeek使用记录
-    record = token_tracker.track_usage(
+    record = TOKEN_TRACKER.track_usage(
         provider="deepseek",
         model_name="deepseek-chat",
         input_tokens=2000,
@@ -112,9 +112,9 @@ def check_usage_statistics():
     """检查使用统计"""
     print("\n📊 检查使用统计...")
     
-    from tradingagents.config.config_manager import config_manager
+    from tradingagents.config.config_manager import CONFIG_MANAGER
     
-    stats = config_manager.get_usage_statistics(1)
+    stats = CONFIG_MANAGER.get_usage_statistics(1)
     
     print(f"   总成本: ¥{stats.get('total_cost', 0):.6f}")
     print(f"   总请求: {stats.get('total_requests', 0)}")

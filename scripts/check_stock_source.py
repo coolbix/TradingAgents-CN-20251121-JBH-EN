@@ -16,7 +16,7 @@ def check_stock_source():
         load_dotenv()
         
         mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-        mongo_db_name = os.getenv("MONGO_DB", "tradingagents")
+        mongo_db_name = os.getenv("MONGO_DB_NAME", "tradingagents")
         
         print(f"连接 MongoDB: {mongo_uri}")
         print(f"数据库: {mongo_db_name}")

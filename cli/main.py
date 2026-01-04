@@ -1783,11 +1783,11 @@ def data_config(
     配置数据目录路径
     Configure data directory paths
     """
-    from tradingagents.config.config_manager import config_manager
+    from tradingagents.config.config_manager import CONFIG_MANAGER
 
     # 使用 config_manager 的方法
-    get_data_dir = config_manager.get_data_dir
-    set_data_dir = config_manager.set_data_dir
+    get_data_dir = CONFIG_MANAGER.get_data_dir
+    set_data_dir = CONFIG_MANAGER.set_data_dir
     
     logger.info(f"\n[bold blue]📁 数据目录配置 | Data Directory Configuration[/bold blue]")
     
@@ -1818,7 +1818,7 @@ def data_config(
         return
     
     # 显示当前配置（默认行为或使用--show）
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
     current_data_dir = get_data_dir()
     
     # 配置信息表格

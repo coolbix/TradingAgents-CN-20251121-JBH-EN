@@ -45,9 +45,9 @@ def main():
         # 测试保存一条记录
         print("\n📝 测试保存 token 使用记录...")
         
-        from tradingagents.config.config_manager import token_tracker
+        from tradingagents.config.config_manager import TOKEN_TRACKER
         
-        record = token_tracker.track_usage(
+        record = TOKEN_TRACKER.track_usage(
             provider="dashscope",
             model_name="qwen-turbo",
             input_tokens=100,

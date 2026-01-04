@@ -12,7 +12,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from tradingagents.llm_adapters.dashscope_adapter import ChatDashScope
-from tradingagents.config.config_manager import config_manager, token_tracker
+from tradingagents.config.config_manager import CONFIG_MANAGER, TOKEN_TRACKER
 from langchain_core.messages import HumanMessage
 
 
@@ -38,7 +38,7 @@ def test_dashscope_token_tracking():
         )
         
         # 获取初始统计
-        initial_stats = config_manager.get_usage_statistics(1)
+        initial_stats = CONFIG_MANAGER.get_usage_statistics(1)
         initial_cost = initial_stats.get("total_cost", 0)
         initial_requests = initial_stats.get("total_requests", 0)
         
@@ -67,7 +67,7 @@ def test_dashscope_token_tracking():
         time.sleep(1)
         
         # 获取更新后的统计
-        updated_stats = config_manager.get_usage_statistics(1)
+        updated_stats = CONFIG_MANAGER.get_usage_statistics(1)
         updated_cost = updated_stats.get("total_cost", 0)
         updated_requests = updated_stats.get("total_requests", 0)
         
@@ -95,7 +95,7 @@ def test_dashscope_token_tracking():
                 print(f"   - 请求数: {dashscope_stats.get('requests', 0)}")
             
             # 测试会话成本查询
-            session_cost = token_tracker.get_session_cost(session_id)
+            session_cost = TOKEN_TRACKER.get_session_cost(session_id)
             print(f"💰 会话成本: ¥{session_cost:.4f}")
             
             return True
@@ -123,12 +123,12 @@ def test_mongodb_storage():
         return True
     
     # 检查MongoDB连接
-    if config_manager.mongodb_storage and config_manager.mongodb_storage.is_connected():
+    if CONFIG_MANAGER.mongodb_storage and CONFIG_MANAGER.mongodb_storage.is_connected():
         print("✅ MongoDB连接正常")
         
         # 测试清理功能（清理超过1天的测试记录）
         try:
-            deleted_count = config_manager.mongodb_storage.cleanup_old_records(1)
+            deleted_count = CONFIG_MANAGER.mongodb_storage.cleanup_old_records(1)
             print(f"🧹 清理了 {deleted_count} 条旧的测试记录")
         except Exception as e:
             print(f"⚠️ 清理旧记录失败: {e}")
@@ -146,7 +146,7 @@ def main():
     print("=" * 50)
     
     # 显示配置状态
-    env_status = config_manager.get_env_config_status()
+    env_status = CONFIG_MANAGER.get_env_config_status()
     print(f"📋 配置状态:")
     print(f"   - .env文件存在: {env_status['env_file_exists']}")
     print(f"   - DashScope API: {env_status['api_keys']['dashscope']}")

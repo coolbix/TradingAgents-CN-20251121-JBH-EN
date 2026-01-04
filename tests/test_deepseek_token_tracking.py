@@ -28,10 +28,10 @@ def test_deepseek_adapter():
     
     try:
         from tradingagents.llm_adapters.deepseek_adapter import ChatDeepSeek
-        from tradingagents.config.config_manager import config_manager, token_tracker
+        from tradingagents.config.config_manager import CONFIG_MANAGER, TOKEN_TRACKER
         
         # 获取初始统计
-        initial_stats = config_manager.get_usage_statistics(1)
+        initial_stats = CONFIG_MANAGER.get_usage_statistics(1)
         initial_cost = initial_stats.get("total_cost", 0)
         
         # 创建DeepSeek实例
@@ -58,7 +58,7 @@ def test_deepseek_adapter():
         time.sleep(1)
         
         # 检查统计更新
-        updated_stats = config_manager.get_usage_statistics(1)
+        updated_stats = CONFIG_MANAGER.get_usage_statistics(1)
         updated_cost = updated_stats.get("total_cost", 0)
         
         cost_increase = updated_cost - initial_cost

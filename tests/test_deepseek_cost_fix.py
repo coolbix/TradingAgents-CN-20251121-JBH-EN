@@ -27,10 +27,10 @@ def test_deepseek_cost_calculation():
     
     try:
         from tradingagents.llm_adapters.deepseek_adapter import ChatDeepSeek
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 获取初始统计
-        initial_stats = config_manager.get_usage_statistics(1)
+        initial_stats = CONFIG_MANAGER.get_usage_statistics(1)
         initial_cost = initial_stats.get("total_cost", 0)
         
         print(f"📊 初始成本: ¥{initial_cost:.6f}")
@@ -67,7 +67,7 @@ def test_deepseek_cost_calculation():
         time.sleep(1)
         
         # 检查最终统计
-        final_stats = config_manager.get_usage_statistics(1)
+        final_stats = CONFIG_MANAGER.get_usage_statistics(1)
         final_cost = final_stats.get("total_cost", 0)
         
         cost_increase = final_cost - initial_cost

@@ -29,7 +29,7 @@ sys.path.insert(0, str(project_root))
 # 导入项目模块
 try:
     from tradingagents.utils.logging_manager import get_logger
-    from tradingagents.config.config_manager import config_manager
+    from tradingagents.config.config_manager import CONFIG_MANAGER
     logger = get_logger('finnhub_downloader')
 except ImportError as e:
     print(f"❌ 导入模块失败: {e}")

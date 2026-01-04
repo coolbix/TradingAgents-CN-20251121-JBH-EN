@@ -1,11 +1,11 @@
 """Configure Management Module
 """
 
-from .config_manager import config_manager, token_tracker, ModelConfig, PricingConfig, UsageRecord
+from .config_manager import CONFIG_MANAGER, TOKEN_TRACKER, ModelConfig, PricingConfig, UsageRecord
 
 __all__ = [
-    'config_manager',
-    'token_tracker', 
+    'CONFIG_MANAGER',
+    'TOKEN_TRACKER', 
     'ModelConfig',
     'PricingConfig',
     'UsageRecord'

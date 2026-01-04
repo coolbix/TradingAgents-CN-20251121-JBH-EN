@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 from utils.ui_utils import apply_hide_deploy_button_css
 
-from tradingagents.config.config_manager import config_manager, token_tracker, UsageRecord
+from tradingagents.config.config_manager import CONFIG_MANAGER, TOKEN_TRACKER, UsageRecord
 
 def render_token_statistics():
     """渲染Token统计页面"""
@@ -66,7 +66,7 @@ def render_token_statistics():
     
     # 获取统计数据
     try:
-        stats = config_manager.get_usage_statistics(days)
+        stats = CONFIG_MANAGER.get_usage_statistics(days)
         records = load_detailed_records(days)
         
         if not stats or stats.get('total_requests', 0) == 0:
@@ -367,7 +367,7 @@ def render_detailed_records_table(records: List[UsageRecord]):
 def load_detailed_records(days: int) -> List[UsageRecord]:
     """加载详细记录"""
     try:
-        all_records = config_manager.load_usage_records()
+        all_records = CONFIG_MANAGER.load_usage_records()
         
         # 过滤时间范围
         cutoff_date = datetime.now() - timedelta(days=days)
@@ -389,7 +389,7 @@ def load_detailed_records(days: int) -> List[UsageRecord]:
 def export_statistics_data(days: int):
     """导出统计数据"""
     try:
-        stats = config_manager.get_usage_statistics(days)
+        stats = CONFIG_MANAGER.get_usage_statistics(days)
         records = load_detailed_records(days)
         
         # 创建导出数据

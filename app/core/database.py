@@ -231,9 +231,26 @@ async def init_database_views_and_indexes():
         logger.warning(f"Initialization of the database view and index failed:{e}")
         #Do not throw anomalies. Allow applications to continue.
 
+"""
+create_stock_screening_view builds a MongoDB view named stock_screening_view on top of stock_basic_info.
 
+It first checks if the view exists, then defines an aggregation pipeline that:
+- joins stock_basic_info with market_quotes by code ($lookup + $unwind) to pull the latest quote fields,
+- joins with stock_financial_data by code and source, sorts by report_period desc and limits to 1 to get the most recent financials,
+- projects a flattened, screening-friendly schema with basic info, valuation, financial metrics, and quote fields.
+
+General procedure to create a MongoDB view (like this code does):
+- decide the source collection (viewOn) and the aggregation pipeline,
+- call db.command({ create: <viewName>, viewOn: <collection>, pipeline: [...] }),
+- optionally check existing collections before creating to avoid errors.
+
+Why create a view?
+- it gives you a reusable, queryable “virtual collection” that pre-joins and normalizes data, so screening queries stay simple,
+- it centralizes logic (one pipeline definition) instead of duplicating $lookup chains across endpoints,
+- it avoids storing denormalized copies while still presenting a denormalized shape.
+"""
 async def create_stock_screening_view(db):
-    """Create stock filter view"""
+    """Create stock filter view, a 'virtual collection'"""
     try:
         #Check whether a view exists
         collections = await db.list_collection_names()

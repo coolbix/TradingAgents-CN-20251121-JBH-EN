@@ -226,7 +226,7 @@ def bridge_config_to_env():
         #6. Re-initiation of MongoDB storage in TradingAGents Library
         #Because the global config manager example was created when the module was imported, when the environment variable was not bridged Answer.
         try:
-            from tradingagents.config.config_manager import config_manager
+            from tradingagents.config.config_manager import CONFIG_MANAGER
             from tradingagents.config.mongodb_storage import MongoDBStorage
             logger.info("Re-initiation of transports MongoDB storage...")
 
@@ -246,20 +246,20 @@ def bridge_config_to_env():
                     logger.info(f"Connection string actually entered:{mongodb_conn}")
                     logger.info(f"Name of database actually entered:{mongodb_db}")
 
-                    config_manager.mongodb_storage = MongoDBStorage(
+                    CONFIG_MANAGER.mongodb_storage = MongoDBStorage(
                         connection_string=mongodb_conn,
                         database_name=mongodb_db
                     )
-                    if config_manager.mongodb_storage.is_connected():
+                    if CONFIG_MANAGER.mongodb_storage.is_connected():
                         logger.info("✅Traditions MongoDB storage enabled")
                     else:
                         logger.warning("Could not close temporary folder: %s")
-                        config_manager.mongodb_storage = None
+                        CONFIG_MANAGER.mongodb_storage = None
                 except Exception as e:
                     logger.error(f"Could not close temporary folder: %s{e}")
                     import traceback
                     logger.error(traceback.format_exc())
-                    config_manager.mongodb_storage = None
+                    CONFIG_MANAGER.mongodb_storage = None
             else:
                 logger.info("ℹ️USE MONGODB STORAGE is not enabled and will be stored using JSON files")
         except Exception as e:

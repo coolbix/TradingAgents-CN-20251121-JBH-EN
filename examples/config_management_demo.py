@@ -16,7 +16,7 @@ logger = get_logger('default')
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from tradingagents.config.config_manager import config_manager, token_tracker
+from tradingagents.config.config_manager import CONFIG_MANAGER, TOKEN_TRACKER
 
 
 def demo_model_management():
@@ -25,7 +25,7 @@ def demo_model_management():
     logger.info(f"=")
     
     # 查看当前模型配置
-    models = config_manager.get_enabled_models()
+    models = CONFIG_MANAGER.get_enabled_models()
     logger.info(f"📋 当前启用的模型数量: {len(models)}")
     
     for model in models:
@@ -33,7 +33,7 @@ def demo_model_management():
         logger.info(f"     最大Token: {model.max_tokens}, 温度: {model.temperature}")
     
     # 获取特定模型配置
-    qwen_model = config_manager.get_model_by_name("dashscope", "qwen-plus-latest")
+    qwen_model = CONFIG_MANAGER.get_model_by_name("dashscope", "qwen-plus-latest")
     if qwen_model:
         logger.info(f"\n🎯 通义千问Plus配置:")
         logger.info(f"  API密钥: {'已配置' if qwen_model.api_key else '未配置'}")
@@ -60,7 +60,7 @@ def demo_cost_calculation():
     logger.info(f"-")
     
     for provider, model, input_tokens, output_tokens, purpose in test_cases:
-        cost = config_manager.calculate_cost(provider, model, input_tokens, output_tokens)
+        cost = CONFIG_MANAGER.calculate_cost(provider, model, input_tokens, output_tokens)
         model_name = f"{provider}/{model}"
         logger.info(f"{model_name:<20} {input_tokens:<10} {output_tokens:<10} {cost:<10.4f} {purpose}")
 
@@ -105,7 +105,7 @@ def demo_usage_tracking():
         session_id = f"demo_session_{i}_{datetime.now().strftime('%H%M%S')}"
         
         # 记录使用
-        record = token_tracker.track_usage(
+        record = TOKEN_TRACKER.track_usage(
             provider=session["provider"],
             model_name=session["model"],
             input_tokens=session["input_tokens"],
@@ -128,7 +128,7 @@ def demo_usage_statistics():
     logger.info(f"=")
     
     # 获取使用统计
-    stats = config_manager.get_usage_statistics(30)
+    stats = CONFIG_MANAGER.get_usage_statistics(30)
     
     logger.info(f"📈 最近30天统计:")
     logger.info(f"  总请求数: {stats['total_requests']}")
@@ -194,7 +194,7 @@ def demo_cost_estimation():
         total_output = scenario['analysts'] * scenario['output_per_analyst']
         
         for provider, model in models_to_test:
-            cost = token_tracker.estimate_cost(provider, model, total_input, total_output)
+            cost = TOKEN_TRACKER.estimate_cost(provider, model, total_input, total_output)
             model_name = f"{provider}/{model}"
             logger.info(f"{model_name:<20} ¥{cost:<9.4f} {total_input}+{total_output} tokens")
         
@@ -207,7 +207,7 @@ def demo_settings_management():
     logger.info(f"=")
     
     # 查看当前设置
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
     
     logger.info(f"🔧 当前系统设置:")
     for key, value in settings.items():

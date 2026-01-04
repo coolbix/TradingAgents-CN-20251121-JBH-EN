@@ -54,11 +54,11 @@ async def main():
     print("\n3️⃣ 检查 tradingagents 的 usage_records 集合...")
     try:
         from tradingagents.config.mongodb_storage import MongoDBStorage
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 检查是否启用了 MongoDB 存储
-        if config_manager.mongodb_storage and config_manager.mongodb_storage.is_connected():
-            records = config_manager.mongodb_storage.load_usage_records(limit=5)
+        if CONFIG_MANAGER.mongodb_storage and CONFIG_MANAGER.mongodb_storage.is_connected():
+            records = CONFIG_MANAGER.mongodb_storage.load_usage_records(limit=5)
             print(f"📊 TradingAgents 记录数: {len(records)}")
             
             if records:

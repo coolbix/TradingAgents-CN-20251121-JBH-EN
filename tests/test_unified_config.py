@@ -21,18 +21,18 @@ def test_config_unification():
     print("=" * 60)
     
     try:
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         print("🔧 测试全局配置管理器...")
         
         # 检查配置目录
-        print(f"📁 配置目录: {config_manager.config_dir}")
-        print(f"📁 配置目录绝对路径: {config_manager.config_dir.absolute()}")
-        print(f"📄 定价文件: {config_manager.pricing_file}")
-        print(f"📄 定价文件存在: {config_manager.pricing_file.exists()}")
+        print(f"📁 配置目录: {CONFIG_MANAGER.config_dir}")
+        print(f"📁 配置目录绝对路径: {CONFIG_MANAGER.config_dir.absolute()}")
+        print(f"📄 定价文件: {CONFIG_MANAGER.pricing_file}")
+        print(f"📄 定价文件存在: {CONFIG_MANAGER.pricing_file.exists()}")
         
         # 加载定价配置
-        pricing_configs = config_manager.load_pricing()
+        pricing_configs = CONFIG_MANAGER.load_pricing()
         print(f"📊 加载的定价配置数量: {len(pricing_configs)}")
         
         # 查找DeepSeek配置
@@ -48,7 +48,7 @@ def test_config_unification():
         
         # 测试成本计算
         print(f"\n💰 测试成本计算:")
-        deepseek_cost = config_manager.calculate_cost(
+        deepseek_cost = CONFIG_MANAGER.calculate_cost(
             provider="deepseek",
             model_name="deepseek-chat",
             input_tokens=1000,
@@ -114,14 +114,14 @@ def test_config_consistency():
     print("=" * 60)
     
     try:
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 从不同路径导入，应该使用相同的配置
         sys.path.insert(0, str(project_root / "web"))
         from pages.config_management import config_manager as web_config_manager
         
         # 比较配置目录
-        main_config_dir = config_manager.config_dir.absolute()
+        main_config_dir = CONFIG_MANAGER.config_dir.absolute()
         web_config_dir = web_config_manager.config_dir.absolute()
         
         print(f"📁 主配置目录: {main_config_dir}")
@@ -131,7 +131,7 @@ def test_config_consistency():
             print("✅ 配置目录一致")
             
             # 比较配置数量
-            main_configs = config_manager.load_pricing()
+            main_configs = CONFIG_MANAGER.load_pricing()
             web_configs = web_config_manager.load_pricing()
             
             print(f"📊 主配置数量: {len(main_configs)}")

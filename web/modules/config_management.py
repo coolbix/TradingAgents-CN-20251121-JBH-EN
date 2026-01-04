@@ -21,7 +21,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from utils.ui_utils import apply_hide_deploy_button_css
 
 from tradingagents.config.config_manager import (
-    config_manager, ModelConfig, PricingConfig
+    CONFIG_MANAGER, ModelConfig, PricingConfig
 )
 
 
@@ -57,7 +57,7 @@ def render_model_config():
     st.markdown("**🤖 模型配置**")
 
     # 加载现有配置
-    models = config_manager.load_models()
+    models = CONFIG_MANAGER.load_models()
 
     # 显示当前配置
     st.markdown("**当前模型配置**")
@@ -65,7 +65,7 @@ def render_model_config():
     if models:
         # 创建DataFrame显示
         model_data = []
-        env_status = config_manager.get_env_config_status()
+        env_status = CONFIG_MANAGER.get_env_config_status()
 
         for i, model in enumerate(models):
             # 检查API密钥来源
@@ -129,7 +129,7 @@ def render_model_config():
                     enabled=new_enabled
                 )
                 
-                config_manager.save_models(models)
+                CONFIG_MANAGER.save_models(models)
                 st.success("✅ 配置已保存！")
                 st.rerun()
     
@@ -163,7 +163,7 @@ def render_model_config():
             )
             
             models.append(new_model)
-            config_manager.save_models(models)
+            CONFIG_MANAGER.save_models(models)
             st.success("✅ 新模型已添加！")
             st.rerun()
         else:
@@ -175,7 +175,7 @@ def render_pricing_config():
     st.markdown("**💰 定价设置**")
 
     # 加载现有定价
-    pricing_configs = config_manager.load_pricing()
+    pricing_configs = CONFIG_MANAGER.load_pricing()
 
     # 显示当前定价
     st.markdown("**当前定价配置**")
@@ -234,7 +234,7 @@ def render_pricing_config():
                     currency=new_currency
                 )
                 
-                config_manager.save_pricing(pricing_configs)
+                CONFIG_MANAGER.save_pricing(pricing_configs)
                 st.success("✅ 定价已保存！")
                 st.rerun()
     
@@ -263,7 +263,7 @@ def render_pricing_config():
             )
             
             pricing_configs.append(new_pricing)
-            config_manager.save_pricing(pricing_configs)
+            CONFIG_MANAGER.save_pricing(pricing_configs)
             st.success("✅ 新定价已添加！")
             st.rerun()
         else:
@@ -282,7 +282,7 @@ def render_usage_statistics():
         st.metric("统计周期", f"最近 {days} 天")
 
     # 获取统计数据
-    stats = config_manager.get_usage_statistics(days)
+    stats = CONFIG_MANAGER.get_usage_statistics(days)
 
     if stats["total_requests"] == 0:
         st.info("📝 暂无使用记录")
@@ -335,7 +335,7 @@ def render_usage_statistics():
     # 使用趋势
     st.markdown("**📈 使用趋势**")
     
-    records = config_manager.load_usage_records()
+    records = CONFIG_MANAGER.load_usage_records()
     if records:
         # 按日期聚合
         daily_stats = {}
@@ -387,7 +387,7 @@ def render_system_settings():
     st.markdown("**🔧 系统设置**")
 
     # 加载当前设置
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
 
     st.markdown("**基本设置**")
     
@@ -459,7 +459,7 @@ def render_system_settings():
             "max_usage_records": max_usage_records
         }
         
-        config_manager.save_settings(new_settings)
+        CONFIG_MANAGER.save_settings(new_settings)
         st.success("✅ 设置已保存！")
         st.rerun()
     
@@ -476,7 +476,7 @@ def render_system_settings():
     with col2:
         if st.button("清空使用记录", help="清空所有使用记录", key="clear_usage_records"):
             if st.session_state.get("confirm_clear", False):
-                config_manager.save_usage_records([])
+                CONFIG_MANAGER.save_usage_records([])
                 st.success("✅ 使用记录已清空！")
                 st.session_state.confirm_clear = False
                 st.rerun()
@@ -489,9 +489,9 @@ def render_system_settings():
             if st.session_state.get("confirm_reset", False):
                 # 删除配置文件，重新初始化
                 import shutil
-                if config_manager.config_dir.exists():
-                    shutil.rmtree(config_manager.config_dir)
-                config_manager._init_default_configs()
+                if CONFIG_MANAGER.config_dir.exists():
+                    shutil.rmtree(CONFIG_MANAGER.config_dir)
+                CONFIG_MANAGER._init_default_configs()
                 st.success("✅ 配置已重置！")
                 st.session_state.confirm_reset = False
                 st.rerun()
@@ -505,7 +505,7 @@ def render_env_status():
     st.markdown("**📋 配置状态概览**")
 
     # 获取.env配置状态
-    env_status = config_manager.get_env_config_status()
+    env_status = CONFIG_MANAGER.get_env_config_status()
 
     # 显示.env文件状态
     col1, col2 = st.columns(2)

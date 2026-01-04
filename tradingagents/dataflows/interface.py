@@ -200,18 +200,18 @@ except ImportError as e:
     logger.warning(f"The yfinance library is not available:{e}")
     yf = None
     YF_AVAILABLE = False
-from tradingagents.config.config_manager import config_manager
+from tradingagents.config.config_manager import CONFIG_MANAGER
 
 #Get Data Directory
-DATA_DIR = config_manager.get_data_dir()
+DATA_DIR = CONFIG_MANAGER.get_data_dir()
 
 def get_config():
     """Acquisition configuration (compatible packaging)"""
-    return config_manager.load_settings()
+    return CONFIG_MANAGER.load_settings()
 
 def set_config(config):
     """Settings Configuration (compatible packaging)"""
-    config_manager.save_settings(config)
+    CONFIG_MANAGER.save_settings(config)
 
 
 def get_finnhub_news(

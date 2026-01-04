@@ -48,7 +48,7 @@ def test_cli_config():
     
     try:
         from tradingagents.default_config import DEFAULT_CONFIG
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         print("🔧 测试默认配置...")
         print(f"   LLM提供商: {DEFAULT_CONFIG.get('llm_provider', 'N/A')}")
@@ -56,10 +56,10 @@ def test_cli_config():
         print(f"   快速思考模型: {DEFAULT_CONFIG.get('quick_think_llm', 'N/A')}")
         
         print("\n🔧 测试配置管理器...")
-        print(f"   配置目录: {config_manager.config_dir}")
+        print(f"   配置目录: {CONFIG_MANAGER.config_dir}")
         
         # 测试定价配置
-        pricing_configs = config_manager.load_pricing()
+        pricing_configs = CONFIG_MANAGER.load_pricing()
         print(f"   定价配置数量: {len(pricing_configs)}")
         
         # 查找DeepSeek配置
@@ -128,10 +128,10 @@ def test_cli_cost_tracking():
     print("=" * 60)
     
     try:
-        from tradingagents.config.config_manager import config_manager, token_tracker
+        from tradingagents.config.config_manager import CONFIG_MANAGER, TOKEN_TRACKER
         
         print("🔧 测试成本计算...")
-        cost = config_manager.calculate_cost(
+        cost = CONFIG_MANAGER.calculate_cost(
             provider="deepseek",
             model_name="deepseek-chat",
             input_tokens=1000,
@@ -143,7 +143,7 @@ def test_cli_cost_tracking():
             print("✅ CLI成本计算正常")
             
             print("\n🔧 测试Token跟踪...")
-            usage_record = token_tracker.track_usage(
+            usage_record = TOKEN_TRACKER.track_usage(
                 provider="deepseek",
                 model_name="deepseek-chat",
                 input_tokens=100,

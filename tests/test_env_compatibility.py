@@ -17,10 +17,10 @@ def test_env_loading():
     print("=" * 50)
     
     try:
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 测试.env状态检查
-        env_status = config_manager.get_env_config_status()
+        env_status = CONFIG_MANAGER.get_env_config_status()
         print(f"✅ .env文件存在: {env_status['env_file_exists']}")
         
         # 测试API密钥加载
@@ -42,14 +42,14 @@ def test_model_config_merge():
     print("=" * 50)
     
     try:
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 加载模型配置
-        models = config_manager.load_models()
+        models = CONFIG_MANAGER.load_models()
         print(f"📋 加载了 {len(models)} 个模型配置")
         
         # 检查.env密钥是否正确合并
-        env_status = config_manager.get_env_config_status()
+        env_status = CONFIG_MANAGER.get_env_config_status()
         
         for model in models:
             env_has_key = env_status['api_keys'].get(model.provider.lower(), False)
@@ -76,10 +76,10 @@ def test_settings_merge():
     print("=" * 50)
     
     try:
-        from tradingagents.config.config_manager import config_manager
+        from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 加载设置
-        settings = config_manager.load_settings()
+        settings = CONFIG_MANAGER.load_settings()
         
         # 检查.env中的设置是否正确合并
         env_settings = [

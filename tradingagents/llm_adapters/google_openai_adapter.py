@@ -10,7 +10,7 @@ from langchain_core.tools import BaseTool
 from langchain_core.messages import BaseMessage, AIMessage, HumanMessage, SystemMessage
 from langchain_core.outputs import LLMResult
 from pydantic import Field, SecretStr
-from ..config.config_manager import token_tracker
+from ..config.config_manager import TOKEN_TRACKER
 
 #Import Log Module
 from tradingagents.utils.logging_manager import get_logger
@@ -271,7 +271,7 @@ class ChatGoogleOpenAI(ChatGoogleGenerativeAI):
                     analysis_type = kwargs.get('analysis_type', 'stock_analysis')
                     
                     #Record usage using TokenTracker
-                    token_tracker.track_usage(
+                    TOKEN_TRACKER.track_usage(
                         provider="google",
                         model_name=self.model,
                         input_tokens=input_tokens,

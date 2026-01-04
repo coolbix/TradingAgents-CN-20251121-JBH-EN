@@ -762,5 +762,5 @@ def _get_project_config_dir():
     project_root = current_file.parent.parent.parent  #Level 3 up to the root directory
     return str(project_root / "config")
 
-config_manager = ConfigManager(_get_project_config_dir())
-token_tracker = TokenTracker(config_manager)
+CONFIG_MANAGER = ConfigManager(_get_project_config_dir())
+TOKEN_TRACKER = TokenTracker(CONFIG_MANAGER)

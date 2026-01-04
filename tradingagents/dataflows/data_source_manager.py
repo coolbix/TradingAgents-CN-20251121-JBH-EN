@@ -105,6 +105,9 @@ class DataSourceManager:
 
         try:
             #🔥 Read the data source configuration from the database (using sync client)
+            #JBH FIXME: why not use 'from tradingagents.config.database_manager import get_database_manager'?
+            #           why use DataSourceManager outside tradingagents package?
+            #           other parts (ex: get_cache --> AdaptiveCache) of DataSourceManager use that way to get database connection
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
             config_collection = db.system_configs
@@ -407,6 +410,9 @@ class DataSourceManager:
         #🔥 Read the data source configuration from the database, get access status
         enabled_sources_in_db = set()
         try:
+            #JBH FIXME: why not use 'from tradingagents.config.database_manager import get_database_manager'?
+            #           why use DataSourceManager outside tradingagents package?
+            #           other parts (ex: get_cache --> AdaptiveCache) of DataSourceManager use that way to get database connection
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
             config_collection = db.system_configs
@@ -507,6 +513,9 @@ class DataSourceManager:
     def _get_datasource_configs_from_db(self) -> dict:
         """Read data source configuration from database (including API Key)"""
         try:
+            #JBH FIXME: why not use 'from tradingagents.config.database_manager import get_database_manager'?
+            #           why use DataSourceManager outside tradingagents package?
+            #           other parts (ex: get_cache --> AdaptiveCache) of DataSourceManager use that way to get database connection
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
 
@@ -2226,6 +2235,9 @@ class USDataSourceManager:
         """
         try:
             #Read data source configuration from the database
+            #JBH FIXME: why not use 'from tradingagents.config.database_manager import get_database_manager'?
+            #           why use DataSourceManager outside tradingagents package?
+            #           other parts (ex: get_cache --> AdaptiveCache) of DataSourceManager use that way to get database connection
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
 
@@ -2354,6 +2366,9 @@ class USDataSourceManager:
     def _get_enabled_sources_from_db(self) -> List[str]:
         """Read enabled list of data sources from the database"""
         try:
+            #JBH FIXME: why not use 'from tradingagents.config.database_manager import get_database_manager'?
+            #           why use DataSourceManager outside tradingagents package?
+            #           other parts (ex: get_cache --> AdaptiveCache) of DataSourceManager use that way to get database connection
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
 
@@ -2387,6 +2402,9 @@ class USDataSourceManager:
     def _get_datasource_configs_from_db(self) -> dict:
         """Read data source configuration from database (including API Key)"""
         try:
+            #JBH FIXME: why not use 'from tradingagents.config.database_manager import get_database_manager'?
+            #           why use DataSourceManager outside tradingagents package?
+            #           other parts (ex: get_cache --> AdaptiveCache) of DataSourceManager use that way to get database connection
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
 

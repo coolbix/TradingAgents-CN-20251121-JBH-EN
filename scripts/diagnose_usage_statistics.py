@@ -77,8 +77,8 @@ async def main():
     # 4. 检查配置文件中的成本跟踪设置
     print("\n4️⃣ 检查配置文件...")
     try:
-        from tradingagents.config.config_manager import config_manager
-        settings = config_manager.load_settings()
+        from tradingagents.config.config_manager import CONFIG_MANAGER
+        settings = CONFIG_MANAGER.load_settings()
         
         cost_tracking = settings.get("enable_cost_tracking", True)
         print(f"   成本跟踪启用: {cost_tracking}")
@@ -92,8 +92,8 @@ async def main():
     # 5. 检查定价配置
     print("\n5️⃣ 检查定价配置...")
     try:
-        from tradingagents.config.config_manager import config_manager
-        pricing_configs = config_manager.load_pricing()
+        from tradingagents.config.config_manager import CONFIG_MANAGER
+        pricing_configs = CONFIG_MANAGER.load_pricing()
         
         print(f"   定价配置数量: {len(pricing_configs)}")
         

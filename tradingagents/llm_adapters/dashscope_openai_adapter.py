@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union, Sequence
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import BaseTool
 from pydantic import Field, SecretStr
-from ..config.config_manager import token_tracker
+from ..config.config_manager import TOKEN_TRACKER
 
 #Import Log Module
 from tradingagents.utils.logging_manager import get_logger
@@ -118,7 +118,7 @@ class ChatDashScopeOpenAI(ChatOpenAI):
                     analysis_type = kwargs.get('analysis_type', 'stock_analysis')
                     
                     #Record usage using TokenTracker
-                    token_tracker.track_usage(
+                    TOKEN_TRACKER.track_usage(
                         provider="dashscope",
                         model_name=self.model_name,
                         input_tokens=input_tokens,

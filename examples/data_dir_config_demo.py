@@ -16,7 +16,7 @@ logger = get_logger('default')
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from tradingagents.config.config_manager import config_manager
+from tradingagents.config.config_manager import CONFIG_MANAGER
 from tradingagents.dataflows.config import get_config, set_data_dir, get_data_dir
 from rich.console import Console
 from rich.table import Table
@@ -29,7 +29,7 @@ def show_current_config():
     logger.info(f"\n[bold blue]📁 当前数据目录配置[/bold blue]")
     
     # 从配置管理器获取设置
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
     
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("配置项", style="cyan")
@@ -108,7 +108,7 @@ def demo_config_integration():
     logger.info(f"通过 get_config() 获取的数据目录: {config.get('data_dir')}")
     
     # 通过config_manager获取配置
-    manager_data_dir = config_manager.get_data_dir()
+    manager_data_dir = CONFIG_MANAGER.get_data_dir()
     logger.info(f"通过 config_manager 获取的数据目录: {manager_data_dir}")
     
     # 验证一致性
@@ -128,7 +128,7 @@ def demo_environment_variable_override():
     logger.info(f"设置环境变量 TRADINGAGENTS_DATA_DIR = {test_env_dir}")
     
     # 重新加载配置
-    settings = config_manager.load_settings()
+    settings = CONFIG_MANAGER.load_settings()
     logger.info(f"重新加载后的数据目录: {settings.get('data_dir')}")
     
     # 清理环境变量

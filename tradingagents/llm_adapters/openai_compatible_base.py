@@ -20,7 +20,7 @@ logger = setup_llm_logging()
 
 #Import token tracker
 try:
-    from tradingagents.config.config_manager import token_tracker
+    from tradingagents.config.config_manager import TOKEN_TRACKER
     TOKEN_TRACKING_ENABLED = True
     logger.info("Token tracking enabled")
 except ImportError:

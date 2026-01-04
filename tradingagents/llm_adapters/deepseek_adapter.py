@@ -19,7 +19,7 @@ logger = setup_llm_logging()
 
 #Import token tracker
 try:
-    from tradingagents.config.config_manager import token_tracker
+    from tradingagents.config.config_manager import TOKEN_TRACKER
     TOKEN_TRACKING_ENABLED = True
     logger.info("Token tracking enabled")
 except ImportError:
@@ -151,7 +151,7 @@ class ChatDeepSeek(ChatOpenAI):
                         analysis_type = 'stock_analysis'
 
                     #Record usage
-                    usage_record = token_tracker.track_usage(
+                    usage_record = TOKEN_TRACKER.track_usage(
                         provider="deepseek",
                         model_name=self.model_name,
                         input_tokens=input_tokens,

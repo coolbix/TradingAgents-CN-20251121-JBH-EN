@@ -10,7 +10,7 @@ __description__ = "Multi-agent stock analysis system for Chinese markets"
 
 #Import Core Module
 try:
-    from .config import config_manager
+    from .config import CONFIG_MANAGER
     from .utils import logging_manager
 except ImportError:
     #If import fails, the basic functionality of the module is not affected
