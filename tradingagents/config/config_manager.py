@@ -195,7 +195,7 @@ class ConfigManager:
     def _init_default_configs(self):
         """Initialise Default Configuration"""
         #Default Model Configuration
-        if not self.models_file.exists():
+        if not self.models_file.exists(): # config/models.json
             default_models = [
                 ModelConfig(
                     provider="dashscope",
@@ -247,7 +247,7 @@ class ConfigManager:
             self.save_models(default_models)
         
         #Default pricing configuration
-        if not self.pricing_file.exists():
+        if not self.pricing_file.exists(): # config/pricing.json
             default_pricing = [
                 #Alibri pricing (RMB)
                 PricingConfig("dashscope", "qwen-turbo", 0.002, 0.006, "CNY"),
@@ -276,7 +276,7 @@ class ConfigManager:
             self.save_pricing(default_pricing)
         
         #Default Settings
-        if not self.settings_file.exists():
+        if not self.settings_file.exists(): # config/settings.json
             #Import Default Data Directory Configuration
             import os
             default_data_dir = os.path.join(os.path.expanduser("~"), "Documents", "TradingAgents", "data")
@@ -305,7 +305,7 @@ class ConfigManager:
                 models = [ModelConfig(**item) for item in data]
 
                 #Get Settings
-                settings = self.load_settings()
+                settings = self.load_merged_settings()
                 openai_enabled = settings.get("openai_enabled", False)
 
                 #API Key in Consolidation.env (higher priority)
@@ -427,7 +427,7 @@ class ConfigManager:
         records.append(record)
 
         #Limit the number of records
-        settings = self.load_settings()
+        settings = self.load_merged_settings()
         max_records = settings.get("max_usage_records", 10000)
         if len(records) > max_records:
             records = records[-max_records:]
@@ -459,10 +459,12 @@ class ConfigManager:
 
         return 0.0, "CNY"
     
-    def load_settings(self) -> Dict[str, Any]:
+    def load_merged_settings(self) -> Dict[str, Any]:
         """Load settings, merge configurations in.env"""
+        #JBH: Merge configurations in config/settings.json and os.environ (from .env).
+        #     os.environ has higher priority and will overwrite settings in settings.json when both exist.
         try:
-            if self.settings_file.exists():
+            if self.settings_file.exists(): # config/settings.json
                 with open(self.settings_file, 'r', encoding='utf-8') as f:
                     settings = json.load(f)
             else:
@@ -619,7 +621,7 @@ class ConfigManager:
     
     def get_data_dir(self) -> str:
         """Access to Data Directory Path"""
-        settings = self.load_settings()
+        settings = self.load_merged_settings()
         data_dir = settings.get("data_dir")
         if not data_dir:
             #Use default path if not configured
@@ -628,7 +630,7 @@ class ConfigManager:
 
     def set_data_dir(self, data_dir: str):
         """Set Data Directory Path"""
-        settings = self.load_settings()
+        settings = self.load_merged_settings()
         settings["data_dir"] = data_dir
         #Update cache directory also
         settings["cache_dir"] = os.path.join(data_dir, "cache")
@@ -640,7 +642,7 @@ class ConfigManager:
 
     def ensure_directories_exist(self):
         """Ensure that necessary directories exist"""
-        settings = self.load_settings()
+        settings = self.load_merged_settings()
         
         directories = [
             settings.get("data_dir"),
@@ -662,14 +664,14 @@ class ConfigManager:
     
     def set_openai_enabled(self, enabled: bool):
         """Set OpenAI model enabled"""
-        settings = self.load_settings()
+        settings = self.load_merged_settings()
         settings["openai_enabled"] = enabled
         self.save_settings(settings)
         logger.info(f"🔧The OpenAI model has been set to:{enabled}")
     
     def is_openai_enabled(self) -> bool:
         """Check whether OpenAI models are enabled"""
-        settings = self.load_settings()
+        settings = self.load_merged_settings()
         return settings.get("openai_enabled", False)
     
     def get_openai_config_status(self) -> Dict[str, Any]:
@@ -699,7 +701,7 @@ class TokenTracker:
             session_id = f"session_{datetime.now(ZoneInfo(get_timezone_name())).strftime('%Y%m%d_%H%M%S')}"
 
         #Check if cost tracking is enabled
-        settings = self.config_manager.load_settings()
+        settings = self.config_manager.load_merged_settings()
         cost_tracking_enabled = settings.get("enable_cost_tracking", True)
 
         if not cost_tracking_enabled:
@@ -723,7 +725,7 @@ class TokenTracker:
 
     def _check_cost_alert(self, current_cost: float):
         """Check Cost Warning"""
-        settings = self.config_manager.load_settings()
+        settings = self.config_manager.load_merged_settings()
         threshold = settings.get("cost_alert_threshold", 100.0)
 
         #Get total cost today

@@ -78,7 +78,7 @@ async def main():
     print("\n4️⃣ 检查配置文件...")
     try:
         from tradingagents.config.config_manager import CONFIG_MANAGER
-        settings = CONFIG_MANAGER.load_settings()
+        settings = CONFIG_MANAGER.load_merged_settings()
         
         cost_tracking = settings.get("enable_cost_tracking", True)
         print(f"   成本跟踪启用: {cost_tracking}")

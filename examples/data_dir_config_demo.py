@@ -29,7 +29,7 @@ def show_current_config():
     logger.info(f"\n[bold blue]📁 当前数据目录配置[/bold blue]")
     
     # 从配置管理器获取设置
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
     
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("配置项", style="cyan")
@@ -128,7 +128,7 @@ def demo_environment_variable_override():
     logger.info(f"设置环境变量 TRADINGAGENTS_DATA_DIR = {test_env_dir}")
     
     # 重新加载配置
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
     logger.info(f"重新加载后的数据目录: {settings.get('data_dir')}")
     
     # 清理环境变量

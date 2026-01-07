@@ -61,7 +61,7 @@ def display_config_status():
             logger.error(f"   ❌ MongoDB连接: 失败")
     
     # 显示成本跟踪设置
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
     cost_tracking = settings.get("enable_cost_tracking", True)
     cost_threshold = settings.get("cost_alert_threshold", 100.0)
     

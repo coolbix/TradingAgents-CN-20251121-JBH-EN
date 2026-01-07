@@ -26,6 +26,9 @@ except ImportError:
 
 class MongoDBStorage:
     """MongoDB storage adapter"""
+    #JBH: MongoDB dedicated to only ConfigManager @tradingagents/config/config_manager.py ?
+    #     Handling "token_usage" collection of "tradingagents" database only?
+    #     if so, why not use DatabaseManager @tradingagents/config/database_manager.py ?
     
     def __init__(self, connection_string: str = None, database_name: str = "tradingagents"):
         if not MONGODB_AVAILABLE:

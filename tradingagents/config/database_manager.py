@@ -52,6 +52,7 @@ class DatabaseManager:
         self.redis_enabled = parse_bool_env("REDIS_ENABLED", False)
 
         #Read MongoDB configurations from environmental variables
+        #JBH FIXME: why not use ConfigManager settings here?
         self.mongodb_config = {
             "enabled": self.mongodb_enabled,
             "host": os.getenv("MONGODB_HOST", "localhost"),
@@ -68,6 +69,7 @@ class DatabaseManager:
         }
 
         #Read Redis configurations from environment variables
+        #JBH FIXME: why not use ConfigManager settings here?
         self.redis_config = {
             "enabled": self.redis_enabled,
             "host": os.getenv("REDIS_HOST", "localhost"),

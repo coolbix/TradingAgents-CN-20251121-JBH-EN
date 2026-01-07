@@ -1818,7 +1818,7 @@ def data_config(
         return
     
     # 显示当前配置（默认行为或使用--show）
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
     current_data_dir = get_data_dir()
     
     # 配置信息表格

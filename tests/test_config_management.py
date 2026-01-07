@@ -99,13 +99,13 @@ def test_config_manager():
         
         # 测试设置
         print("📝 测试系统设置...")
-        settings = config_manager.load_settings()
+        settings = config_manager.load_merged_settings()
         assert "default_provider" in settings, "应该有默认设置"
         
         settings["test_setting"] = "test_value"
         config_manager.save_settings(settings)
         
-        reloaded_settings = config_manager.load_settings()
+        reloaded_settings = config_manager.load_merged_settings()
         assert reloaded_settings["test_setting"] == "test_value", "设置应该被保存"
         
         print("✅ 系统设置测试通过")

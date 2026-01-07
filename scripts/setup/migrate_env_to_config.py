@@ -87,7 +87,7 @@ def migrate_system_settings(env_config):
     """迁移系统设置"""
     logger.info(f"\n🔄 迁移系统设置...")
     
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
     
     # 更新设置
     updated = False

@@ -79,7 +79,7 @@ def test_settings_merge():
         from tradingagents.config.config_manager import CONFIG_MANAGER
         
         # 加载设置
-        settings = CONFIG_MANAGER.load_settings()
+        settings = CONFIG_MANAGER.load_merged_settings()
         
         # 检查.env中的设置是否正确合并
         env_settings = [

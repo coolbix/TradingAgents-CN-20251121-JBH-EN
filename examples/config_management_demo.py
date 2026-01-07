@@ -207,7 +207,7 @@ def demo_settings_management():
     logger.info(f"=")
     
     # 查看当前设置
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
     
     logger.info(f"🔧 当前系统设置:")
     for key, value in settings.items():

@@ -207,7 +207,7 @@ DATA_DIR = CONFIG_MANAGER.get_data_dir()
 
 def get_config():
     """Acquisition configuration (compatible packaging)"""
-    return CONFIG_MANAGER.load_settings()
+    return CONFIG_MANAGER.load_merged_settings()
 
 def set_config(config):
     """Settings Configuration (compatible packaging)"""

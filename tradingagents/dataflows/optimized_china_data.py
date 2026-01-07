@@ -27,7 +27,7 @@ class OptimizedChinaDataProvider:
 
     def __init__(self):
         self.cache = get_cache()
-        self.config = CONFIG_MANAGER.load_settings()
+        self.config = CONFIG_MANAGER.load_merged_settings()
         self.last_api_call = 0
         self.min_api_interval = get_float("TA_CHINA_MIN_API_INTERVAL_SECONDS", "ta_china_min_api_interval_seconds", 0.5)
 

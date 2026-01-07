@@ -96,7 +96,7 @@ def debug_token_tracker():
         print(f"🔧 Token跟踪器创建成功")
         
         # 检查设置
-        settings = config_manager.load_settings()
+        settings = config_manager.load_merged_settings()
         cost_tracking_enabled = settings.get("enable_cost_tracking", True)
         print(f"📊 成本跟踪启用: {cost_tracking_enabled}")
         

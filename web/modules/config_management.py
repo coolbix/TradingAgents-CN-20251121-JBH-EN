@@ -387,7 +387,7 @@ def render_system_settings():
     st.markdown("**🔧 系统设置**")
 
     # 加载当前设置
-    settings = CONFIG_MANAGER.load_settings()
+    settings = CONFIG_MANAGER.load_merged_settings()
 
     st.markdown("**基本设置**")
     

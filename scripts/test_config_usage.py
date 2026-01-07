@@ -63,7 +63,7 @@ def test_config_manager():
     print("📋 测试设置加载:")
     print()
     
-    settings = config_manager.load_settings()
+    settings = config_manager.load_merged_settings()
     print(f"  默认提供商: {settings.get('default_provider', 'N/A')}")
     print(f"  默认模型: {settings.get('default_model', 'N/A')}")
     print(f"  OpenAI 启用: {settings.get('openai_enabled', False)}")

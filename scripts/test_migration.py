@@ -32,7 +32,7 @@ async def test_migration():
         print(f"      - {model.provider}/{model.model_name} ({'启用' if model.enabled else '禁用'})")
     
     # 检查系统设置
-    settings = config_manager.load_settings()
+    settings = config_manager.load_merged_settings()
     print(f"   ⚙️ 找到 {len(settings)} 个系统设置")
     key_settings = ['default_provider', 'default_model', 'enable_cost_tracking']
     for key in key_settings:

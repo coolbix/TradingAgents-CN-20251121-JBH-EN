@@ -146,7 +146,7 @@ class ConfigMigrator:
         print("\n⚙️ 迁移系统设置...")
         
         # 加载传统设置
-        legacy_settings = self.config_manager.load_settings()
+        legacy_settings = self.config_manager.load_merged_settings()
         
         if not legacy_settings:
             print("⚠️ 没有找到传统系统设置")

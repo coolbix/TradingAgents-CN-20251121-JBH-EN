@@ -7,7 +7,7 @@ from tradingagents.config.config_manager import CONFIG_MANAGER
 
 def get_config():
     """Compatible Packaging Functions"""
-    return CONFIG_MANAGER.load_settings()
+    return CONFIG_MANAGER.load_merged_settings()
 
 
 class StockstatsUtils:
