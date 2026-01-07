@@ -327,8 +327,8 @@ class UnifiedConfigManager:
         """Fetching Data Source Configuration - Prioritize Reading from Databases, Back to Hard Encoding (Step Version)"""
         try:
             #🔥 Read configuration from the database as a matter of priority (using a walk-in connection)
-            from app.core.database import get_mongo_db
-            db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            db = get_mongo_db_async()
             config_collection = db.system_configs
 
             #Get the latest active configuration

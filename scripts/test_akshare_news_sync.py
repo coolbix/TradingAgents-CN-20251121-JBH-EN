@@ -10,7 +10,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 from app.worker.akshare_sync_service import get_akshare_sync_service
 
 
@@ -24,7 +24,7 @@ async def test_akshare_news_sync():
     try:
         # 1. 初始化数据库
         print("🔄 初始化数据库连接...")
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接成功")
         print()
         
@@ -35,7 +35,7 @@ async def test_akshare_news_sync():
         print()
         
         # 3. 检查新闻数据库状态
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         news_count_before = await db.stock_news.count_documents({"data_source": "akshare"})
         print(f"📊 同步前AKShare新闻数量: {news_count_before:,}条")
         print()
@@ -97,7 +97,7 @@ async def test_akshare_news_sync():
     finally:
         # 关闭数据库连接
         try:
-            await close_database()
+            await close_database_async()
         except Exception as e:
             print(f"关闭数据库连接失败: {e}")
 

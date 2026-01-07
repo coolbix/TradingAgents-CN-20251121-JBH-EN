@@ -6,7 +6,7 @@ import logging
 import time
 
 from app.routers.auth_db import get_current_user
-from app.core.database import get_redis_client
+from app.core.database import get_redis_client_async
 from app.core.config import SETTINGS
 
 from app.services.queue_service import get_queue_service, QueueService
@@ -17,7 +17,7 @@ logger = logging.getLogger("webapi.sse")
 
 async def task_progress_generator(task_id: str, user_id: str):
     """Generate SSE events for task progress updates"""
-    r = get_redis_client()
+    r = get_redis_client_async()
     pubsub = None
     channel = f"task_progress:{task_id}"
 

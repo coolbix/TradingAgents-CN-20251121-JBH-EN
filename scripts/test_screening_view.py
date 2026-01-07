@@ -13,7 +13,7 @@ sys.path.insert(0, str(project_root))
 
 import asyncio
 import logging
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 from app.services.database_screening_service import get_database_screening_service
 
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +25,7 @@ async def test_screening():
     try:
         # 初始化数据库
         logger.info("📡 连接数据库...")
-        await init_database()
+        await init_database_async()
         
         # 获取筛选服务
         service = get_database_screening_service()
@@ -103,7 +103,7 @@ async def test_screening():
         return 1
     
     finally:
-        await close_database()
+        await close_database_async()
     
     return 0
 

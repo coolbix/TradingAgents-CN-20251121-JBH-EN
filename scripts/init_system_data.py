@@ -15,7 +15,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.models.user import User, UserRole
 from app.utils.security import get_password_hash
 from app.utils.timezone import now_tz
@@ -305,7 +305,7 @@ async def main():
     
     try:
         # 获取数据库连接
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         # 创建默认用户
         await create_default_users(db.client[db.database_name])

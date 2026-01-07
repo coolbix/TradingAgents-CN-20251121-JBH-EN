@@ -13,7 +13,7 @@ sys.path.insert(0, str(project_root))
 
 import asyncio
 import logging
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 async def check_ningde():
     """检查宁德时代的数据"""
     try:
-        await init_database()
-        db = get_mongo_db()
+        await init_database_async()
+        db = get_mongo_db_async()
         
         # 检查 market_quotes 集合
         logger.info("=" * 60)
@@ -78,7 +78,7 @@ async def check_ningde():
         return 1
     
     finally:
-        await close_database()
+        await close_database_async()
     
     return 0
 

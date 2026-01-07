@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.models.config import UsageRecord, UsageStatistics
 
 logger = logging.getLogger("app.services.usage_statistics_service")
@@ -23,7 +23,7 @@ class UsageStatisticsService:
     async def add_usage_record(self, record: UsageRecord) -> bool:
         """Add Usage Record"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
 
             record_dict = record.model_dump(exclude={"id"})
@@ -45,7 +45,7 @@ class UsageStatisticsService:
     ) -> List[UsageRecord]:
         """Access to usage records"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
             
             #Build query conditions
@@ -83,7 +83,7 @@ class UsageStatisticsService:
     ) -> UsageStatistics:
         """Access to usage statistics"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
             
             #Calculate the time frame
@@ -212,7 +212,7 @@ class UsageStatisticsService:
     async def delete_old_records(self, days: int = 90) -> int:
         """Remove old record"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
             
             #Calculating cut-off date

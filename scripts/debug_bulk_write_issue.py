@@ -14,7 +14,7 @@ from pymongo import ReplaceOne
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_database, get_database
+from app.core.database import init_database_async, get_database_async
 
 # 设置日志
 logging.basicConfig(level=logging.DEBUG)
@@ -30,8 +30,8 @@ async def debug_bulk_write_issue():
     try:
         # 1. 初始化数据库
         print("1️⃣ 初始化数据库")
-        await init_database()
-        db = get_database()
+        await init_database_async()
+        db = get_database_async()
         collection = db.stock_daily_quotes
         print("   ✅ 数据库初始化成功")
         

@@ -15,7 +15,7 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 
 async def migrate_accounts(dry_run=False):
@@ -24,7 +24,7 @@ async def migrate_accounts(dry_run=False):
     print("📊 迁移账户表 (paper_accounts)")
     print("="*60)
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_accounts"]
     
     # 查找所有账户
@@ -113,7 +113,7 @@ async def migrate_positions(dry_run=False):
     print("📊 迁移持仓表 (paper_positions)")
     print("="*60)
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_positions"]
     
     # 查找所有持仓
@@ -181,7 +181,7 @@ async def migrate_orders(dry_run=False):
     print("📊 迁移订单表 (paper_orders)")
     print("="*60)
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_orders"]
     
     # 查找所有订单
@@ -243,7 +243,7 @@ async def migrate_trades(dry_run=False):
     print("📊 迁移成交记录表 (paper_trades)")
     print("="*60)
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_trades"]
     
     # 查找所有成交记录
@@ -299,7 +299,7 @@ async def migrate_trades(dry_run=False):
 async def main():
     """主函数"""
     # 初始化数据库连接
-    await init_database()
+    await init_database_async()
 
     dry_run = "--dry-run" in sys.argv
 

@@ -90,12 +90,12 @@ async def query_saved_messages():
     logger.info("🔍 查询已保存的消息")
     
     try:
-        from app.core.database import init_database
+        from app.core.database import init_database_async
         from app.services.social_media_service import get_social_media_service
         from app.services.internal_message_service import get_internal_message_service
         
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         
         # 获取服务
         social_service = await get_social_media_service()

@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional, Union
 import pandas as pd
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from app.core.database import get_database
+from app.core.database import get_database_async
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class HistoricalDataService:
     async def initialize(self):
         """Initialize database connection"""
         try:
-            self.db = get_database()
+            self.db = get_database_async()
             self.collection = self.db.stock_daily_quotes
 
             #🔥 to ensure that index exists (upgrade query and upsert performance)

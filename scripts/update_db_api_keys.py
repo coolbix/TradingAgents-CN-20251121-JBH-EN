@@ -26,11 +26,11 @@ else:
 
 async def update_api_keys():
     """更新数据库中的 API Key"""
-    from app.core.database import init_database, get_mongo_db
+    from app.core.database import init_database_async, get_mongo_db_async
     
     # 初始化数据库
-    await init_database()
-    db = await get_mongo_db()
+    await init_database_async()
+    db = await get_mongo_db_async()
     
     print("\n" + "=" * 80)
     print("🔧 更新数据库中的 API Key")

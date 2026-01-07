@@ -21,11 +21,11 @@ async def test_field_config_api():
     
     try:
         # 导入必要的模块
-        from app.core.database import init_database
+        from app.core.database import init_database_async
         from app.models.screening import BASIC_FIELDS_INFO
         
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接成功")
         
         # 测试字段配置

@@ -9,7 +9,7 @@ from pymongo import ReplaceOne
 from pymongo.errors import BulkWriteError
 from bson import ObjectId
 
-from app.core.database import get_database
+from app.core.database import get_database_async
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class InternalMessageService:
     async def initialize(self):
         """Initialization services"""
         try:
-            self.db = get_database()
+            self.db = get_database_async()
             self.collection = self.db.internal_messages
             self.logger.info("✅ Internal message data service initialised successfully")
         except Exception as e:

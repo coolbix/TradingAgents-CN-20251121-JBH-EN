@@ -5,7 +5,7 @@ import asyncio
 import logging
 from datetime import datetime
 from tradingagents.config.database_manager import get_mongodb_client
-from app.core.database import init_database
+from app.core.database import init_database_async
 from app.worker.tushare_init_service import get_tushare_init_service
 
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +36,7 @@ async def test_selective_sync():
     
     # 初始化数据库
     print("\n1️⃣ 初始化数据库")
-    await init_database()
+    await init_database_async()
     
     # 获取初始数据量
     print("\n2️⃣ 检查初始数据量")

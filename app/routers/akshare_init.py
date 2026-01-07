@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel, Field
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.worker.akshare_init_service import get_akshare_init_service
 from app.worker.akshare_sync_service import get_akshare_sync_service
 from app.routers.auth_db import get_current_user
@@ -50,7 +50,7 @@ async def get_database_status():
         Database status information
     """
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         #Check Basic Information
         basic_count = await db.stock_basic_info.count_documents({})

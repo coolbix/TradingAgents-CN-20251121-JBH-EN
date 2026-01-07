@@ -405,8 +405,8 @@ async def get_sync_history(
 ):
     """Get Synchronized History"""
     try:
-        from app.core.database import get_mongo_db
-        db = get_mongo_db()
+        from app.core.database import get_mongo_db_async
+        db = get_mongo_db_async()
 
         #Build query conditions
         query = {"job": "stock_basics_multi_source"}
@@ -454,8 +454,8 @@ async def clear_sync_cache():
 
         #1. Empty sync status
         try:
-            from app.core.database import get_mongo_db
-            db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            db = get_mongo_db_async()
 
             #Remove Sync Status Record
             result = await db.sync_status.delete_many({"job": "stock_basics_multi_source"})

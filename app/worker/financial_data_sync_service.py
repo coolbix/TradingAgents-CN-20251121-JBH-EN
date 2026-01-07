@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.services.financial_data_service import get_financial_data_service
 from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
 from tradingagents.dataflows.providers.china.akshare import get_akshare_provider
@@ -55,7 +55,7 @@ class FinancialDataSyncService:
     async def initialize(self):
         """Initialization services"""
         try:
-            self.db = get_mongo_db()
+            self.db = get_mongo_db_async()
             self.financial_service = await get_financial_data_service()
             
             #Provider of initialized data sources

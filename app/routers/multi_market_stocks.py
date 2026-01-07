@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 import logging
 
 from app.routers.auth_db import get_current_user
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.response import ok
 from app.services.unified_stock_service import UnifiedStockService
 
@@ -91,7 +91,7 @@ async def search_stocks(
             detail=f"不支持的市场类型: {market}"
         )
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     service = UnifiedStockService(db)
     
     try:
@@ -133,7 +133,7 @@ async def get_stock_info(
             detail=f"不支持的市场类型: {market}"
         )
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     service = UnifiedStockService(db)
     
     try:
@@ -179,7 +179,7 @@ async def get_stock_quote(
             detail=f"不支持的市场类型: {market}"
         )
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     service = UnifiedStockService(db)
     
     try:
@@ -235,7 +235,7 @@ async def get_stock_daily_quotes(
             detail=f"不支持的市场类型: {market}"
         )
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     service = UnifiedStockService(db)
     
     try:

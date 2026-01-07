@@ -8,7 +8,7 @@ from tradingagents.config.database_manager import get_mongodb_client
 from tradingagents.dataflows.providers.akshare_provider import AKShareProvider
 from tradingagents.dataflows.providers.baostock_provider import BaoStockProvider
 from app.services.historical_data_service import get_historical_data_service
-from app.core.database import init_database
+from app.core.database import init_database_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ async def main():
     
     # 初始化数据库
     print("1️⃣ 初始化数据库和提供者")
-    await init_database()
+    await init_database_async()
     
     # 测试股票代码
     test_symbol = "000001"

@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .auth_db import get_current_user
-from ..core.database import get_mongo_db
+from ..core.database import get_mongo_db_async
 from ..utils.timezone import to_config_tz
 import logging
 
@@ -129,7 +129,7 @@ async def get_reports_list(
     try:
         logger.info(f"Can not get folder: %s: %s{user['id']}, page number={page}, per page ={page_size}market ={market_filter}")
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #Build query conditions
         query = {}
@@ -242,7 +242,7 @@ async def get_report_detail(
     try:
         logger.info(f"For more information:{report_id}")
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #Support for Objective Id / anallysis id / task id
         query = _build_report_query(report_id)
@@ -360,7 +360,7 @@ async def get_report_module_content(
     try:
         logger.info(f"For the report module:{report_id}/{module}")
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #Query report (multiple ID support)
         query = _build_report_query(report_id)
@@ -401,7 +401,7 @@ async def delete_report(
     try:
         logger.info(f"Delete the report:{report_id}")
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #Query report (multiple ID support)
         query = _build_report_query(report_id)
@@ -440,7 +440,7 @@ async def download_report(
     try:
         logger.info(f"Downloading report:{report_id}, format:{format}")
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #Query report (multiple ID support)
         query = _build_report_query(report_id)

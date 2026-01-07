@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from bson import ObjectId
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 
 
 class TagsService:
@@ -15,7 +15,7 @@ class TagsService:
 
     async def _get_db(self):
         if self.db is None:
-            self.db = get_mongo_db()
+            self.db = get_mongo_db_async()
         return self.db
 
     async def ensure_indexes(self) -> None:

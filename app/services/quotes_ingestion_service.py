@@ -7,7 +7,7 @@ from collections import deque
 from pymongo import UpdateOne
 
 from app.core.config import SETTINGS
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.services.data_sources.manager import DataSourceManager
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ class QuotesIngestionService:
         return ""
 
     async def ensure_indexes(self) -> None:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         coll = db[self.collection_name]
         try:
             await coll.create_index("code", unique=True)
@@ -107,7 +107,7 @@ class QuotesIngestionService:
             error message
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             status_coll = db[self.status_collection_name]
 
             now = datetime.now(self.tz)
@@ -140,7 +140,7 @@ class QuotesIngestionService:
             FMT 0 
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             status_coll = db[self.status_collection_name]
 
             doc = await status_coll.find_one({"job": "quotes_ingestion"})
@@ -324,7 +324,7 @@ class QuotesIngestionService:
         return (morning <= t <= noon) or (afternoon_start <= t <= buffer_end)
 
     async def _collection_empty(self) -> bool:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         coll = db[self.collection_name]
         try:
             count = await coll.estimated_document_count()
@@ -335,7 +335,7 @@ class QuotesIngestionService:
     async def _collection_stale(self, latest_trade_date: Optional[str]) -> bool:
         if not latest_trade_date:
             return False
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         coll = db[self.collection_name]
         try:
             cursor = coll.find({}, {"trade_date": 1}).sort("trade_date", -1).limit(1)
@@ -348,7 +348,7 @@ class QuotesIngestionService:
             return True
 
     async def _bulk_upsert(self, quotes_map: Dict[str, Dict], trade_date: str, source: Optional[str] = None) -> None:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         coll = db[self.collection_name]
         ops = []
         updated_at = datetime.now(self.tz)
@@ -410,7 +410,7 @@ class QuotesIngestionService:
 
             logger.info("📊 market quotes collect empty and start importing from historical data")
 
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             manager = DataSourceManager()
 
             #Get the latest transaction date

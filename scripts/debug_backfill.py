@@ -1,7 +1,7 @@
 import asyncio
 from app.core.config import SETTINGS
 from app.services.data_sources.manager import DataSourceManager
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 from app.services.quotes_ingestion_service import QuotesIngestionService
 
 async def main():
@@ -13,8 +13,8 @@ async def main():
     available = [a.name for a in m.get_available_adapters()]
     print("Available adapters:", available)
 
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     coll = db["market_quotes"]
     try:
         n = await coll.estimated_document_count()
@@ -42,7 +42,7 @@ async def main():
     except Exception as e:
         print("Fetch sample error:", e)
 
-    await close_database()
+    await close_database_async()
 
 if __name__ == "__main__":
     asyncio.run(main())

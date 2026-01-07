@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.routers.auth_db import get_current_user
 from app.core.response import ok
-from app.core.database import get_redis_client
+from app.core.database import get_redis_client_async
 from app.services.notifications_service import get_notifications_service
 
 router = APIRouter()
@@ -55,7 +55,7 @@ async def mark_all_read(user: dict = Depends(get_current_user)):
 async def debug_redis_pool(user: dict = Depends(get_current_user)):
     """Debug Endpoint: View Redis Connection Pool Status"""
     try:
-        r = get_redis_client()
+        r = get_redis_client_async()
         pool = r.connection_pool
 
         #Fetch Connect Pool Information

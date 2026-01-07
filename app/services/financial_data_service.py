@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 import pandas as pd
 from pymongo import ReplaceOne
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class FinancialDataService:
     async def initialize(self):
         """Initialization services"""
         try:
-            self.db = get_mongo_db()
+            self.db = get_mongo_db_async()
             if self.db is None:
                 raise Exception("MongoDB数据库未初始化")
 

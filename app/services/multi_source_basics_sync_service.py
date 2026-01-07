@@ -18,7 +18,7 @@ from enum import Enum
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import UpdateOne
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.services.basics_sync import add_financial_metrics as _add_financial_metrics_util
 
 
@@ -69,7 +69,7 @@ class MultiSourceBasicsSyncService:
         if self._last_status:
             return self._last_status
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         doc = await db[STATUS_COLLECTION].find_one({"job": JOB_KEY})
         if doc:
             #Remove the  id field of MongoDB to avoid serialization problems
@@ -164,7 +164,7 @@ class MultiSourceBasicsSyncService:
                 return await self.get_status()
             self._running = True
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         stats = SyncStats()
         stats.started_at = datetime.now().isoformat()
         stats.status = "running"

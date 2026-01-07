@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
 from app.core.config import get_settings
-from app.core.database import get_database
+from app.core.database import get_database_async
 from app.services.historical_data_service import get_historical_data_service
 from tradingagents.dataflows.providers.china.baostock import BaoStockProvider
 
@@ -53,8 +53,8 @@ class BaoStockSyncService:
         """Spacing Initialization Services"""
         try:
             #🔥 Initialised database connection (must be in an off-site context)
-            from app.core.database import get_mongo_db
-            self.db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            self.db = get_mongo_db_async()
 
             #Initialization of historical data services
             if self.historical_service is None:

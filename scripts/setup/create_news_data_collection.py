@@ -19,7 +19,7 @@ try:
 except ImportError:
     pass
 
-from app.core.database import init_database, get_database
+from app.core.database import init_database_async, get_database_async
 
 # 配置日志
 logging.basicConfig(
@@ -35,10 +35,10 @@ async def create_news_collection():
     
     try:
         # 初始化数据库连接
-        await init_database()
+        await init_database_async()
 
         # 获取数据库连接
-        db = get_database()
+        db = get_database_async()
         collection = db.stock_news
         
         logger.info("📊 创建新闻数据集合索引...")

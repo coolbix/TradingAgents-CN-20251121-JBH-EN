@@ -21,9 +21,9 @@ async def main():
     # 1. 检查数据库连接
     print("\n1️⃣ 检查数据库连接...")
     try:
-        from app.core.database import init_database, get_mongo_db
-        await init_database()
-        db = get_mongo_db()
+        from app.core.database import init_database_async, get_mongo_db_async
+        await init_database_async()
+        db = get_mongo_db_async()
         print("✅ MongoDB 连接成功")
         print(f"   数据库名称: {db.name}")
     except Exception as e:

@@ -15,7 +15,7 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.core.database import init_database
+from app.core.database import init_database_async
 from app.services.social_media_service import get_social_media_service
 from app.services.internal_message_service import get_internal_message_service
 
@@ -182,7 +182,7 @@ class MessageCrawlerScheduler:
         start_time = datetime.now()
         
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         
         # 并行执行社媒和内部消息爬取
         social_task = asyncio.create_task(self.run_social_media_crawl())

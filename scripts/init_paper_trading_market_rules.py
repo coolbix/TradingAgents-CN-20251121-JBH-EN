@@ -13,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 
 # 市场规则配置
@@ -133,7 +133,7 @@ async def init_market_rules():
     """初始化市场规则配置"""
     print("🚀 开始初始化模拟交易市场规则...")
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_market_rules"]
     
     # 检查是否已存在配置
@@ -176,7 +176,7 @@ async def show_market_rules():
     """显示当前市场规则配置"""
     print("📋 当前市场规则配置：\n")
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_market_rules"]
     
     rules = await collection.find({}).to_list(None)
@@ -247,7 +247,7 @@ async def show_market_rules():
 async def main():
     """主函数"""
     # 初始化数据库连接
-    await init_database()
+    await init_database_async()
 
     if len(sys.argv) > 1 and sys.argv[1] == "show":
         await show_market_rules()

@@ -9,7 +9,7 @@ import logging
 import re
 
 from app.routers.auth_db import get_current_user
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.response import ok
 
 logger = logging.getLogger(__name__)
@@ -91,7 +91,7 @@ async def get_quote(
     if market in ['HK', 'US']:
         from app.services.foreign_stock_service import ForeignStockService
 
-        db = get_mongo_db()  #No need for wait, directly return database object
+        db = get_mongo_db_async()  #No need for wait, directly return database object
         service = ForeignStockService(db=db)
 
         try:
@@ -105,7 +105,7 @@ async def get_quote(
             )
 
     #Unit A: use of existing logic
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     code6 = normalized_code
 
     #Behave
@@ -234,7 +234,7 @@ async def get_fundamentals(
     if market in ['HK', 'US']:
         from app.services.foreign_stock_service import ForeignStockService
 
-        db = get_mongo_db()  #No need for wait, directly return database object
+        db = get_mongo_db_async()  #No need for wait, directly return database object
         service = ForeignStockService(db=db)
 
         try:
@@ -248,7 +248,7 @@ async def get_fundamentals(
             )
 
     #Unit A: use of existing logic
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     code6 = normalized_code
 
     #1. Access to basic information (support to data source screening)
@@ -449,7 +449,7 @@ async def get_kline(
     if market in ['HK', 'US']:
         from app.services.foreign_stock_service import ForeignStockService
 
-        db = get_mongo_db()  #No need for wait, directly return database object
+        db = get_mongo_db_async()  #No need for wait, directly return database object
         service = ForeignStockService(db=db)
 
         try:
@@ -571,7 +571,7 @@ async def get_kline(
             if should_fetch_realtime:
                 logger.info(f"🔥 trying to get real-time data from the day:{code_padded}(transaction time:{is_trading_time}, the day data are available:{has_today_data})")
 
-                db = get_mongo_db()
+                db = get_mongo_db_async()
                 market_quotes_coll = db["market_quotes"]
 
                 #Query real-time lines on the day

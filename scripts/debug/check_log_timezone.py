@@ -21,12 +21,12 @@ async def check_log_timezone():
     
     try:
         # 导入数据库模块
-        from app.core.database import init_database, get_mongo_db
+        from app.core.database import init_database_async, get_mongo_db_async
         from app.services.operation_log_service import log_operation
         from app.models.operation_log import ActionType
         
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接成功")
         
         # 显示当前时间信息
@@ -38,7 +38,7 @@ async def check_log_timezone():
         
         # 检查现有日志的时间
         print("\n🔍 检查现有操作日志:")
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         cursor = db.operation_logs.find().sort("timestamp", -1).limit(5)
         logs = await cursor.to_list(length=5)
         

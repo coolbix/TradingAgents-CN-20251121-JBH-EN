@@ -8,7 +8,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_database
+from app.core.database import init_database_async
 from tradingagents.dataflows.providers.china.akshare import AKShareProvider
 
 
@@ -16,7 +16,7 @@ async def main():
     print("🔧 测试 AKShare 批量获取行情功能...")
     
     # 初始化数据库
-    await init_database()
+    await init_database_async()
     
     # 创建 Provider
     provider = AKShareProvider()

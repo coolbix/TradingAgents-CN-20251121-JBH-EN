@@ -12,7 +12,7 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.core.database import get_database, init_db
+from app.core.database import get_database_async, init_db
 
 # 配置日志
 logging.basicConfig(
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 async def create_social_media_collection():
     """创建社媒消息集合和索引"""
     try:
-        db = get_database()
+        db = get_database_async()
         collection = db.social_media_messages
         
         logger.info("🔧 创建社媒消息集合索引...")
@@ -128,7 +128,7 @@ async def create_social_media_collection():
 async def create_internal_messages_collection():
     """创建内部消息集合和索引"""
     try:
-        db = get_database()
+        db = get_database_async()
         collection = db.internal_messages
         
         logger.info("🔧 创建内部消息集合索引...")

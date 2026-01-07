@@ -15,7 +15,7 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 
 # 每个市场的初始资金
@@ -32,7 +32,7 @@ async def fix_accounts(dry_run=False):
     print("💰 修复账户初始资金")
     print("="*60)
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db["paper_accounts"]
     
     # 查找所有账户
@@ -119,7 +119,7 @@ async def main():
     print(f"⏰ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     # 初始化数据库
-    await init_database()
+    await init_database_async()
     
     # 修复账户
     await fix_accounts(dry_run)

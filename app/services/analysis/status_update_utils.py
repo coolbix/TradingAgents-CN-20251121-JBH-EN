@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.redis_client import get_redis_service, RedisKeys
 from app.models.analysis import AnalysisStatus, AnalysisResult
 
@@ -23,7 +23,7 @@ async def perform_update_task_status(
 
     Mirrors the original logic in AnalysisService._update_task_status.
     """
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     redis_service = get_redis_service()
 
     update_data: Dict[str, Any] = {
@@ -64,7 +64,7 @@ async def perform_update_task_status_with_tracker(
 
     Mirrors the original logic in AnalysisService._update_task_status_with_tracker.
     """
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     redis_service = get_redis_service()
 
     progress_data = progress_tracker.to_dict()

@@ -10,7 +10,7 @@ import os
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 from app.services.operation_log_service import log_operation, get_operation_log_service
 from app.models.operation_log import ActionType
 
@@ -20,7 +20,7 @@ async def test_operation_logs():
     
     try:
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         print("✅ 数据库初始化成功")
         
         # 获取服务实例
@@ -102,7 +102,7 @@ async def test_operation_logs():
         
         # 测试5: 检查数据库中的记录
         print("\n🔍 测试5: 检查数据库记录")
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         count = await db.operation_logs.count_documents({})
         print(f"✅ 数据库中共有 {count} 条操作日志记录")
         

@@ -21,12 +21,12 @@ async def test_enhanced_screening():
     
     try:
         # 导入服务
-        from app.core.database import init_database
+        from app.core.database import init_database_async
         from app.services.enhanced_screening_service import get_enhanced_screening_service
         from app.models.screening import ScreeningCondition, OperatorType
         
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接成功")
         
         # 获取服务实例

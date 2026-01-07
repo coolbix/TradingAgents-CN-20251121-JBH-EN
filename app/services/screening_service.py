@@ -206,9 +206,9 @@ class ScreeningService:
     def _get_universe(self) -> List[str]:
         """Get A stock code collection: get all A stock code from MongoDB stock basic info"""
         try:
-            from app.core.database import get_mongo_db
+            from app.core.database import get_mongo_db_async
 
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db.stock_basic_info
 
             #Query all A stock codes (compatible with different data structures)

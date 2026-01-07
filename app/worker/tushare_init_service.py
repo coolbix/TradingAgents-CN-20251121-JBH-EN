@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.worker.tushare_sync_service import get_tushare_sync_service
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class TushareInitService:
     
     async def initialize(self):
         """Initialization services"""
-        self.db = get_mongo_db()
+        self.db = get_mongo_db_async()
         self.sync_service = await get_tushare_sync_service()
         logger.info("Tushare is ready for initialization.")
     

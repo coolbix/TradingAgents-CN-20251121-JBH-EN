@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 
 async def test_priority():
     """测试数据源优先级读取"""
-    from app.core.database import get_mongo_db
+    from app.core.database import get_mongo_db_async
     from app.services.foreign_stock_service import ForeignStockService
 
     print("=" * 80)
@@ -24,7 +24,7 @@ async def test_priority():
     print("=" * 80)
 
     # 获取数据库连接（异步）
-    db = await get_mongo_db()
+    db = await get_mongo_db_async()
 
     # 初始化服务
     service = ForeignStockService(db=db)

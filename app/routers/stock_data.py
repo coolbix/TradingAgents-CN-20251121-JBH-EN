@@ -211,10 +211,10 @@ async def search_stocks(
         dict: Search results
     """
     try:
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
         from app.core.unified_config import UnifiedConfigManager
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db.stock_basic_info
 
         #Access source priority configuration
@@ -291,9 +291,9 @@ async def get_market_summary(
         Dict: Stock count by market
     """
     try:
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db.stock_basic_info
 
         #Number of stocks by market

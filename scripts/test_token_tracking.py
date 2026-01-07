@@ -21,8 +21,8 @@ async def main():
     
     # 1. 初始化数据库
     print("\n1️⃣ 初始化数据库连接...")
-    from app.core.database import init_database, get_mongo_db
-    await init_database()
+    from app.core.database import init_database_async, get_mongo_db_async
+    await init_database_async()
     print("✅ 数据库连接成功")
     
     # 2. 创建测试使用记录
@@ -55,7 +55,7 @@ async def main():
     
     # 3. 验证记录是否保存
     print("\n3️⃣ 验证记录是否保存...")
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     count = await db.usage_records.count_documents({})
     print(f"📊 总记录数: {count}")
     

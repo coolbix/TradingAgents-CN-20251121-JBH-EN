@@ -12,7 +12,7 @@ sys.path.insert(0, str(project_root))
 
 from tradingagents.dataflows.providers.tushare_provider import TushareProvider
 from app.services.historical_data_service import get_historical_data_service
-from app.core.database import init_database
+from app.core.database import init_database_async
 from tradingagents.config.database_manager import get_mongodb_client
 
 
@@ -21,7 +21,7 @@ async def test_000001():
     print('=' * 60)
     
     # 初始化
-    await init_database()
+    await init_database_async()
     provider = TushareProvider()
     await provider.connect()
     service = await get_historical_data_service()

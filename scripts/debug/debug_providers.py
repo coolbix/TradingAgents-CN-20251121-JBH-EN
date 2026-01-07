@@ -29,15 +29,15 @@ except ImportError:
                     os.environ[key.strip()] = value.strip()
         print("✅ 手动加载.env文件完成")
 
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 
 async def debug_providers():
     """调试厂家配置"""
     print("🔍 开始调试厂家配置...")
     
     # 初始化数据库连接
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     providers_collection = db.llm_providers
     
     print("\n📊 数据库中的厂家配置:")

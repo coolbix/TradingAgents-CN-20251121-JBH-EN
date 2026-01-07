@@ -26,12 +26,12 @@ async def test_multiple_sync_records():
     print("=" * 60)
     
     try:
-        from app.core.database import init_database, get_mongo_db
+        from app.core.database import init_database_async, get_mongo_db_async
         from app.services.multi_source_basics_sync_service import get_multi_source_sync_service
         
         # 初始化数据库
-        await init_database()
-        db = get_mongo_db()
+        await init_database_async()
+        db = get_mongo_db_async()
         service = get_multi_source_sync_service()
         
         print("✅ 服务初始化成功")

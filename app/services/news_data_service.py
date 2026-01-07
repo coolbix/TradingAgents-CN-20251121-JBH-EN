@@ -9,7 +9,7 @@ from pymongo import ReplaceOne
 from pymongo.errors import BulkWriteError
 from bson import ObjectId
 
-from app.core.database import get_database
+from app.core.database import get_database_async
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,7 @@ class NewsDataService:
     def _get_collection(self):
         """Access to news data sets"""
         if self._collection is None:
-            self._db = get_database()
+            self._db = get_database_async()
             self._collection = self._db.stock_news
         return self._collection
     

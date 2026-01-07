@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 # 添加项目根目录到 Python 路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 
 
 async def verify_fix():
@@ -22,8 +22,8 @@ async def verify_fix():
     
     try:
         # 初始化数据库
-        await init_database()
-        db = get_mongo_db()
+        await init_database_async()
+        db = get_mongo_db_async()
         collection = db.stock_daily_quotes
         
         # 查询最近更新的 AKShare 数据
@@ -117,7 +117,7 @@ async def verify_fix():
         traceback.print_exc()
     
     finally:
-        await close_database()
+        await close_database_async()
     
     print("\n" + "=" * 80)
     print("✅ 验证完成")

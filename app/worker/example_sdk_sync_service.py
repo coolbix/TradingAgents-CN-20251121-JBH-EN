@@ -13,7 +13,7 @@ from typing import List, Dict, Any, Optional
 
 import os
 from app.services.stock_data_service import get_stock_data_service
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from tradingagents.dataflows.providers.examples.example_sdk import ExampleSDKProvider
 
 logger = logging.getLogger(__name__)
@@ -127,7 +127,7 @@ class ExampleSDKSyncService:
         
         try:
             #Fetch list of stock codes that need to be synchronized
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             cursor = db.stock_basic_info.find({}, {"code": 1})
             stock_codes = [doc["code"] async for doc in cursor]
             
@@ -161,7 +161,7 @@ class ExampleSDKSyncService:
         try:
             #Access to equities requiring updated financial data
             #This can be filtered against business needs, for example, only synchronized major stocks or updated regularly.
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             cursor = db.stock_basic_info.find(
                 {"total_mv": {"$gte": 100}},  #Only synchronized shares with market value greater than $10 billion
                 {"code": 1}
@@ -238,7 +238,7 @@ class ExampleSDKSyncService:
             if financial_data:
                 #There is a need to realize the logic of financial data storage.
                 #Could need to create a new collection
-                db = get_mongo_db()
+                db = get_mongo_db_async()
                 
                 #Build Update Data
                 update_data = {
@@ -266,7 +266,7 @@ class ExampleSDKSyncService:
     async def _record_sync_status(self, status: str, start_time: datetime, error_msg: str = None):
         """Record Sync Status"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             
             sync_record = {
                 "job": "example_sdk_sync",

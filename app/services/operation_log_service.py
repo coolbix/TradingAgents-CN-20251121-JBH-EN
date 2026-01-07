@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Tuple
 from bson import ObjectId
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.models.operation_log import (
     OperationLogCreate,
     OperationLogResponse,
@@ -36,7 +36,7 @@ class OperationLogService:
     ) -> str:
         """Create Operations Log"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
 
             #Build Log Document
             #🔥 With live data (without time zone information), MongoDB will be stored as it is and will not be converted to UTC
@@ -70,7 +70,7 @@ class OperationLogService:
     async def get_logs(self, query: OperationLogQuery) -> Tuple[List[OperationLogResponse], int]:
         """Get Operations Log List"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             
             #Build query conditions
             filter_query = {}
@@ -130,7 +130,7 @@ class OperationLogService:
     async def get_stats(self, days: int = 30) -> OperationLogStats:
         """Get Operations Log Statistics"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             
             #Time frame (using Chinese time zone)
             start_date = now_tz() - timedelta(days=days)
@@ -196,7 +196,7 @@ class OperationLogService:
     async def clear_logs(self, days: Optional[int] = None, action_type: Optional[str] = None) -> Dict[str, Any]:
         """Empty Operations Log"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             
             #Build Delete Condition
             delete_filter = {}
@@ -227,7 +227,7 @@ class OperationLogService:
     async def get_log_by_id(self, log_id: str) -> Optional[OperationLogResponse]:
         """Get Operations Log from ID"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
 
             doc = await db[self.collection_name].find_one({"_id": ObjectId(log_id)})
             if not doc:

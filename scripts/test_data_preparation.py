@@ -109,7 +109,7 @@ async def test_data_sync_async():
     """测试数据同步功能（异步版本）"""
     from tradingagents.utils.stock_validator import StockDataPreparer
     from datetime import datetime, timedelta
-    from app.core.database import init_database, close_database
+    from app.core.database import init_database_async, close_database_async
 
     print("\n" + "=" * 80)
     print("🧪 测试数据同步功能（异步）")
@@ -118,7 +118,7 @@ async def test_data_sync_async():
     try:
         # 初始化数据库连接
         print("\n🔄 初始化数据库连接...")
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接初始化成功")
 
         preparer = StockDataPreparer()
@@ -151,7 +151,7 @@ async def test_data_sync_async():
     finally:
         # 关闭数据库连接
         print("\n🔄 关闭数据库连接...")
-        await close_database()
+        await close_database_async()
         print("✅ 数据库连接已关闭")
 
 

@@ -6,7 +6,7 @@ import logging
 import re
 
 from app.routers.auth_db import get_current_user
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.response import ok
 
 router = APIRouter(prefix="/paper", tags=["paper"])
@@ -63,7 +63,7 @@ def _detect_market_and_code(code: str) -> Tuple[str, str]:
 
 async def _get_or_create_account(user_id: str) -> Dict[str, Any]:
     """Acquisition or creation of accounts (multi-currency)"""
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     acc = await db["paper_accounts"].find_one({"user_id": user_id})
     if not acc:
         now = datetime.utcnow().isoformat()
@@ -116,7 +116,7 @@ async def _get_or_create_account(user_id: str) -> Dict[str, Any]:
 
 async def _get_market_rules(market: str) -> Optional[Dict[str, Any]]:
     """Access to market rules configuration"""
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     rules_doc = await db["paper_market_rules"].find_one({"market": market})
     if rules_doc:
         return rules_doc.get("rules", {})
@@ -158,7 +158,7 @@ def _calculate_commission(market: str, side: str, amount: float, rules: Dict[str
 
 async def _get_available_quantity(user_id: str, code: str, market: str) -> int:
     """Access to available quantities (considering T+1 limits)"""
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     pos = await db["paper_positions"].find_one({"user_id": user_id, "code": code})
 
     if not pos:
@@ -200,7 +200,7 @@ async def _get_last_price(code: str, market: str) -> Optional[float]:
     Returns:
         Latest price, notone if you fail to get back
     """
-    db = get_mongo_db()
+    db = get_mongo_db_async()
 
     #Unit A: Access to database
     if market == "CN":
@@ -239,7 +239,7 @@ async def _get_last_price(code: str, market: str) -> Optional[float]:
     elif market in ['HK', 'US']:
         try:
             from app.services.foreign_stock_service import ForeignStockService
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             service = ForeignStockService(db=db)
 
             quote = await service.get_quote(market, code, force_refresh=False)
@@ -268,7 +268,7 @@ def _zfill_code(code: str) -> str:
 @router.get("/account", response_model=dict)
 async def get_account(current_user: dict = Depends(get_current_user)):
     """Acquisition or creation of paper accounts, return of funds and warehouse valuation summary (support to multi-market)"""
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     acc = await _get_or_create_account(current_user["id"])
 
     #Valuation of polymer hold (by currency)
@@ -342,7 +342,7 @@ async def get_account(current_user: dict = Depends(get_current_user)):
 @router.post("/order", response_model=dict)
 async def place_order(payload: PlaceOrderRequest, current_user: dict = Depends(get_current_user)):
     """Submission of a market price list, ready for sale at the latest (support to multi-market)"""
-    db = get_mongo_db()
+    db = get_mongo_db_async()
 
     #1. Identification of market types
     if payload.market:
@@ -531,7 +531,7 @@ async def place_order(payload: PlaceOrderRequest, current_user: dict = Depends(g
 @router.get("/positions", response_model=dict)
 async def list_positions(current_user: dict = Depends(get_current_user)):
     """Get hold list (support multi-market)"""
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     items = await db["paper_positions"].find({"user_id": current_user["id"]}).to_list(None)
     enriched: List[Dict[str, Any]] = []
     for p in items:
@@ -560,7 +560,7 @@ async def list_positions(current_user: dict = Depends(get_current_user)):
 
 @router.get("/orders", response_model=dict)
 async def list_orders(limit: int = Query(50, ge=1, le=200), current_user: dict = Depends(get_current_user)):
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     cursor = db["paper_orders"].find({"user_id": current_user["id"]}).sort("created_at", -1).limit(limit)
     items = await cursor.to_list(None)
     #Remove  id
@@ -573,7 +573,7 @@ async def reset_account(confirm: bool = Query(False), current_user: dict = Depen
     """Reset Account (Multi-currency support)"""
     if not confirm:
         raise HTTPException(status_code=400, detail="请设置 confirm=true 以确认重置")
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     await db["paper_accounts"].delete_many({"user_id": current_user["id"]})
     await db["paper_positions"].delete_many({"user_id": current_user["id"]})
     await db["paper_orders"].delete_many({"user_id": current_user["id"]})

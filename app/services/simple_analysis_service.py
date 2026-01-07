@@ -26,7 +26,7 @@ from app.models.analysis import (
 from app.models.user import PyObjectId
 from app.models.notification import NotificationCreate
 from bson import ObjectId
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.services.config_service import ConfigService
 from app.services.memory_state_manager import get_memory_state_manager, TaskStatus
 from app.services.redis_progress_tracker import RedisProgressTracker, get_progress_by_id
@@ -623,9 +623,9 @@ class SimpleAnalysisService:
             )
 
             #Update MongoDB
-            from app.core.database import get_mongo_db
+            from app.core.database import get_mongo_db_async
             from datetime import datetime
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             await db.analysis_tasks.update_one(
                 {"task_id": task_id},
                 {
@@ -760,7 +760,7 @@ class SimpleAnalysisService:
             name = self._resolve_stock_name(code) if hasattr(self, '_resolve_stock_name') else f"股票{code}"
 
             try:
-                db = get_mongo_db()
+                db = get_mongo_db_async()
                 result = await db.analysis_tasks.update_one(
                     {"task_id": task_id},
                     {"$setOnInsert": {
@@ -1962,7 +1962,7 @@ class SimpleAnalysisService:
             logger.info(f"[Tasks] Memory returns:{len(tasks_in_mem)}")
 
             #2) Read tasks from MongoDB
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db["analysis_tasks"]
 
             query = {}
@@ -2058,7 +2058,7 @@ class SimpleAnalysisService:
             mongo_tasks: List[Dict[str, Any]] = []
             count = 0
             try:
-                db = get_mongo_db()
+                db = get_mongo_db_async()
 
                 #user id may be string or objectId, compatible
                 uid_candidates: List[Any] = [user_id]
@@ -2225,7 +2225,7 @@ class SimpleAnalysisService:
             memory_cleaned = await self.memory_manager.cleanup_zombie_tasks(max_running_hours)
 
             #2) Clean-up of zombie missions in MongoDB
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             from datetime import timedelta
             cutoff_time = datetime.utcnow() - timedelta(hours=max_running_hours)
 
@@ -2283,7 +2283,7 @@ class SimpleAnalysisService:
             Zombie Job List
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             from datetime import timedelta
             cutoff_time = datetime.utcnow() - timedelta(hours=max_running_hours)
 
@@ -2337,7 +2337,7 @@ class SimpleAnalysisService:
     ):
         """Update Task Status"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             update_data = {
                 "status": status,
                 "progress": progress,
@@ -2365,7 +2365,7 @@ class SimpleAnalysisService:
     async def _save_analysis_result(self, task_id: str, result: Dict[str, Any]):
         """Save analytical results (original method)"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             await db.analysis_tasks.update_one(
                 {"task_id": task_id},
                 {"$set": {"result": result}}
@@ -2377,7 +2377,7 @@ class SimpleAnalysisService:
     async def _save_analysis_result_web_style(self, task_id: str, result: Dict[str, Any]):
         """Save the results of the analysis - save them in the form of a web directory to anallysis reports"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
 
             #Generate analytical ID (consistent with web directory)
             from datetime import datetime

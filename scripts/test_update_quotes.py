@@ -8,7 +8,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 from app.services.stock_data_service import get_stock_data_service
 
 
@@ -16,7 +16,7 @@ async def main():
     print("🔧 测试更新行情功能...")
     
     # 初始化数据库
-    await init_database()
+    await init_database_async()
     
     # 获取服务
     service = get_stock_data_service()
@@ -40,7 +40,7 @@ async def main():
         print("✅ 更新成功")
         
         # 验证数据
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         record = await db.market_quotes.find_one({"symbol": "603175"})
         
         if record:
@@ -59,7 +59,7 @@ async def main():
         print("❌ 更新失败")
     
     # 检查是否还有 code=null 的记录
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     null_count = await db.market_quotes.count_documents({'code': None})
     print(f"\n📊 code=null 的记录数: {null_count}")
     

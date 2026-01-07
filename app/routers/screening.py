@@ -273,10 +273,10 @@ async def get_industries(user: dict = Depends(get_current_user)):
     Returns the list of industries by stock count
     """
     try:
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
         from app.core.unified_config import UnifiedConfigManager
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db["stock_basic_info"]
 
         #🔥 Access to data source priority configuration (using the uniform configuration manager's walk method)

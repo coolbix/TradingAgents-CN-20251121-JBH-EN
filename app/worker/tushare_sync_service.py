@@ -10,7 +10,7 @@ from tradingagents.dataflows.providers.china.tushare import TushareProvider
 from app.services.stock_data_service import get_stock_data_service
 from app.services.historical_data_service import get_historical_data_service
 from app.services.news_data_service import get_news_data_service
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.config import SETTINGS
 from app.core.rate_limiter import get_tushare_rate_limiter
 from app.utils.timezone import now_tz
@@ -40,7 +40,7 @@ class TushareSyncService:
         self.stock_service = get_stock_data_service()
         self.historical_service = None  #Delay Initialization
         self.news_service = None  #Delay Initialization
-        self.db = get_mongo_db()
+        self.db = get_mongo_db_async()
         self.settings = SETTINGS
 
         #Sync Configuration

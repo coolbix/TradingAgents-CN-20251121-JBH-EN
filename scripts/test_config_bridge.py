@@ -21,14 +21,14 @@ async def test_config_bridge():
     
     # 1. 初始化数据库
     print("\n1️⃣ 初始化数据库连接...")
-    from app.core.database import init_database
-    await init_database()
+    from app.core.database import init_database_async
+    await init_database_async()
     print("✅ 数据库连接成功")
     
     # 2. 读取数据库中的配置
     print("\n2️⃣ 读取数据库配置...")
-    from app.core.database import get_mongo_db
-    db = get_mongo_db()
+    from app.core.database import get_mongo_db_async
+    db = get_mongo_db_async()
     config_doc = await db.system_configs.find_one({"is_active": True})
     
     if not config_doc:

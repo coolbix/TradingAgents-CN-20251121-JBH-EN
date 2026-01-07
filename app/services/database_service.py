@@ -14,7 +14,7 @@ import motor.motor_asyncio
 import redis.asyncio as redis
 from pymongo.errors import ServerSelectionTimeoutError
 
-from app.core.database import get_mongo_db, get_redis_client, DB_MANAGER
+from app.core.database import get_mongo_db_async, get_redis_client_async, DB_MANAGER_ASYNC
 from app.core.config import SETTINGS
 
 from app.services.database import status_checks as _db_status
@@ -51,7 +51,7 @@ class DatabaseService:
     async def get_database_stats(self) -> Dict[str, Any]:
         """Access to database statistics"""
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
 
             #Get all the pools.
             collection_names = await db.list_collection_names()

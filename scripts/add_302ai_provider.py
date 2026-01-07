@@ -10,15 +10,15 @@ from datetime import datetime, timezone
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 
 async def add_302ai_provider():
     """添加 302.AI 供应商"""
     print("🚀 开始添加 302.AI 供应商...")
     
     # 初始化数据库连接
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     providers_collection = db.llm_providers
     
     # 检查是否已存在

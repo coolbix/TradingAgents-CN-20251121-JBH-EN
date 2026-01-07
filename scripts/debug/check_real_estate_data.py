@@ -4,12 +4,12 @@
 """
 
 import asyncio
-from app.core.database import get_mongo_db, init_db
+from app.core.database import get_mongo_db_async, init_db
 
 async def check_real_estate():
     """检查房地产行业的数据"""
     await init_database()
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     collection = db['stock_basic_info']
     
     print("🏠 检查房地产行业数据...")

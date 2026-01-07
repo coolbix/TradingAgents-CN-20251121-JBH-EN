@@ -19,7 +19,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.core.logging_config import setup_logging
-from app.core.database import init_database, close_database, get_redis_client
+from app.core.database import init_database_async, close_database_async, get_redis_client_async
 from app.core.config import SETTINGS
 
 # Redis keys (must match queue_service)
@@ -34,7 +34,7 @@ logger = logging.getLogger("worker")
 
 async def publish_progress(task_id: str, message: str, step: Optional[int] = None, total_steps: Optional[int] = None):
     """Publish progress updates to Redis pubsub for SSE streaming"""
-    r = get_redis_client()
+    r = get_redis_client_async()
     progress_data = {
         "task_id": task_id,
         "message": message,
@@ -52,7 +52,7 @@ async def publish_progress(task_id: str, message: str, step: Optional[int] = Non
 
 
 async def process_task(task_id: str) -> None:
-    r = get_redis_client()
+    r = get_redis_client_async()
     key = TASK_PREFIX + task_id
 
     # Load task
@@ -183,7 +183,7 @@ async def process_task(task_id: str) -> None:
 
 
 async def worker_loop(stop_event: asyncio.Event):
-    r = get_redis_client()
+    r = get_redis_client_async()
     logger.info("Worker loop started")
     while not stop_event.is_set():
         try:
@@ -203,7 +203,7 @@ async def worker_loop(stop_event: asyncio.Event):
 
 async def main():
     setup_logging("INFO")
-    await init_database()
+    await init_database_async()
     # Apply dynamic log level from system settings
     try:
         from app.services.config_provider import provider as config_provider
@@ -233,7 +233,7 @@ async def main():
     try:
         await worker_loop(stop_event)
     finally:
-        await close_database()
+        await close_database_async()
 
 
 if __name__ == "__main__":

@@ -3,11 +3,11 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 async def main():
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     
     codes = ['601398', '300033', '000001']
     

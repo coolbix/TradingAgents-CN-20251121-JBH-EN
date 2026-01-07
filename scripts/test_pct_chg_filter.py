@@ -13,7 +13,7 @@ sys.path.insert(0, str(project_root))
 
 import asyncio
 import logging
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 async def test_pct_chg_filter():
     """测试涨跌幅筛选"""
     try:
-        await init_database()
-        db = get_mongo_db()
+        await init_database_async()
+        db = get_mongo_db_async()
         view = db["stock_screening_view"]
         
         # 测试1：直接查询视图，筛选涨跌幅在 0-8 之间的股票
@@ -109,7 +109,7 @@ async def test_pct_chg_filter():
         return 1
     
     finally:
-        await close_database()
+        await close_database_async()
     
     return 0
 

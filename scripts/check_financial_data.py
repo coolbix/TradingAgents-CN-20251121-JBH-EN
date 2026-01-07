@@ -10,7 +10,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_mongodb, get_mongo_db
+from app.core.database import init_mongodb, get_mongo_db_async
 from app.core.config import get_settings
 import logging
 
@@ -31,7 +31,7 @@ async def check_financial_data():
     settings = get_settings()
     await init_mongodb(settings.MONGO_URI, settings.MONGO_DB_NAME)
 
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     
     # 1. 检查集合是否存在
     collections = await db.list_collection_names()

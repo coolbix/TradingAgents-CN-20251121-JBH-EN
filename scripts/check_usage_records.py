@@ -20,13 +20,13 @@ async def main():
     
     # 1. 初始化数据库
     print("\n1️⃣ 初始化数据库连接...")
-    from app.core.database import init_database, get_mongo_db
-    await init_database()
+    from app.core.database import init_database_async, get_mongo_db_async
+    await init_database_async()
     print("✅ 数据库连接成功")
     
     # 2. 检查 usage_records 集合
     print("\n2️⃣ 检查 usage_records 集合...")
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     
     # 统计记录数
     count = await db.usage_records.count_documents({})

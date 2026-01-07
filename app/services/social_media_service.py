@@ -8,7 +8,7 @@ import logging
 from pymongo import ReplaceOne
 from pymongo.errors import BulkWriteError
 
-from app.core.database import get_database
+from app.core.database import get_database_async
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class SocialMediaService:
     async def initialize(self):
         """Initialization services"""
         try:
-            self.db = get_database()
+            self.db = get_database_async()
             self.collection = self.db.social_media_messages
             self.logger.info("The social media data service was successfully initiated")
         except Exception as e:

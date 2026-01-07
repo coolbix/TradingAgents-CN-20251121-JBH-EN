@@ -242,8 +242,8 @@ async def main():
     
     try:
         # 需要先连接数据库
-        from app.core.database import init_database, close_database
-        await init_database()
+        from app.core.database import init_database_async, close_database_async
+        await init_database_async()
 
         # 演示各种功能
         await demo_basic_info()
@@ -259,7 +259,7 @@ async def main():
 
     finally:
         # 关闭数据库连接
-        await close_database()
+        await close_database_async()
 
 
 if __name__ == "__main__":

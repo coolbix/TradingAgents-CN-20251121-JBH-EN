@@ -30,11 +30,11 @@ def check_timezone():
     print('\n🗄️ 检查MongoDB中的时间:')
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
         import asyncio
         
         async def check_mongo_time():
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             # 插入一个测试文档来检查MongoDB的时间
             test_doc = {
                 "test": True,

@@ -11,7 +11,7 @@ from typing import Dict, Any
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 
 
 async def verify_extended_fields():
@@ -20,7 +20,7 @@ async def verify_extended_fields():
     print("=" * 60)
     
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db.stock_basic_info
         
         # 统计总记录数

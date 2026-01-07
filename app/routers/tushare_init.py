@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel, Field
 
 from app.routers.auth_db import get_current_user
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.worker.tushare_init_service import get_tushare_init_service
 from app.core.response import ok
 
@@ -59,7 +59,7 @@ async def get_database_status(
     Check the status of the data in the current database and determine whether it needs initialization
     """
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         #Check the assembly status.
         basic_count = await db.stock_basic_info.count_documents({})

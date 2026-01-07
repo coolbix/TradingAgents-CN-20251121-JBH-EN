@@ -23,7 +23,7 @@ from datetime import datetime
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 from pymongo import ASCENDING
 
 
@@ -60,8 +60,8 @@ async def fix_full_symbol_index():
     
     # 初始化数据库连接
     print("🔧 初始化 MongoDB 连接...")
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     collection = db["stock_basic_info"]
     print("✅ MongoDB 连接成功\n")
     

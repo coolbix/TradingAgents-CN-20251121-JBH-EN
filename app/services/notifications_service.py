@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from bson import ObjectId
 
-from app.core.database import get_mongo_db, get_redis_client
+from app.core.database import get_mongo_db_async, get_redis_client_async
 from app.models.notification import (
     NotificationCreate, NotificationOut, NotificationList
 )
@@ -24,7 +24,7 @@ class NotificationsService:
 
     async def _ensure_indexes(self):
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             await db[self.collection].create_index([("user_id", 1), ("created_at", -1)])
             await db[self.collection].create_index([("user_id", 1), ("status", 1)])
         except Exception as e:
@@ -32,7 +32,7 @@ class NotificationsService:
 
     async def create_and_publish(self, payload: NotificationCreate) -> str:
         await self._ensure_indexes()
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         doc = {
             "user_id": payload.user_id,
             "type": payload.type,
@@ -88,11 +88,11 @@ class NotificationsService:
         return doc_id
 
     async def unread_count(self, user_id: str) -> int:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         return await db[self.collection].count_documents({"user_id": user_id, "status": "unread"})
 
     async def list(self, user_id: str, *, status: Optional[str] = None, ntype: Optional[str] = None, page: int = 1, page_size: int = 20) -> NotificationList:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         q: Dict[str, Any] = {"user_id": user_id}
         if status in ("read", "unread"):
             q["status"] = status
@@ -115,7 +115,7 @@ class NotificationsService:
         return NotificationList(items=items, total=total, page=page, page_size=page_size)
 
     async def mark_read(self, user_id: str, notif_id: str) -> bool:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         try:
             oid = ObjectId(notif_id)
         except Exception:
@@ -124,7 +124,7 @@ class NotificationsService:
         return res.modified_count > 0
 
     async def mark_all_read(self, user_id: str) -> int:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         res = await db[self.collection].update_many({"user_id": user_id, "status": "unread"}, {"$set": {"status": "read"}})
         return res.modified_count
 

@@ -14,7 +14,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_database
+from app.core.database import init_database_async
 from app.worker.tushare_init_service import get_tushare_init_service
 
 
@@ -84,8 +84,8 @@ async def check_database_status():
     print("📊 检查数据库状态...")
     
     try:
-        from app.core.database import get_mongo_db
-        db = get_mongo_db()
+        from app.core.database import get_mongo_db_async
+        db = get_mongo_db_async()
         
         # 检查各集合状态
         basic_count = await db.stock_basic_info.count_documents({})
@@ -235,7 +235,7 @@ async def main():
     try:
         # 初始化数据库连接
         print("🔄 初始化数据库连接...")
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接成功")
         print()
         

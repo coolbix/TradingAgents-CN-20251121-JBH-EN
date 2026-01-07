@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from bson import ObjectId
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.models.user import FavoriteStock
 from app.services.quotes_service import get_quotes_service
 
@@ -19,7 +19,7 @@ class FavoritesService:
     async def _get_db(self):
         """Get database connections"""
         if self.db is None:
-            self.db = get_mongo_db()
+            self.db = get_mongo_db_async()
         return self.db
 
     def _is_valid_object_id(self, user_id: str) -> bool:

@@ -18,7 +18,7 @@ from datetime import datetime
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 
 async def test_stock_fundamentals(stock_code: str = "000001"):
@@ -28,7 +28,7 @@ async def test_stock_fundamentals(stock_code: str = "000001"):
     print(f"测试股票基本面数据获取增强功能")
     print(f"{'='*80}\n")
     
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     code6 = stock_code.zfill(6)
     
     # 1. 测试从 stock_basic_info 获取基础信息
@@ -214,7 +214,7 @@ async def main():
 
     # 初始化 MongoDB 连接
     print("🔧 初始化 MongoDB 连接...")
-    await init_database()
+    await init_database_async()
     print("✅ MongoDB 连接成功\n")
 
     # 测试单个股票

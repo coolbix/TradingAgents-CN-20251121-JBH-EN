@@ -7,7 +7,7 @@ import logging
 from datetime import datetime, timedelta
 from tradingagents.dataflows.providers.tushare_provider import TushareProvider
 from app.services.historical_data_service import get_historical_data_service
-from app.core.database import init_database
+from app.core.database import init_database_async
 from tradingagents.config.database_manager import get_mongodb_client
 
 # 设置日志
@@ -34,7 +34,7 @@ async def test_fixed_historical_sync():
     try:
         # 1. 初始化
         print("1️⃣ 初始化数据库和提供者")
-        await init_database()
+        await init_database_async()
         
         provider = TushareProvider()
         await provider.connect()

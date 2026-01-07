@@ -75,8 +75,8 @@ async def debug_tushare_historical_sync():
     print("2️⃣ 测试历史数据服务")
     try:
         # 先初始化数据库连接
-        from app.core.database import init_database
-        await init_database()
+        from app.core.database import init_database_async
+        await init_database_async()
 
         service = await get_historical_data_service()
         print("   ✅ 历史数据服务初始化成功")

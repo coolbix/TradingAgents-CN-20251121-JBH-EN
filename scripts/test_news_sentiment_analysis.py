@@ -11,7 +11,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from tradingagents.dataflows.providers.akshare_provider import get_akshare_provider
-from app.core.database import close_database
+from app.core.database import close_database_async
 
 
 async def test_sentiment_analysis():
@@ -78,7 +78,7 @@ async def test_sentiment_analysis():
     finally:
         # 关闭数据库连接（如果有初始化）
         try:
-            await close_database()
+            await close_database_async()
         except Exception:
             pass  # 这个脚本不使用数据库，忽略错误
 

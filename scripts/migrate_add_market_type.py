@@ -17,7 +17,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import init_database, close_database, get_mongo_db
+from app.core.database import init_database_async, close_database_async, get_mongo_db_async
 from tradingagents.utils.stock_utils import StockUtils
 from tradingagents.utils.logging_init import get_logger
 
@@ -37,11 +37,11 @@ async def migrate_add_market_type(dry_run: bool = False):
     try:
         # 初始化数据库连接
         logger.info("📡 正在连接数据库...")
-        await init_database()
+        await init_database_async()
         logger.info("✅ 数据库连接成功")
 
         # 获取数据库连接
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         # 查找所有缺少 market_type 字段的报告
         query = {"market_type": {"$exists": False}}
@@ -129,7 +129,7 @@ async def verify_migration():
     logger.info("=" * 60)
     
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         # 统计各市场类型的报告数量
         pipeline = [
@@ -187,7 +187,7 @@ async def main():
     finally:
         # 关闭数据库连接
         logger.info("\n📡 正在关闭数据库连接...")
-        await close_database()
+        await close_database_async()
         logger.info("✅ 数据库连接已关闭")
 
 

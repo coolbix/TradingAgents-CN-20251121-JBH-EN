@@ -9,7 +9,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
 from app.core.config import get_settings
-from app.core.database import get_database
+from app.core.database import get_database_async
 from app.worker.baostock_sync_service import BaoStockSyncService, BaoStockSyncStats
 
 logger = logging.getLogger(__name__)
@@ -65,8 +65,8 @@ class BaoStockInitService:
         """Spacing Initialization Services"""
         try:
             #Initialization of database connections
-            from app.core.database import get_mongo_db
-            self.db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            self.db = get_mongo_db_async()
 
             #Initialization sync service
             await self.sync_service.initialize()

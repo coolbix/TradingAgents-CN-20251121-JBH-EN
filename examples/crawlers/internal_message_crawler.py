@@ -19,7 +19,7 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.core.database import init_database
+from app.core.database import init_database_async
 from app.services.internal_message_service import get_internal_message_service
 
 # 配置日志
@@ -488,7 +488,7 @@ async def crawl_and_save_internal_messages(symbols: List[str], message_types: Li
     
     try:
         # 初始化数据库
-        await init_database()
+        await init_database_async()
         
         # 获取服务
         service = await get_internal_message_service()

@@ -10,7 +10,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.services.quotes_ingestion_service import QuotesIngestionService
-from app.core.database import get_mongo_db, init_db, close_database
+from app.core.database import get_mongo_db_async, init_db, close_database_async
 from datetime import datetime
 
 
@@ -60,7 +60,7 @@ async def test_market_quotes_status():
     print("="*60)
     
     await init_database()
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     service = QuotesIngestionService()
     
     # 检查集合是否为空
@@ -108,7 +108,7 @@ async def test_market_quotes_status():
         else:
             print(f"   ✅ 所有代码都是标准的6位格式")
     
-    await close_database()
+    await close_database_async()
     return True
 
 
@@ -119,7 +119,7 @@ async def test_historical_data_import():
     print("="*60)
     
     await init_database()
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     service = QuotesIngestionService()
     
     # 检查 stock_daily_quotes 集合状态
@@ -129,7 +129,7 @@ async def test_historical_data_import():
     
     if daily_count == 0:
         print(f"   ⚠️ 历史数据集合为空，无法测试导入功能")
-        await close_database()
+        await close_database_async()
         return False
     
     # 获取最新交易日
@@ -149,7 +149,7 @@ async def test_historical_data_import():
         print(f"   - 该日数据量: {date_count}")
     else:
         print(f"   ⚠️ 无法获取最新交易日")
-        await close_database()
+        await close_database_async()
         return False
     
     # 检查 market_quotes 当前状态
@@ -186,10 +186,10 @@ async def test_historical_data_import():
         print(f"   ❌ 导入失败: {e}")
         import traceback
         traceback.print_exc()
-        await close_database()
+        await close_database_async()
         return False
     
-    await close_database()
+    await close_database_async()
     return True
 
 

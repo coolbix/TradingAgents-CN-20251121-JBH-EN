@@ -10,7 +10,7 @@ from datetime import datetime
 #Add Item Root Directory to Python Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 from app.models.config import LLMProvider
 
 async def init_providers():
@@ -18,8 +18,8 @@ async def init_providers():
     print("🚀 开始初始化大模型厂家数据...")
     
     #Initialize database connection
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     providers_collection = db.llm_providers
     
     #Pre-plant data

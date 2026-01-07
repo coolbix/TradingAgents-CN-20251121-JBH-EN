@@ -17,14 +17,14 @@ sys.path.insert(0, str(project_root))
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from app.core.config import SETTINGS
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 
 
 async def test_kline_realtime():
     """测试K线数据获取（包括当天实时数据）"""
 
     # 初始化数据库连接
-    await init_database()
+    await init_database_async()
     """测试K线数据获取（包括当天实时数据）"""
     
     # 测试股票代码
@@ -36,7 +36,7 @@ async def test_kline_realtime():
     
     # 1. 检查 market_quotes 中是否有当天数据
     print("\n📊 步骤1：检查 market_quotes 集合中的当天数据")
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     market_quotes_coll = db["market_quotes"]
     
     realtime_quote = await market_quotes_coll.find_one({"code": test_code})

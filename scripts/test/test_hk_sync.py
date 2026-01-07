@@ -80,9 +80,9 @@ async def verify_hk_data():
     logger.info("="*60)
 
     try:
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db.stock_basic_info_hk
         
         # 统计各数据源的记录数
@@ -143,9 +143,9 @@ async def test_unified_service():
 
     try:
         from app.services.unified_stock_service import UnifiedStockService
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         service = UnifiedStockService(db)
         
         # 测试查询港股数据（按优先级自动选择数据源）
@@ -201,8 +201,8 @@ async def main():
     # 初始化数据库连接
     logger.info("📊 初始化数据库连接...")
     try:
-        from app.core.database import init_database
-        await init_database()
+        from app.core.database import init_database_async
+        await init_database_async()
         logger.info("✅ 数据库连接初始化成功")
     except Exception as e:
         logger.error(f"❌ 数据库连接初始化失败: {e}")

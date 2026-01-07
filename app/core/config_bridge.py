@@ -660,10 +660,10 @@ async def _sync_pricing_config_from_db():
     """Synchronize pricing configuration from database (speech version)
     """
     try:
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
         from app.models.config import LLMConfig
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #Get the latest active configuration
         config = await db['system_configs'].find_one(

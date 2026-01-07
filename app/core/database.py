@@ -26,7 +26,7 @@ _synchronous_mongo_client: Optional[MongoClient] = None
 _synchronous_mongo_db: Optional[Database] = None
 
 
-class DatabaseManager:
+class DatabaseManagerAsync:
     """Database Connection Manager"""
     #NOTE: "Asynchronous" Database Manager
     #NOTE: there is another DatabaseManager in tradingagents/config/database_manager.py (synchronous version)
@@ -186,44 +186,44 @@ class DatabaseManager:
 
 
 #Examples of global database manager
-DB_MANAGER = DatabaseManager()
+DB_MANAGER_ASYNC = DatabaseManagerAsync()
 
 
-async def init_database():
+async def init_database_async():
     """Initialize database connection"""
     global _mongo_client, _mongo_db, _redis_client, _redis_pool
 
     try:
         #Initialize MongoDB
-        await DB_MANAGER.init_mongodb()
-        _mongo_client = DB_MANAGER.mongo_client
-        _mongo_db = DB_MANAGER.mongo_db
+        await DB_MANAGER_ASYNC.init_mongodb()
+        _mongo_client = DB_MANAGER_ASYNC.mongo_client
+        _mongo_db = DB_MANAGER_ASYNC.mongo_db
 
         #Initialise Redis
-        await DB_MANAGER.init_redis()
-        _redis_client = DB_MANAGER.redis_client
-        _redis_pool = DB_MANAGER.redis_pool
+        await DB_MANAGER_ASYNC.init_redis()
+        _redis_client = DB_MANAGER_ASYNC.redis_client
+        _redis_pool = DB_MANAGER_ASYNC.redis_pool
 
         logger.info("Initialization of all database connections completed")
 
         #Initialization of database views and indexes
-        await init_database_views_and_indexes()
+        await init_database_views_and_indexes_async()
 
     except Exception as e:
         logger.error(f"Initialization of the database failed:{e}")
         raise
 
 
-async def init_database_views_and_indexes():
+async def init_database_views_and_indexes_async():
     """Initialize database views and indexes"""
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #1. Create stock filter view
-        await create_stock_screening_view(db)
+        await create_stock_screening_view_async(db)
 
         #Creating the necessary index
-        await create_database_indexes(db)
+        await create_database_indexes_async(db)
 
         logger.info("✅ Database view and index initialization completed")
 
@@ -249,7 +249,7 @@ Why create a view?
 - it centralizes logic (one pipeline definition) instead of duplicating $lookup chains across endpoints,
 - it avoids storing denormalized copies while still presenting a denormalized shape.
 """
-async def create_stock_screening_view(db):
+async def create_stock_screening_view_async(db):
     """Create stock filter view, a 'virtual collection'"""
     try:
         #Check whether a view exists
@@ -364,7 +364,7 @@ async def create_stock_screening_view(db):
         logger.warning(f"Could not close temporary folder: %s{e}")
 
 
-async def create_database_indexes(db):
+async def create_database_indexes_async(db):
     """Create Database Index"""
     try:
         #Index to stock basic info
@@ -388,11 +388,11 @@ async def create_database_indexes(db):
         logger.warning(f"Could not close temporary folder: %s{e}")
 
 
-async def close_database():
+async def close_database_async():
     """Close database connection"""
     global _mongo_client, _mongo_db, _redis_client, _redis_pool
 
-    await DB_MANAGER.close_connections()
+    await DB_MANAGER_ASYNC.close_connections()
 
     #Empty Global Variables
     _mongo_client = None
@@ -401,30 +401,30 @@ async def close_database():
     _redis_pool = None
 
 
-def get_mongo_client() -> AsyncIOMotorClient:
+def get_mongo_client_async() -> AsyncIOMotorClient:
     """Get MongoDB Client"""
     if _mongo_client is None:
         raise RuntimeError("MongoDB客户端未初始化")
     return _mongo_client
 
 
-def get_mongo_db() -> AsyncIOMotorDatabase:
+def get_mongo_db_async() -> AsyncIOMotorDatabase:
     """Example of accessing MongoDB database"""
     if _mongo_db is None:
         raise RuntimeError("MongoDB数据库未初始化")
     return _mongo_db
 
 
-def get_redis_client() -> Redis:
+def get_redis_client_async() -> Redis:
     """Get Redis client"""
     if _redis_client is None:
         raise RuntimeError("Redis客户端未初始化")
     return _redis_client
 
 
-async def get_database_health() -> dict:
+async def get_database_health_async() -> dict:
     """Access to database health status"""
-    return await DB_MANAGER.health_check()
+    return await DB_MANAGER_ASYNC.health_check()
 
 
 #JBH REMOVE  #Gender-compatible Names
@@ -432,12 +432,12 @@ async def get_database_health() -> dict:
 #JBH REMOVE  close_db = close_database
 
 
-def get_database():
+def get_database_async():
     """Access to database examples"""
-    if DB_MANAGER.mongo_client is None:
+    if DB_MANAGER_ASYNC.mongo_client is None:
         raise RuntimeError("MongoDB客户端未初始化")
     #JBH  return db_manager.mongo_client.tradingagents
-    return DB_MANAGER.mongo_client[SETTINGS.MONGO_DB_NAME]
+    return DB_MANAGER_ASYNC.mongo_client[SETTINGS.MONGO_DB_NAME]
 
 
 #=================== Synchronous MongoDB Access ===================

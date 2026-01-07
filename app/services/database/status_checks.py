@@ -6,13 +6,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict
 
-from app.core.database import get_mongo_db, get_redis_client
+from app.core.database import get_mongo_db_async, get_redis_client_async
 from app.core.config import SETTINGS
 
 
 async def get_mongodb_status() -> Dict[str, Any]:
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         await db.command("ping")
         server_info = await db.command("buildInfo")
         server_status = await db.command("serverStatus")
@@ -39,7 +39,7 @@ async def get_mongodb_status() -> Dict[str, Any]:
 
 async def get_redis_status() -> Dict[str, Any]:
     try:
-        redis_client = get_redis_client()
+        redis_client = get_redis_client_async()
         await redis_client.ping()
         info = await redis_client.info()
         return {
@@ -72,7 +72,7 @@ async def get_database_status() -> Dict[str, Any]:
 
 async def test_mongodb_connection() -> Dict[str, Any]:
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         start = datetime.utcnow()
         await db.command("ping")
         took_ms = (datetime.utcnow() - start).total_seconds() * 1000
@@ -83,7 +83,7 @@ async def test_mongodb_connection() -> Dict[str, Any]:
 
 async def test_redis_connection() -> Dict[str, Any]:
     try:
-        redis_client = get_redis_client()
+        redis_client = get_redis_client_async()
         start = datetime.utcnow()
         await redis_client.ping()
         took_ms = (datetime.utcnow() - start).total_seconds() * 1000

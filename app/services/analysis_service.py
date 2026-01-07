@@ -28,10 +28,10 @@ from app.models.analysis import (
 )
 from app.models.user import PyObjectId
 from bson import ObjectId
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.redis_client import get_redis_service, RedisKeys
 from app.services.queue_service import QueueService
-from app.core.database import get_redis_client
+from app.core.database import get_redis_client_async
 from app.services.redis_progress_tracker import RedisProgressTracker
 from app.services.config_provider import provider as config_provider
 from app.services.queue import DEFAULT_USER_CONCURRENT_LIMIT, GLOBAL_CONCURRENT_LIMIT, VISIBILITY_TIMEOUT_SECONDS
@@ -47,7 +47,7 @@ class AnalysisService:
 
     def __init__(self):
         #Get Redis client
-        redis_client = get_redis_client()
+        redis_client = get_redis_client_async()
         self.queue_service = QueueService(redis_client)
         #Initial use of statistical services
         self.usage_service = UsageStatisticsService()
@@ -478,7 +478,7 @@ class AnalysisService:
 
             #Can not open message
             logger.info(f"Can not open message")
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             task_dict = task.model_dump(by_alias=True)
             logger.info(f"Mission Dictionary:{task_dict}")
             await db.analysis_tasks.insert_one(task_dict)
@@ -572,7 +572,7 @@ class AnalysisService:
                 tasks.append(task)
             
             #Save to Database
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             await db.analysis_batches.insert_one(batch.dict(by_alias=True))
             await db.analysis_tasks.insert_many([task.dict(by_alias=True) for task in tasks])
             
@@ -773,7 +773,7 @@ class AnalysisService:
                 progress_data = progress_tracker.to_dict()
 
                 #Get Task Basic Information from Database
-                db = get_mongo_db()
+                db = get_mongo_db_async()
                 task = await db.analysis_tasks.find_one({"task_id": task_id})
 
                 if task:
@@ -810,7 +810,7 @@ class AnalysisService:
                 return cached_status
 
             #Fetch from database
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             task = await db.analysis_tasks.find_one({"task_id": task_id})
 
             if task:

@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.routers.auth_db import get_current_user
 from app.core.response import ok
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.worker.tushare_sync_service import get_tushare_sync_service
 from app.worker.akshare_sync_service import get_akshare_sync_service
 from app.worker.financial_data_sync_service import get_financial_sync_service
@@ -31,7 +31,7 @@ async def _sync_latest_to_market_quotes(symbol: str) -> None:
     Args:
         Symbol: Stock code (6 bits)
     """
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     symbol6 = str(symbol).zfill(6)
 
     #Get the latest data from stock daily quotes
@@ -305,7 +305,7 @@ async def sync_single_stock(
                         fetch_latest_roe_map,
                     )
 
-                    db = get_mongo_db()
+                    db = get_mongo_db_async()
                     symbol6 = str(request.symbol).zfill(6)
 
                     #Step 1: Access to basic stock information
@@ -445,7 +445,7 @@ async def sync_single_stock(
 
                 elif request.data_source == "akshare":
                     #Basic Data Synchronization of AKShare Data Source
-                    db = get_mongo_db()
+                    db = get_mongo_db_async()
                     symbol6 = str(request.symbol).zfill(6)
 
                     #Get AKShare Sync Service
@@ -639,7 +639,7 @@ async def sync_batch_stocks(
 
                                 if basic_info:
                                     #Save to MongoDB
-                                    db = get_mongo_db()
+                                    db = get_mongo_db_async()
                                     symbol6 = str(symbol).zfill(6)
 
                                     #Add the necessary fields
@@ -720,9 +720,9 @@ async def get_sync_status(
     Returns final sync time, data bar, etc.
     """
     try:
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
         
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         #Query history data final sync time
         hist_doc = await db.historical_data.find_one(

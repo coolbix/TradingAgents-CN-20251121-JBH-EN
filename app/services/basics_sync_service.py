@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import UpdateOne
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.config import SETTINGS
 
 from app.services.basics_sync import (
@@ -113,7 +113,7 @@ class BasicsSyncService:
     async def get_status(self, db: Optional[AsyncIOMotorDatabase] = None) -> Dict[str, Any]:
         """Return last persisted status; falls back to in-memory snapshot."""
         try:
-            db = db or get_mongo_db()
+            db = db or get_mongo_db_async()
             doc = await db[STATUS_COLLECTION].find_one({"job": JOB_KEY})
             if doc:
                 doc.pop("_id", None)
@@ -179,7 +179,7 @@ class BasicsSyncService:
                 return await self.get_status()
             self._running = True
 
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         #🔥 to ensure that index exists (upgrade query and upsert performance)
         await self._ensure_indexes(db)

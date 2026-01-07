@@ -18,7 +18,7 @@ sys.path.insert(0, str(project_root))
 
 from app.services.queue_service import get_queue_service
 from app.services.analysis_service import get_analysis_service
-from app.core.database import init_database, close_database
+from app.core.database import init_database_async, close_database_async
 from app.core.redis_client import init_redis, close_redis
 from app.core.config import SETTINGS
 from app.models.analysis import AnalysisTask, AnalysisParameters
@@ -58,7 +58,7 @@ class AnalysisWorker:
             logger.info(f"🚀 Start analysis of Worker:{self.worker_id}")
 
             #Initialize database connection
-            await init_database()
+            await init_database_async()
             await init_redis()
 
             #Read System Settings (ENV Priority DB)
@@ -241,7 +241,7 @@ class AnalysisWorker:
 
         try:
             #Close database connection
-            await close_database()
+            await close_database_async()
             await close_redis()
         except Exception as e:
             logger.error(f"Failed to close database connection:{e}")

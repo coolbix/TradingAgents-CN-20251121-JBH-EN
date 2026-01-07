@@ -14,7 +14,7 @@ import os
 # 添加项目根目录到Python路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 from app.worker.akshare_init_service import get_akshare_init_service
 from app.worker.akshare_sync_service import get_akshare_sync_service
 
@@ -37,7 +37,7 @@ async def check_database_status():
     print("📊 检查数据库状态...")
     
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         # 检查基础信息
         basic_count = await db.stock_basic_info.count_documents({})
@@ -295,7 +295,7 @@ async def main():
     try:
         # 初始化数据库连接
         print("🔄 初始化数据库连接...")
-        await init_database()
+        await init_database_async()
         print("✅ 数据库连接成功")
         print()
 
@@ -348,7 +348,7 @@ async def main():
     finally:
         # 关闭数据库连接
         try:
-            await close_database()
+            await close_database_async()
         except Exception as e:
             logger.error(f"关闭数据库连接失败: {e}")
 

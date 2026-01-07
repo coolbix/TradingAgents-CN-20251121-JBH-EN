@@ -9,7 +9,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from tradingagents.dataflows.providers.tushare_provider import TushareProvider
 from app.services.historical_data_service import get_historical_data_service
-from app.core.database import init_database
+from app.core.database import init_database_async
 from tradingagents.config.database_manager import get_mongodb_client
 from pymongo import ReplaceOne
 
@@ -37,7 +37,7 @@ async def debug_data_save_process():
     try:
         # 1. 初始化数据库
         print("1️⃣ 初始化数据库连接")
-        await init_database()
+        await init_database_async()
         print("   ✅ 数据库连接成功")
         
         # 2. 连接Tushare提供者

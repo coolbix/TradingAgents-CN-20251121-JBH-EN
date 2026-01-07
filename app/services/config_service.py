@@ -9,7 +9,7 @@ from datetime import datetime
 from app.utils.timezone import now_tz
 from bson import ObjectId
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.unified_config import unified_config
 from app.models.config import (
     SystemConfig, LLMConfig, DataSourceConfig, DatabaseConfig,
@@ -35,7 +35,7 @@ class ConfigService:
                 self.db = self.db_manager.mongo_db
             else:
                 #Otherwise use global functions
-                self.db = get_mongo_db()
+                self.db = get_mongo_db_async()
         return self.db
 
     #== sync, corrected by elderman == @elder man

@@ -21,7 +21,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.worker.akshare_sync_service import AKShareSyncService
-from app.core.database import init_database
+from app.core.database import init_database_async
 import logging
 import argparse
 
@@ -41,7 +41,7 @@ async def main(batch_size: int = 50):
     logger.info("=" * 80)
     
     # 初始化数据库
-    await init_database()
+    await init_database_async()
     
     # 创建同步服务
     service = AKShareSyncService(batch_size=batch_size)

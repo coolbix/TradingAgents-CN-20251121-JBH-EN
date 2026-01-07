@@ -25,7 +25,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from tradingagents.dataflows.providers.us.optimized import OptimizedUSDataProvider
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.config import SETTINGS
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class USDataService:
     """United States share data services (Access + Cache mode)"""
 
     def __init__(self):
-        self.db = get_mongo_db()
+        self.db = get_mongo_db_async()
         self.settings = SETTINGS
 
         #Data Provider Map

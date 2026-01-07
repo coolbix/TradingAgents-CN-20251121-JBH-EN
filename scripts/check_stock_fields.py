@@ -8,13 +8,13 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 
 async def check_fields():
     """检查股票基础信息字段"""
-    await init_database()
-    db = get_mongo_db()
+    await init_database_async()
+    db = get_mongo_db_async()
     
     doc = await db['stock_basic_info'].find_one(
         {'code': '000001'}, 

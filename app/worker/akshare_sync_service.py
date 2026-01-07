@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.services.historical_data_service import get_historical_data_service
 from app.services.news_data_service import get_news_data_service
 from tradingagents.dataflows.providers.china.akshare import get_akshare_provider
@@ -36,7 +36,7 @@ class AKShareSyncService:
         """Initializing Sync Service"""
         try:
             #Initialize database connection
-            self.db = get_mongo_db()
+            self.db = get_mongo_db_async()
 
             #Initialization of historical data services
             self.historical_service = await get_historical_data_service()

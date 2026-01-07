@@ -15,7 +15,7 @@ sys.path.insert(0, str(project_root))
 import asyncio
 import logging
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.core.database import init_database, get_mongo_db, close_database
+from app.core.database import init_database_async, get_mongo_db_async, close_database_async
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 async def create_stock_screening_view():
     """创建股票筛选视图"""
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         
         # 检查视图是否已存在
         collections = await db.list_collection_names()
@@ -163,7 +163,7 @@ async def create_stock_screening_view():
 async def create_indexes_on_view():
     """在视图上创建索引（注意：MongoDB 视图不支持直接创建索引，但可以在源集合上创建）"""
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         basic_info = db["stock_basic_info"]
         market_quotes = db["market_quotes"]
         
@@ -200,7 +200,7 @@ async def main():
     try:
         # 初始化数据库连接
         logger.info(f"📡 连接 MongoDB...")
-        await init_database()
+        await init_database_async()
 
         # 创建视图
         success = await create_stock_screening_view()
@@ -216,7 +216,7 @@ async def main():
 
     finally:
         # 关闭数据库连接
-        await close_database()
+        await close_database_async()
 
 
 if __name__ == "__main__":

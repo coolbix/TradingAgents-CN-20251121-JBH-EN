@@ -25,7 +25,7 @@ import asyncio
 from pathlib import Path
 
 from app.core.config import SETTINGS
-from app.core.database import init_database, close_database
+from app.core.database import init_database_async, close_database_async
 from app.core.logging_config import setup_logging
 from app.routers import auth_db as auth, analysis, screening, queue, sse, health, favorites, config, reports, database, operation_logs, tags, tushare_init, akshare_init, baostock_init, historical_data, multi_period_sync, financial_data, news_data, social_media, internal_messages, usage_statistics, model_capabilities, cache, logs
 from app.routers import sync as sync_router, multi_source_sync
@@ -226,7 +226,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"Configure authentication failed:{e}")
         raise
 
-    await init_database()
+    await init_database_async()
 
     #Configure Bridges: Write Unified Configurations to Environmental Variables for TradingAgents Core Library
     try:
@@ -595,7 +595,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"UserService cleanup error: {e}")
 
-        await close_database()
+        await close_database_async()
         logger.info("TradingAgents FastAPI backend stopped")
 
 

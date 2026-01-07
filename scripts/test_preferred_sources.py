@@ -2,7 +2,7 @@
 测试 preferred_sources 参数是否生效
 """
 import asyncio
-from app.core.database import init_database
+from app.core.database import init_database_async
 from app.services.data_sources.manager import DataSourceManager
 
 
@@ -191,7 +191,7 @@ async def main():
     
     # 初始化数据库
     try:
-        await init_database()
+        await init_database_async()
         print("✅ 数据库初始化成功\n")
     except Exception as e:
         print(f"❌ 数据库初始化失败: {e}\n")

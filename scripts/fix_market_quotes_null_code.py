@@ -21,7 +21,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.database import get_mongo_db, init_database
+from app.core.database import get_mongo_db_async, init_database_async
 
 # 配置日志
 logging.basicConfig(
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 async def fix_null_code_records():
     """修复 code=null 的记录"""
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db.market_quotes
         
         # 1. 统计 code=null 的记录数
@@ -101,7 +101,7 @@ async def fix_null_code_records():
 async def check_index():
     """检查索引信息"""
     try:
-        db = get_mongo_db()
+        db = get_mongo_db_async()
         collection = db.market_quotes
         
         # 获取所有索引
@@ -126,7 +126,7 @@ async def main():
 
     # 0. 初始化数据库连接
     logger.info("📡 初始化数据库连接...")
-    await init_database()
+    await init_database_async()
     logger.info("✅ 数据库连接成功")
 
     # 1. 检查索引

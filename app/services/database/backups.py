@@ -15,7 +15,7 @@ import logging
 
 from bson import ObjectId
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.core.config import SETTINGS
 from .serialization import serialize_document
 
@@ -43,7 +43,7 @@ async def create_backup_native(name: str, backup_dir: str, collections: Optional
     if not _check_mongodump_available():
         raise Exception("mongodump 命令不可用，请安装 MongoDB Database Tools 或使用 create_backup() 方法")
 
-    db = get_mongo_db()
+    db = get_mongo_db_async()
 
     backup_id = str(ObjectId())
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -138,7 +138,7 @@ async def create_backup(name: str, backup_dir: str, collections: Optional[List[s
 
     For large data volume (>100MB), it is recommended to use file backup native() method
     """
-    db = get_mongo_db()
+    db = get_mongo_db_async()
 
     backup_id = str(ObjectId())
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -199,7 +199,7 @@ async def create_backup(name: str, backup_dir: str, collections: Optional[List[s
 
 
 async def list_backups() -> List[Dict[str, Any]]:
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     backups: List[Dict[str, Any]] = []
     async for backup in db.database_backups.find().sort("created_at", -1):
         backups.append({
@@ -215,7 +215,7 @@ async def list_backups() -> List[Dict[str, Any]]:
 
 
 async def delete_backup(backup_id: str) -> None:
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     backup = await db.database_backups.find_one({"_id": ObjectId(backup_id)})
     if not backup:
         raise Exception("备份不存在")
@@ -266,7 +266,7 @@ async def import_data(content: bytes, collection: str, *, format: str = "json", 
     Single-pool mode: Import data to specified pool
     Multi-pool mode: Import export files containing multiple pools (automated detection)
     """
-    db = get_mongo_db()
+    db = get_mongo_db_async()
 
     if format.lower() == "json":
         #Use asyncio.to thread to place the blocked JSON resolution in the thread pool for execution
@@ -444,7 +444,7 @@ async def export_data(collections: Optional[List[str]] = None, *, export_dir: st
     import pandas as pd
 
     #🔥 with a walk-in database connection
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
     if not collections:

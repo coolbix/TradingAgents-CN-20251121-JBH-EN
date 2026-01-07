@@ -127,8 +127,8 @@ async def get_task_status_new(
             #No memory found, trying to find from MongoDB
             logger.info(f"[STATUS] RAM was not found, trying to find from MongoDB:{task_id}")
 
-            from app.core.database import get_mongo_db
-            db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            db = get_mongo_db_async()
 
             #First look from anallysis tasks collection (ongoing tasks)
             task_result = await db.analysis_tasks.find_one({"task_id": task_id})
@@ -253,8 +253,8 @@ async def get_task_result(
             #No memory found, trying to find from MongoDB
             logger.info(f"[RESULT] not found in memory, trying to find from MongoDB:{task_id}")
 
-            from app.core.database import get_mongo_db
-            db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            db = get_mongo_db_async()
 
             #Find from anallysis reports collection (prior to tag id matching)
             mongo_result = await db.analysis_reports.find_one({"task_id": task_id})
@@ -1187,9 +1187,9 @@ async def mark_task_as_failed(
         )
 
         #Update task status in MongoDB
-        from app.core.database import get_mongo_db
+        from app.core.database import get_mongo_db_async
         from datetime import datetime
-        db = get_mongo_db()
+        db = get_mongo_db_async()
 
         result = await db.analysis_tasks.update_one(
             {"task_id": task_id},
@@ -1236,8 +1236,8 @@ async def delete_task(
         await svc.memory_manager.remove_task(task_id)
 
         #Remove Tasks From MongoDB
-        from app.core.database import get_mongo_db
-        db = get_mongo_db()
+        from app.core.database import get_mongo_db_async
+        db = get_mongo_db_async()
 
         result = await db.analysis_tasks.delete_one({"task_id": task_id})
 

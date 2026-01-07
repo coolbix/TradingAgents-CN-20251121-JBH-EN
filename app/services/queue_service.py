@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 
 from redis.asyncio import Redis
 
-from app.core.database import get_redis_client
+from app.core.database import get_redis_client_async
 
 from app.services.queue import (
     READY_LIST,
@@ -360,4 +360,4 @@ class QueueService:
 
 
 def get_queue_service() -> QueueService:
-    return QueueService(get_redis_client())
+    return QueueService(get_redis_client_async())

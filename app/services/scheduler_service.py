@@ -16,7 +16,7 @@ from apscheduler.events import (
     JobExecutionEvent
 )
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from tradingagents.utils.logging_manager import get_logger
 from app.utils.timezone import now_tz
 
@@ -58,7 +58,7 @@ class SchedulerService:
     def _get_db(self):
         """Get database connections"""
         if self.db is None:
-            self.db = get_mongo_db()
+            self.db = get_mongo_db_async()
         return self.db
     
     async def list_jobs(self) -> List[Dict[str, Any]]:

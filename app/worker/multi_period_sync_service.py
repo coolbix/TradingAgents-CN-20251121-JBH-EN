@@ -244,8 +244,8 @@ class MultiPeriodSyncService:
         """Get All Stock Codes"""
         try:
             #Retrieving stock lists from databases
-            from app.core.database import get_mongo_db
-            db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            db = get_mongo_db_async()
             collection = db.stock_basic_info
 
             cursor = collection.find({}, {"symbol": 1})
@@ -290,8 +290,8 @@ class MultiPeriodSyncService:
                 await self.initialize()
             
             #By cycle
-            from app.core.database import get_mongo_db
-            db = get_mongo_db()
+            from app.core.database import get_mongo_db_async
+            db = get_mongo_db_async()
             collection = db.stock_daily_quotes
             
             pipeline = [

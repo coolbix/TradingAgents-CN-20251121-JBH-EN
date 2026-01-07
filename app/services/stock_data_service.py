@@ -6,7 +6,7 @@ from datetime import datetime, date
 from typing import Optional, Dict, Any, List
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 from app.models.stock_models import (
     StockBasicInfoExtended, 
     MarketQuotesExtended,
@@ -41,7 +41,7 @@ class StockDataService:
             StockBasicInfoExtended: extended stock base information
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             symbol6 = str(symbol).zfill(6)
 
             #Build Query Conditions
@@ -93,7 +93,7 @@ class StockDataService:
             MarketQuotesExtended: extended real-time behavioral data
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             symbol6 = str(symbol).zfill(6)
 
             #Query from existing collections (prefer symbol fields to code fields)
@@ -133,7 +133,7 @@ class StockDataService:
             List [Stock BasicInfoExtended]:
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
 
             #Access source priority configuration
             if not source:
@@ -195,7 +195,7 @@ class StockDataService:
             Bool: Successful update
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             symbol6 = str(symbol).zfill(6)
 
             #Add Update Time
@@ -239,7 +239,7 @@ class StockDataService:
             Bool: Successful update
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             symbol6 = str(symbol).zfill(6)
 
             #Add Update Time

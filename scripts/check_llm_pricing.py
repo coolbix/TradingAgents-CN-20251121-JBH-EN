@@ -1,14 +1,14 @@
 """检查数据库中的 LLM 定价配置"""
 import asyncio
-from app.core.database import init_database, get_mongo_db
+from app.core.database import init_database_async, get_mongo_db_async
 
 
 async def check_pricing():
     """检查定价配置"""
     # 初始化数据库连接
-    await init_database()
+    await init_database_async()
 
-    db = get_mongo_db()
+    db = get_mongo_db_async()
     
     # 获取最新的激活配置
     config = await db['system_configs'].find_one(

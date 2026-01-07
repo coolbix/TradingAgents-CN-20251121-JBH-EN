@@ -17,7 +17,7 @@ from app.services.enhanced_screening.utils import (
     analyze_conditions as _analyze_conditions_util,
     convert_conditions_to_traditional_format as _convert_to_traditional_util,
 )
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 
 
 class EnhancedScreeningService:
@@ -89,7 +89,7 @@ class EnhancedScreeningService:
             #If you use the database to optimize the path, enrich from the database profile (avoid external calls when requested)
             if source == "mongodb" and items:
                 try:
-                    db = get_mongo_db()
+                    db = get_mongo_db_async()
                     coll = db["market_quotes"]
                     codes = [str(it.get("code")).zfill(6) for it in items if it.get("code")]
                     if codes:

@@ -6,7 +6,7 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 
-from app.core.database import get_mongo_db
+from app.core.database import get_mongo_db_async
 #From app.models. avoiding import cycle
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,7 @@ class DatabaseScreeningService:
             Tuple [List [Dict], int]: (screening results, total number)
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
 
             #Access source priority configuration
@@ -255,7 +255,7 @@ class DatabaseScreeningService:
             codes: list of stock codes
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             financial_collection = db['stock_financial_data']
 
             #Access source priority configuration
@@ -397,7 +397,7 @@ class DatabaseScreeningService:
             if not db_field:
                 return {}
             
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
             
             #Access to statistical information using a polymer conduit
@@ -472,7 +472,7 @@ class DatabaseScreeningService:
             List [Dict]: Post-screen results
         """
         try:
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             quotes_collection = db['market_quotes']
 
             #Batch query real-time line data
@@ -561,7 +561,7 @@ class DatabaseScreeningService:
             if not db_field:
                 return []
             
-            db = get_mongo_db()
+            db = get_mongo_db_async()
             collection = db[self.collection_name]
             
             #Get field non-duplicate values
