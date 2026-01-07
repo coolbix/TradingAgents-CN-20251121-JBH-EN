@@ -117,7 +117,7 @@ class DataSourceManager:
         """
         available_adapters = self.get_available_adapters()
 
-        #Reorder if priority data sources are specified
+        #Reorder available_adapters if preferred_sources are specified
         if preferred_sources:
             logger.info(f"Using preferred data sources: {preferred_sources}")
             #Create Priority Map
@@ -131,6 +131,9 @@ class DataSourceManager:
             logger.info(f"Reordered adapters: {[a.name for a in available_adapters]}")
 
         for adapter in available_adapters:
+            #JBH: try to get stock list from each adapter in order.
+            #     if success, return the result immediately.
+            #     if fail,    try the next adapter. --> "fallback"
             try:
                 logger.info(f"Trying to fetch stock list from {adapter.name}")
                 df = adapter.get_stock_list()
