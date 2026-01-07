@@ -49,6 +49,9 @@ class DataSourceManager:
         try:
             from app.core.database import get_mongo_db_synchronous
             db = get_mongo_db_synchronous()
+            #JBH: why use the synchronous version here?
+            #     because this method is called in __init__, which is not async context ?
+            #     isn't there a way to use DatabaseManagerAsync.get_mongo_db() here?
             groupings_collection = db.datasource_groupings
 
             #Query data source grouping for Unit A market
@@ -118,13 +121,13 @@ class DataSourceManager:
         if preferred_sources:
             logger.info(f"Using preferred data sources: {preferred_sources}")
             #Create Priority Map
-            priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
+            preferred_sources_priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
             #Line the specified data sources ahead, and keep the rest in order
-            preferred = [a for a in available_adapters if a.name in priority_map]
-            others = [a for a in available_adapters if a.name not in priority_map]
+            preferred_adapters = [a for a in available_adapters if a.name in preferred_sources_priority_map]
+            other_adapters = [a for a in available_adapters if a.name not in preferred_sources_priority_map]
             #Sort in order of prefered sources
-            preferred.sort(key=lambda a: priority_map.get(a.name, 999))
-            available_adapters = preferred + others
+            preferred_adapters.sort(key=lambda a: preferred_sources_priority_map.get(a.name, 999))
+            available_adapters = preferred_adapters + other_adapters
             logger.info(f"Reordered adapters: {[a.name for a in available_adapters]}")
 
         for adapter in available_adapters:
@@ -171,10 +174,8 @@ class DataSourceManager:
 
     def find_latest_trade_date_with_fallback(self, preferred_sources: Optional[List[str]] = None) -> Optional[str]:
         """Find the latest transaction date and support the designation of priority data Source
-
         Args:
             Prefered sources: Priority list of data sources
-
         Returns:
             Transaction Date String (YYYMMDD format) or None
         """
@@ -182,11 +183,11 @@ class DataSourceManager:
 
         #Reorder if priority data sources are specified
         if preferred_sources:
-            priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
-            preferred = [a for a in available_adapters if a.name in priority_map]
-            others = [a for a in available_adapters if a.name not in priority_map]
-            preferred.sort(key=lambda a: priority_map.get(a.name, 999))
-            available_adapters = preferred + others
+            preferred_sources_priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
+            preferred_adapters = [a for a in available_adapters if a.name in preferred_sources_priority_map]
+            other_adapters = [a for a in available_adapters if a.name not in preferred_sources_priority_map]
+            preferred_adapters.sort(key=lambda a: preferred_sources_priority_map.get(a.name, 999))
+            available_adapters = preferred_adapters + other_adapters
 
         for adapter in available_adapters:
             try:

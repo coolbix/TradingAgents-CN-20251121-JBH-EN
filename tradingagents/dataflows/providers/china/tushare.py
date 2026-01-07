@@ -30,20 +30,30 @@ class TushareProvider(BaseStockDataProvider):
         super().__init__("Tushare")
         self.api = None
         self.config = get_provider_config("tushare")
+        """
+        {'enabled':         False,
+         'token':           'your_tushare_token_here',
+         'timeout':         30,
+         'rate_limit':      3.3333333333333335,
+         'max_retries':     3,
+         'cache_enabled':   True,
+         'cache_ttl':       3600}
+        """
         self.token_source = None  #Record Token Source: 'database' or 'env'
 
         if not TUSHARE_AVAILABLE:
             self.logger.error("❌ Tushare library not installed, please run: pip initial Tushare")
 
     def _get_token_from_database(self) -> Optional[str]:
-        """Read from database Tushare Token
-
+        """Read Tushare Token (API Key) from database
         Priority: Database Configuration > Environmental Variable
         This will take effect immediately after the user changes configuration in the Web backstage
         """
         try:
             self.logger.info("[DB query] Start reading Token...")
             from app.core.database import get_mongo_db_synchronous
+            #JBH: why not use DatabaseManager @ tradingagents/config/database_manager.py ?
+            #     app.core.database is outside tradingagents package
             db = get_mongo_db_synchronous()
             config_collection = db.system_configs
 
@@ -55,12 +65,12 @@ class TushareProvider(BaseStockDataProvider):
             )
 
             if config_data:
-                self.logger.info(f"[DB Query]{config_data.get('version')}")
+                self.logger.info(f"[DB Query] version: {config_data.get('version')}")
                 if config_data.get('data_source_configs'):
-                    self.logger.info(f"[DB query]{len(config_data['data_source_configs'])}Data sources")
+                    self.logger.info(f"[DB query] {len(config_data['data_source_configs'])} Data sources")
                     for ds_config in config_data['data_source_configs']:
                         ds_type = ds_config.get('type')
-                        self.logger.info(f"Checking data sources:{ds_type}")
+                        self.logger.info(f"Checking data sources: {ds_type}")
                         if ds_type == 'tushare':
                             api_key = ds_config.get('api_key')
                             self.logger.info(f"[DB query] Found Tushare configuration, api key length:{len(api_key) if api_key else 0}")
@@ -83,7 +93,8 @@ class TushareProvider(BaseStockDataProvider):
         return None
 
     def connect_sync(self) -> bool:
-        """Synchronize to Tushare"""
+        """Synchronous connection to Tushare"""
+        #NOTE: async version is connect()
         if not TUSHARE_AVAILABLE:
             self.logger.error("The Tushare library is not available")
             return False
@@ -93,24 +104,24 @@ class TushareProvider(BaseStockDataProvider):
 
         try:
             #Token
-            self.logger.info("[Step 1] Start reading Tushare Token...")
+            self.logger.info("[Step 1] Start reading Tushare Token from database...")
             db_token = self._get_token_from_database()
             if db_token:
-                self.logger.info(f"Token (Long:{len(db_token)})")
+                self.logger.info(f"Token (Long: {len(db_token)})")
             else:
                 self.logger.info("[Step 1] Token not found in database")
 
-            self.logger.info("Token in .env...")
+            self.logger.info("[Step 2] Get Token in os.environ (.env)...")
             env_token = self.config.get('token')
             if env_token:
-                self.logger.info(f"Token (Long:{len(env_token)})")
+                self.logger.info(f"Token (Long: {len(env_token)})")
             else:
                 self.logger.info("Token not found in [step 2].env")
 
             #Try Database Token
             if db_token:
                 try:
-                    self.logger.info(f"[Step 3]{test_timeout}Seconds...")
+                    self.logger.info(f"[Step 3] {test_timeout} Seconds...")
                     ts.set_token(db_token)
                     self.api = ts.pro_api()
 
@@ -118,7 +129,7 @@ class TushareProvider(BaseStockDataProvider):
                     try:
                         self.logger.info("[Step 3.1] Call stop basic API test connection...")
                         test_data = self.api.stock_basic(list_status='L', limit=1)
-                        self.logger.info(f"[Step 3.1] API calls successfully, returns data:{len(test_data) if test_data is not None else 0}Article")
+                        self.logger.info(f"[Step 3.1] API calls successfully, returns data: {len(test_data) if test_data is not None else 0} Article")
                     except Exception as e:
                         self.logger.warning(f"[Step 3.1] Database Token test failed:{e}.env configuration...")
                         test_data = None
@@ -136,7 +147,7 @@ class TushareProvider(BaseStockDataProvider):
             #Down to Environment Variable Token
             if env_token:
                 try:
-                    self.logger.info(f"[Step 4] Try to use Tushare Token in .env (over time:{test_timeout}Seconds...")
+                    self.logger.info(f"[Step 4] Try to use Tushare Token in .env (over {test_timeout} Seconds...")
                     ts.set_token(env_token)
                     self.api = ts.pro_api()
 
@@ -144,7 +155,7 @@ class TushareProvider(BaseStockDataProvider):
                     try:
                         self.logger.info("[Step 4.1] Call stop basic API test connection...")
                         test_data = self.api.stock_basic(list_status='L', limit=1)
-                        self.logger.info(f"[Step 4.1] API calls successfully, returns data:{len(test_data) if test_data is not None else 0}Article")
+                        self.logger.info(f"[Step 4.1] API calls successfully, returns data: {len(test_data) if test_data is not None else 0} Article")
                     except Exception as e:
                         self.logger.error(f".env Token test failed:{e}")
                         return False
@@ -170,7 +181,7 @@ class TushareProvider(BaseStockDataProvider):
             return False
 
     async def connect(self) -> bool:
-        """Step to Tushare"""
+        """Asynchronous connection to Tushare"""
         if not TUSHARE_AVAILABLE:
             self.logger.error("The Tushare library is not available")
             return False
@@ -1589,8 +1600,10 @@ def get_tushare_provider() -> TushareProvider:
         #Use synchronous connection to avoid the problem of a different context
         if not _tushare_provider_initialized:
             try:
-                #Directly using Synchronization
+                #connect using synchronous method
                 _tushare_provider.connect_sync()
+                #NOTE: there is asynchronous version of connect --> connect()
+                #      Other providers use asynchronous connection by default.
                 _tushare_provider_initialized = True
             except Exception as e:
                 logger.warning(f"Tushare has failed:{e}")

@@ -171,23 +171,21 @@ class MultiSourceBasicsSyncService:
         await self._persist_status(db, stats.__dict__.copy())
 
         try:
-            #Step 1: Access data source manager
+            #Step 1: get available data source adapters
             from app.services.data_sources.manager import DataSourceManager
-            manager = DataSourceManager()
-            available_adapters = manager.get_available_adapters()
-
+            data_source_manager = DataSourceManager()
+            available_adapters = data_source_manager.get_available_adapters()
             if not available_adapters:
                 raise RuntimeError("No available data sources found")
 
             logger.info(f"Available data sources: {[adapter.name for adapter in available_adapters]}")
 
-            #Log if priority data source is specified
             if preferred_sources:
                 logger.info(f"Using preferred data sources: {preferred_sources}")
 
-            #Step 2: Try to retrieve the list of shares from data sources
+            #Step 2: Try to retrieve the stock list from data sources
             stock_df, source_used = await asyncio.to_thread(
-                manager.get_stock_list_with_fallback, preferred_sources
+                data_source_manager.get_stock_list_with_fallback, preferred_sources
             )
             if stock_df is None or getattr(stock_df, "empty", True):
                 raise RuntimeError("All data sources failed to provide stock list")
@@ -195,17 +193,18 @@ class MultiSourceBasicsSyncService:
             stats.data_sources_used.append(f"stock_list:{source_used}")
             logger.info(f"Successfully fetched {len(stock_df)} stocks from {source_used}")
 
-            #Step 3: Obtain updated transaction dates and financial data
+            #Step 3: Obtain latest_trade_date
             latest_trade_date = await asyncio.to_thread(
-                manager.find_latest_trade_date_with_fallback, preferred_sources
+                data_source_manager.find_latest_trade_date_with_fallback, preferred_sources
             )
             stats.last_trade_date = latest_trade_date
 
+            #Step 4: Obtain financial data
             daily_data_map = {}
             daily_source = ""
             if latest_trade_date:
                 daily_df, daily_source = await asyncio.to_thread(
-                    manager.get_daily_basic_with_fallback, latest_trade_date, preferred_sources
+                    data_source_manager.get_daily_basic_with_fallback, latest_trade_date, preferred_sources
                 )
                 if daily_df is not None and not daily_df.empty:
                     for _, row in daily_df.iterrows():

@@ -26,8 +26,8 @@ class BaseStockDataProvider(ABC):
     
     @abstractmethod
     async def connect(self) -> bool:
-        """Connect to Data Source
-
+        """Asynchronous connection to Data Source
+        NOTE: Tushare uses a Synchonous connection method
         Returns:
             Bool: Successful connection
         """

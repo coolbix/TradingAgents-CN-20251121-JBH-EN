@@ -16,6 +16,8 @@ class AKShareAdapter(DataSourceAdapter):
 
     def __init__(self):
         super().__init__()  #Call Parent Initialization
+        #JBH FIXME: why not use AKShareProvider @ tradingagents/dataflows/providers/china/akshare.py ?
+        #           implement it with reference to TushareAdapter where TushareProvider is being used.
 
     @property
     def name(self) -> str:

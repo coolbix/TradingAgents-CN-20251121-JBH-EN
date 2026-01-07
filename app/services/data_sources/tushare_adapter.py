@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class TushareAdapter(DataSourceAdapter):
-    """Tusharedata source adapter"""
+    """Tushare data source adapter"""
 
     def __init__(self):
         super().__init__()  #Call Parent Initialization
@@ -20,10 +20,13 @@ class TushareAdapter(DataSourceAdapter):
         self._initialize()
 
     def _initialize(self):
-        """Initialize Tushare provider"""
+        """Initialize Tushare provider"""
         try:
             from tradingagents.dataflows.providers.china.tushare import get_tushare_provider
             self._provider = get_tushare_provider()
+            #JBH: why use additional provider TushareProvider? isn't just an adapter enough?
+            #     NOTE: Other adapters (AKShareAdapter, BaoStockAdapter) does not use additional provider layer.
+            #           By the way, AKShareProvider and BaoStockProvider exists but is not used for now.
         except Exception as e:
             logger.warning(f"Failed to initialize Tushare provider: {e}")
             self._provider = None
@@ -42,7 +45,7 @@ class TushareAdapter(DataSourceAdapter):
         return None
 
     def is_available(self) -> bool:
-        """Check whether Tushare is available"""
+        """Check whether Tushare is available"""
         #If not connected, try to connect
         if self._provider and not getattr(self._provider, "connected", False):
             try:

@@ -16,6 +16,8 @@ class BaoStockAdapter(DataSourceAdapter):
 
     def __init__(self):
         super().__init__()  #Call Parent Initialization
+        #JBH FIXME: why not use BaoStockProvider @ tradingagents/dataflows/providers/china/baostock.py ?
+        #           implement it with reference to TushareAdapter where TushareProvider is being used.
 
     @property
     def name(self) -> str:
@@ -51,8 +53,43 @@ class BaoStockAdapter(DataSourceAdapter):
                     data_list.append(rs.get_row_data())
                 if not data_list:
                     return None
+
                 df = pd.DataFrame(data_list, columns=rs.fields)
-                df = df[df['type'] == '1']
+                """                
+                           code   code_name             ipoDate     outDate type status
+                0     sh.000001      上证综合指数       1991-07-15            2      1
+                1     sh.000002      上证A股指数        1992-02-21            2      1
+                2     sh.000003      上证B股指数        1992-08-17            2      1
+                3     sh.000004     上证工业类指数      1993-05-03            2      1
+                4     sh.000005     上证商业类指数      1993-05-03            2      1
+                ...         ...         ...               ...          ...  ...    ...
+                7170  sz.399994  中证信息安全主题指数   2015-03-12            2      1
+                7171  sz.399995    中证基建工程指数     2015-03-12            2      1
+                7172  sz.399996    中证智能家居指数     2014-09-17            2      1
+                7173  sz.399997      中证白酒指数      2015-01-21            2      1
+                7174  sz.399998      中证煤炭指数      2015-02-13            2      1
+                
+                [7175 rows x 6 columns]
+                """
+
+                df = df[df['type'] == '1'] #filter df to only the rows where the type column equals the string '1', and reassigns df to that filtered subset.
+                """
+                           code code_name     ipoDate     outDate      type status
+                742   sh.600000      浦发银行  1999-11-10                1      1
+                743   sh.600001      邯郸钢铁  1998-01-22  2009-12-29    1      0
+                744   sh.600002      齐鲁石化  1998-04-08  2006-04-24    1      0
+                745   sh.600003     ST东北高  1999-08-10   2010-02-26    1      0
+                746   sh.600004      白云机场  2003-04-28                1      1
+                ...         ...       ...         ...         ...       ...    ...
+                6803  sz.301667       纳百川  2025-12-23                 1      1
+                6804  sz.301668      昊创瑞通  2025-09-26                1      1
+                6805  sz.301678       新恒汇  2025-06-20                 1      1
+                6806  sz.301687       新广益  2025-12-31                 1      1
+                6807  sz.302132      中航成飞  2010-08-27                1      1
+                
+                [5501 rows x 6 columns]
+                """
+
                 df['symbol'] = df['code'].str.replace(r'^(sh|sz)\.', '', regex=True)
                 df['ts_code'] = (
                     df['code'].str.replace('sh.', '').str.replace('sz.', '')

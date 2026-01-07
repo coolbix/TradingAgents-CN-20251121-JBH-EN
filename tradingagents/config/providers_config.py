@@ -18,7 +18,9 @@ class DataSourceConfig:
         self._load_configs()
     
     def _load_configs(self):
-        """Load all data sources configurations"""
+        """Load all DataSources configurations from os.environ"""
+        #JBH: why not use ConfigManager?
+
         #Tushare Configuration
         self._configs["tushare"] = {
             "enabled": self._get_bool_env("TUSHARE_ENABLED", True),

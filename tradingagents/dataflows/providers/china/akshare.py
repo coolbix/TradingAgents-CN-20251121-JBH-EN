@@ -270,7 +270,7 @@ class AKShareProvider(BaseStockDataProvider):
             logger.warning(f"AKShare's overtime configuration failed:{e}")
     
     async def connect(self) -> bool:
-        """Connect to AKShare Data Source"""
+        """Asynchronous connection to AKShare Data Source"""
         return await self.test_connection()
 
     async def test_connection(self) -> bool:

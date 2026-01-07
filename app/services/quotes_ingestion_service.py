@@ -14,21 +14,21 @@ logger = logging.getLogger(__name__)
 
 
 class QuotesIngestionService:
-    """Regularly capture market-wide near real-time patterns from the data source adaptation layer, and enter the database into the MongoDB collection `market quotes ' .
-
+    """Regularly capture market-wide near real-time patterns from the data source adaptation layer, and enter the database into the MongoDB collection `market_quotes` .
+    Injest to `market_quotes` collection.
     Core characteristics:
-    - Schedule frequency: controlled by settings. QUOTES INGEST INTERVAL SECONDS (default 360 seconds = 6 minutes)
-    - Interface rotation: Tushare → AKShare Eastern Wealth → AKShare New Wave (to avoid a single interface being restricted)
+    - Schedule frequency: controlled by settings.QUOTES_INGEST_INTERVAL_SECONDS (default 360 seconds = 6 minutes)
+    - Interface rotation: Tushare → AKShare Eastmoney → AKShare Sina (to avoid a single interface being restricted)
     - Intelligent limit flow: Tushare free users up to 2 times an hour, pay users automatically switch to HF mode (5 seconds)
     - Break time: Skip the task, keep last round data; implement one-time refills if necessary
-    - Fields: code (6), close, pct chg, amount, open, high, low, pre close, mode date, updated at
+    - Fields: code (6), close, pct_chg, amount, open, high, low, pre_close, mode_date, updated_at
     """
 
     def __init__(self, collection_name: str = "market_quotes") -> None:
         from collections import deque
 
-        self.collection_name = collection_name
-        self.status_collection_name = "quotes_ingestion_status"  #Status Record Pool
+        self.collection_name = collection_name #'market_quotes'
+        self.status_collection_name = "market_quotes_ingestion_status"  #Status Record Pool
         self.tz = ZoneInfo(SETTINGS.TIMEZONE)
 
         #Tushare Permission Detect Related Properties
@@ -84,7 +84,7 @@ class QuotesIngestionService:
 
     async def ensure_indexes(self) -> None:
         db = get_mongo_db_async()
-        coll = db[self.collection_name]
+        coll = db[self.collection_name] #'market_quotes'
         try:
             await coll.create_index("code", unique=True)
             await coll.create_index("updated_at")
@@ -325,31 +325,44 @@ class QuotesIngestionService:
 
     async def _collection_empty(self) -> bool:
         db = get_mongo_db_async()
-        coll = db[self.collection_name]
+        coll = db[self.collection_name] #'market_quotes'
         try:
             count = await coll.estimated_document_count()
             return count == 0
         except Exception:
             return True
 
+    """
+    “stale” means old, not fresh, out of date.
+    In a database context, “stale” usually means the data is no longer current
+    e.g., a cached value or record that hasn’t been updated to reflect the latest changes.
+    It can also mean a read that’s lagging behind the most recent write (stale read).
+    """
     async def _collection_stale(self, latest_trade_date: Optional[str]) -> bool:
         if not latest_trade_date:
             return False
         db = get_mongo_db_async()
-        coll = db[self.collection_name]
+        coll = db[self.collection_name] #'market_quotes'
         try:
+            """
+            query the Mongo 'market_quotes' collection for the most recent trade_date:
+            find({}, {"trade_date": 1}) fetches all documents but projects only the trade_date field (plus _id unless excluded).
+            .sort("trade_date", -1)     orders descending by trade_date.
+            .limit(1)                   returns just the newest record.
+            So cursor will yield at most one document: the latest trade date in the 'market_quotes' collection.
+            """
             cursor = coll.find({}, {"trade_date": 1}).sort("trade_date", -1).limit(1)
             docs = await cursor.to_list(length=1)
             if not docs:
                 return True
-            doc_td = str(docs[0].get("trade_date") or "")
-            return doc_td < str(latest_trade_date)
+            latest_trade_date_in_db = str(docs[0].get("trade_date") or "")
+            return latest_trade_date_in_db < str(latest_trade_date)
         except Exception:
             return True
 
     async def _bulk_upsert(self, quotes_map: Dict[str, Dict], trade_date: str, source: Optional[str] = None) -> None:
         db = get_mongo_db_async()
-        coll = db[self.collection_name]
+        coll = db[self.collection_name] #'market_quotes'
         ops = []
         updated_at = datetime.now(self.tz)
         for code, q in quotes_map.items():
@@ -400,7 +413,7 @@ class QuotesIngestionService:
         """
         try:
             #Check if market quates is empty
-            is_empty = await self._collection_empty()
+            is_empty = await self._collection_empty() #'market_quotes' collection
 
             if not is_empty:
                 #The collection is not empty. Check if there's any missing records of the trade.
@@ -509,8 +522,8 @@ class QuotesIngestionService:
 
             #Update with real-time interface if the collection is not empty but old
             manager = DataSourceManager()
-            latest_td = manager.find_latest_trade_date_with_fallback()
-            if await self._collection_stale(latest_td):
+            latest_trade_date = manager.find_latest_trade_date_with_fallback()
+            if await self._collection_stale(latest_trade_date):
                 logger.info("🔁 Trigger market break/startback to fill in the latest disk data")
                 await self.backfill_last_close_snapshot()
         except Exception as e:
