@@ -155,13 +155,13 @@ class AKShareAdapter(DataSourceAdapter):
             import akshare as ak  # noqa: F401
             logger.info(f"AKShare: Attempting to get basic financial data for {trade_date}")
 
-            stock_df = self.get_stock_list()
-            if stock_df is None or stock_df.empty:
+            stock_list_df = self.get_stock_list()
+            if stock_list_df is None or stock_list_df.empty:
                 logger.warning("AKShare: No stock list available")
                 return None
 
             max_stocks = 10
-            stock_list = stock_df.head(max_stocks)
+            stock_list = stock_list_df.head(max_stocks)
 
             basic_data = []
             processed_count = 0

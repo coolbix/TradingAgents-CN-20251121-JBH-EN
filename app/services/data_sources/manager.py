@@ -51,7 +51,7 @@ class DataSourceManager:
             db = get_mongo_db_synchronous()
             #JBH: why use the synchronous version here?
             #     because this method is called in __init__, which is not async context ?
-            #     isn't there a way to use DatabaseManagerAsync.get_mongo_db() here?
+            #     isn't there a way to use DatabaseManagerAsync.get_mongo_db_async() here?
             groupings_collection = db.datasource_groupings
 
             #Query data source grouping for Unit A market
@@ -107,11 +107,9 @@ class DataSourceManager:
 
     def get_stock_list_with_fallback(self, preferred_sources: Optional[List[str]] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """Get a list of shares to support the designation of priority data sources
-
         Args:
             Prefered sources: list of preferred data sources, such as ['akshare', 'baostock']
             If None, in the default priority order
-
         Returns:
             (DataFrame, source name) or (None, None)
         """
@@ -146,25 +144,26 @@ class DataSourceManager:
 
     def get_daily_basic_with_fallback(self, trade_date: str, preferred_sources: Optional[List[str]] = None) -> Tuple[Optional[pd.DataFrame], Optional[str]]:
         """Access to daily basic data to support the designation of priority data sources
-
         Args:
             trade date: transaction date
             Prefered sources: Priority list of data sources
-
         Returns:
             (DataFrame, source name) or (None, None)
         """
         available_adapters = self.get_available_adapters()
 
-        #Reorder if priority data sources are specified
+        #Reorder available_adapters if preferred_sources are specified
         if preferred_sources:
-            priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
-            preferred = [a for a in available_adapters if a.name in priority_map]
-            others = [a for a in available_adapters if a.name not in priority_map]
-            preferred.sort(key=lambda a: priority_map.get(a.name, 999))
-            available_adapters = preferred + others
+            preferred_sources_priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
+            preferred_adapters = [a for a in available_adapters if a.name in preferred_sources_priority_map]
+            other_adapters = [a for a in available_adapters if a.name not in preferred_sources_priority_map]
+            preferred_adapters.sort(key=lambda a: preferred_sources_priority_map.get(a.name, 999))
+            available_adapters = preferred_adapters + other_adapters
 
         for adapter in available_adapters:
+            #JBH: try to get data from each adapter in order.
+            #     if success, return the result immediately.
+            #     if fail,    try the next adapter. --> "fallback"
             try:
                 logger.info(f"Trying to fetch daily basic data from {adapter.name}")
                 df = adapter.get_daily_basic(trade_date)
@@ -184,7 +183,7 @@ class DataSourceManager:
         """
         available_adapters = self.get_available_adapters()
 
-        #Reorder if priority data sources are specified
+        #Reorder available_adapters if preferred_sources are specified
         if preferred_sources:
             preferred_sources_priority_map = {name: idx for idx, name in enumerate(preferred_sources)}
             preferred_adapters = [a for a in available_adapters if a.name in preferred_sources_priority_map]
@@ -193,6 +192,9 @@ class DataSourceManager:
             available_adapters = preferred_adapters + other_adapters
 
         for adapter in available_adapters:
+            #JBH: try to get data from each adapter in order.
+            #     if success, return the result immediately.
+            #     if fail,    try the next adapter. --> "fallback"
             try:
                 trade_date = adapter.find_latest_trade_date()
                 if trade_date:
@@ -209,6 +211,9 @@ class DataSourceManager:
         """
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
+            #JBH: try to get data from each adapter in order.
+            #     if success, return the result immediately.
+            #     if fail,    try the next adapter. --> "fallback"
             try:
                 logger.info(f"Trying to fetch realtime quotes from {adapter.name}")
                 data = adapter.get_realtime_quotes()
@@ -224,7 +229,6 @@ class DataSourceManager:
         self, trade_date: str
     ) -> Tuple[Optional[pd.DataFrame], Optional[str], Optional[Dict]]:
         """Access to daily basic data using consistency checks
-
         Returns:
             Tuple.
         """
@@ -284,6 +288,9 @@ class DataSourceManager:
         """Try K-line on priority, return (items, source)"""
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
+            #JBH: try to get data from each adapter in order.
+            #     if success, return the result immediately.
+            #     if fail,    try the next adapter. --> "fallback"
             try:
                 logger.info(f"Trying to fetch kline from {adapter.name}")
                 items = adapter.get_kline(code=code, period=period, limit=limit, adj=adj)
@@ -298,6 +305,9 @@ class DataSourceManager:
         """Try to get news and announcements on priority, return (items, source)"""
         available_adapters = self.get_available_adapters()
         for adapter in available_adapters:
+            #JBH: try to get data from each adapter in order.
+            #     if success, return the result immediately.
+            #     if fail,    try the next adapter. --> "fallback"
             try:
                 logger.info(f"Trying to fetch news from {adapter.name}")
                 items = adapter.get_news(code=code, days=days, limit=limit, include_announcements=include_announcements)
