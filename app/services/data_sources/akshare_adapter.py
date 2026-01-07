@@ -44,6 +44,22 @@ class AKShareAdapter(DataSourceAdapter):
 
             #Fetch stock code and name using the AKShare stop info a code name interface
             df = ak.stock_info_a_code_name()
+            """
+                    code   name
+            0     000001   平安银行
+            1     000002  万  科Ａ
+            2     000004  *ST国华
+            3     000006   深振业Ａ
+            4     000007    全新好
+            ...      ...    ...
+            5465  920978   开特股份
+            5466  920981   晶赛科技
+            5467  920982   锦波生物
+            5468  920985   海泰新能
+            5469  920992   中科美菱
+            
+            [5470 rows x 2 columns]
+            """
 
             if df is None or df.empty:
                 logger.warning("AKShare: stock_info_a_code_name() returned empty data")
@@ -106,6 +122,23 @@ class AKShareAdapter(DataSourceAdapter):
             df['area'] = ''
             df['industry'] = ''
             df['list_date'] = ''
+            """
+                  symbol   name     ts_code       market  area industry list_date
+            0     000001   平安银行  000001.SZ     主板                        
+            1     000002  万  科Ａ   000002.SZ     主板                        
+            2     000004  *ST国华    000004.SZ     主板                        
+            3     000006   深振业Ａ  000006.SZ     主板                        
+            4     000007    全新好   000007.SZ     主板                        
+            ...      ...    ...        ...         ...     ...      ...       ...
+            5465  920978   开特股份  920978.SZ     未知                        
+            5466  920981   晶赛科技  920981.SZ     未知                        
+            5467  920982   锦波生物  920982.SZ     未知                        
+            5468  920985   海泰新能  920985.SZ     未知                        
+            5469  920992   中科美菱  920992.SZ     未知                        
+            
+            [5470 rows x 7 columns]
+            """
+
 
             logger.info(f"AKShare: Successfully fetched {len(df)} stocks with real names")
             return df

@@ -90,6 +90,29 @@ class SimpleJsonFormatter(logging.Formatter):
         return json.dumps(obj, ensure_ascii=False)
 
 
+_ANSI_RESET = "\x1b[0m"
+_LEVEL_COLORS = {
+    logging.DEBUG: "\x1b[36m",
+    logging.INFO: "\x1b[32m",
+    logging.WARNING: "\x1b[33m",
+    logging.ERROR: "\x1b[31m",
+    logging.CRITICAL: "\x1b[35m",
+}
+
+
+class ColorizedLevelFormatter(logging.Formatter):
+    """Colorize level names for console output only."""
+    def format(self, record: logging.LogRecord) -> str:
+        original_levelname = record.levelname
+        color = _LEVEL_COLORS.get(record.levelno)
+        if color:
+            record.levelname = f"{color}{original_levelname}{_ANSI_RESET}"
+        try:
+            return super().format(record)
+        finally:
+            record.levelname = original_levelname
+
+
 def _parse_size(size_str: str) -> int:
     """Parsing size strings (e. g. '10MB') as bytes"""
     if isinstance(size_str, int):
@@ -319,6 +342,7 @@ def setup_logging(log_level: str = "INFO"):
                 },
                 "formatters": {
                     "console_fmt": {
+                        "()": "app.core.logging_config.ColorizedLevelFormatter",
                         "format": fmt_console,
                         "datefmt": "%Y-%m-%d %H:%M:%S",
                     },
@@ -402,6 +426,7 @@ def setup_logging(log_level: str = "INFO"):
         "filters": {"request_context": {"()": "app.core.logging_context.LoggingContextFilter"}},
         "formatters": {
             "default": {
+                "()": "app.core.logging_config.ColorizedLevelFormatter",
                 "format": "%(asctime)s - %(name)s - %(levelname)s - %(classname)s - %(message)s trace=%(trace_id)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
             },
