@@ -190,6 +190,7 @@ class AKShareAdapter(DataSourceAdapter):
                         #AKShare's "total market value" unit is a million dollars and needs to be converted to a billion dollars (consistent with Tushare)
                         total_mv_wan = self._safe_float(info_dict.get('总市值', 0))  #Ten thousand dollars.
                         total_mv_yi = total_mv_wan / 10000 if total_mv_wan else None  #Convert to Billion Dollars
+                        
                         basic_data.append({
                             'ts_code': ts_code,
                             'trade_date': trade_date,
@@ -200,6 +201,17 @@ class AKShareAdapter(DataSourceAdapter):
                             'pe': None,
                             'pb': None,
                         })
+                        """
+                        [{'ts_code': '000001.SZ', 
+                         'trade_date': '20260106', 
+                         'name': '平安银行', 
+                         'close': 11.64, 
+                         'total_mv': 22588488.782472, 
+                         'turnover_rate': None, 
+                         'pe': None, 
+                         'pb': None}]
+                        """                        
+                        
                         processed_count += 1
                         if processed_count % 5 == 0:
                             logger.debug(f"AKShare: Processed {processed_count} stocks in {time.time() - start_time:.1f}s")

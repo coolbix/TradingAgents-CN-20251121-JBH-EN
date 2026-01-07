@@ -103,12 +103,10 @@ class MultiSourceBasicsSyncService:
         max_retries: int = 3
     ) -> Tuple[int, int]:
         """Implementation batch writing with retry mechanism
-
         Args:
             db: Example of MongoDB database
             Organisations: Batch Operations List
             max retries: maximum number of retries
-
         Returns:
             (Add, Update)
         """
@@ -300,7 +298,7 @@ class MultiSourceBasicsSyncService:
                 if len(ops) >= batch_size or idx == total_stocks:
                     if ops:
                         progress_pct = (idx / total_stocks) * 100
-                        logger.info(f"The execution batch 📝 reads:{len(ops)}Article record(){idx}/{total_stocks}, {progress_pct:.1f}%)")
+                        logger.info(f"The execution batch 📝 reads: {len(ops)} Article record(){idx}/{total_stocks}, {progress_pct:.1f}%)")
 
                         batch_inserted, batch_updated = await self._execute_bulk_write_with_retry(db, ops)
 
