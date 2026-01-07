@@ -895,8 +895,8 @@ class AnalysisService:
                 output_tokens = 1000  #Default output token
 
             #Get Model Price Configuration
-            from app.services.config_service import config_service
-            config = await config_service.get_system_config()
+            from app.services.config_service import CONFIG_SERVICE
+            config = await CONFIG_SERVICE.get_system_config_from_database()
 
             #Find corresponding LLM profiles
             llm_config = None

@@ -17,7 +17,7 @@ from app.models.config import (
     DataSourceGroupingRequest, DataSourceOrderRequest,
     ModelCatalog, ModelInfo
 )
-from app.services.config_service import config_service
+from app.services.config_service import CONFIG_SERVICE
 from datetime import datetime
 from app.utils.timezone import now_tz
 
@@ -171,7 +171,7 @@ async def get_system_config(
 ):
     """Get System Configuration"""
     try:
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -213,7 +213,7 @@ async def get_llm_providers(
             get_env_api_key_for_provider
         )
 
-        providers = await config_service.get_llm_providers()
+        providers = await CONFIG_SERVICE.get_llm_providers()
         result = []
 
         for provider in providers:
@@ -283,7 +283,7 @@ async def add_llm_provider(
         if 'api_key' in sanitized:
             sanitized['api_key'] = ""
         provider = LLMProvider(**sanitized)
-        provider_id = await config_service.add_llm_provider(provider)
+        provider_id = await CONFIG_SERVICE.add_llm_provider(provider)
 
         #Audit log (overlooking anomalies)
         try:
@@ -339,7 +339,7 @@ async def update_llm_provider(
             if should_skip_api_key_update(api_secret):
                 del update_data['api_secret']
 
-        success = await config_service.update_llm_provider(provider_id, update_data)
+        success = await CONFIG_SERVICE.update_llm_provider(provider_id, update_data)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -380,7 +380,7 @@ async def delete_llm_provider(
 ):
     """Remove Large Modeler"""
     try:
-        success = await config_service.delete_llm_provider(provider_id)
+        success = await CONFIG_SERVICE.delete_llm_provider(provider_id)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -423,7 +423,7 @@ async def toggle_llm_provider(
     """Toggle large modeler state"""
     try:
         is_active = request.get("is_active", True)
-        success = await config_service.toggle_llm_provider(provider_id, is_active)
+        success = await CONFIG_SERVICE.toggle_llm_provider(provider_id, is_active)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -464,7 +464,7 @@ async def fetch_provider_models(
 ):
     """Fetch model list from the manufacturer API"""
     try:
-        result = await config_service.fetch_provider_models(provider_id)
+        result = await CONFIG_SERVICE.fetch_provider_models(provider_id)
         return result
     except HTTPException:
         raise
@@ -484,7 +484,7 @@ async def migrate_env_to_providers(
 ):
     """Migration of environmental variables to plant management"""
     try:
-        result = await config_service.migrate_env_to_providers()
+        result = await CONFIG_SERVICE.migrate_env_to_providers()
         #Audit log (overlooking anomalies)
         try:
             await log_operation(
@@ -522,7 +522,7 @@ async def init_aggregator_providers(
 ):
     """Initialized polymerization channel plant configuration (302.AI, OpenRouter, etc.)"""
     try:
-        result = await config_service.init_aggregator_providers()
+        result = await CONFIG_SERVICE.init_aggregator_providers()
 
         #Audit log (overlooking anomalies)
         try:
@@ -563,7 +563,7 @@ async def test_provider_api(
     """Tester API Key"""
     try:
         logger.info(f"- Request for API testing.{provider_id}")
-        result = await config_service.test_provider_api(provider_id)
+        result = await CONFIG_SERVICE.test_provider_api(provider_id)
         logger.info(f"API test results:{result}")
         return result
     except Exception as e:
@@ -596,7 +596,7 @@ async def add_llm_config(
             logger.info(f"The API key is empty and obtained from the plant configuration:{request.provider}")
 
             #Get Plant Configuration
-            providers = await config_service.get_llm_providers()
+            providers = await CONFIG_SERVICE.get_llm_providers()
             logger.info(f"Found it.{len(providers)}Plant Configuration")
 
             for p in providers:
@@ -641,7 +641,7 @@ async def add_llm_config(
             )
 
         #Save Configuration
-        success = await config_service.update_llm_config(llm_config)
+        success = await CONFIG_SERVICE.update_llm_config(llm_config)
 
         if success:
             logger.info(f"✅ Large model configuration update successful:{llm_config.provider}/{llm_config.model_name}")
@@ -695,7 +695,7 @@ async def add_data_source_config(
         #Open source version: All users can modify configuration
 
         #Get Current Configuration
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -743,7 +743,7 @@ async def add_data_source_config(
         ds_config = DataSourceConfig(**_req)
         config.data_source_configs.append(ds_config)
 
-        success = await config_service.save_system_config(config)
+        success = await CONFIG_SERVICE.save_system_config(config)
         if success:
             #Automatically create a data source group relationship 🆕
             market_categories = _req.get('market_categories', [])
@@ -756,7 +756,7 @@ async def add_data_source_config(
                             priority=ds_config.priority,
                             enabled=ds_config.enabled
                         )
-                        await config_service.add_datasource_to_category(grouping)
+                        await CONFIG_SERVICE.add_datasource_to_category(grouping)
                     except Exception as e:
                         #If there is a group or other error, record without affecting the main process
                         logger.warning(f"Could not close temporary folder: %s{str(e)}")
@@ -798,7 +798,7 @@ async def add_database_config(
         #Open source version: All users can modify configuration
 
         #Get Current Configuration
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -811,7 +811,7 @@ async def add_database_config(
         db_config = DatabaseConfig(**_req)
         config.database_configs.append(db_config)
 
-        success = await config_service.save_system_config(config)
+        success = await CONFIG_SERVICE.save_system_config(config)
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -849,13 +849,13 @@ async def test_config(
     try:
         if request.config_type == "llm":
             llm_config = LLMConfig(**request.config_data)
-            result = await config_service.test_llm_config(llm_config)
+            result = await CONFIG_SERVICE.test_llm_config(llm_config)
         elif request.config_type == "datasource":
             ds_config = DataSourceConfig(**request.config_data)
-            result = await config_service.test_data_source_config(ds_config)
+            result = await CONFIG_SERVICE.test_data_source_config(ds_config)
         elif request.config_type == "database":
             db_config = DatabaseConfig(**request.config_data)
-            result = await config_service.test_database_config(db_config)
+            result = await CONFIG_SERVICE.test_database_config(db_config)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -882,7 +882,7 @@ async def test_saved_database_config(
         logger.info(f"Test the saved database configuration:{db_name}")
 
         #Get full system configuration from the database
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -908,7 +908,7 @@ async def test_saved_database_config(
         logger.info(f"Password:{'***' if db_config.password else '(none)'}")
 
         #Test using full configuration
-        result = await config_service.test_database_config(db_config)
+        result = await CONFIG_SERVICE.test_database_config(db_config)
 
         return ConfigTestResponse(**result)
     except HTTPException:
@@ -928,7 +928,7 @@ async def get_llm_configs(
     """Fetch all large model configurations"""
     try:
         logger.info("Start accessing large models...")
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
 
         if not config:
             logger.warning("⚠️ System configuration is empty, return empty list")
@@ -943,7 +943,7 @@ async def get_llm_configs(
             #Return empty list for the time being so that the frontend can show "no configuration"
 
         #Access to all vendor information to filter models of banned vendors
-        providers = await config_service.get_llm_providers()
+        providers = await CONFIG_SERVICE.get_llm_providers()
         active_provider_names = {p.name for p in providers if p.is_active}
 
         #Filter: returns only the active model and the model is also enabled by the supplier
@@ -972,7 +972,7 @@ async def delete_llm_config(
     """Remove Large Model Configuration"""
     try:
         logger.info(f"Remove large model configuration request-provider:{provider}, model_name: {model_name}")
-        success = await config_service.delete_llm_config(provider, model_name)
+        success = await CONFIG_SERVICE.delete_llm_config(provider, model_name)
 
         if success:
             logger.info(f"The large model configuration was successfully deleted -{provider}/{model_name}")
@@ -1021,7 +1021,7 @@ async def set_default_llm(
 ):
     """Set Default Large Model"""
     try:
-        success = await config_service.set_default_llm(request.name)
+        success = await CONFIG_SERVICE.set_default_llm(request.name)
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -1056,7 +1056,7 @@ async def get_data_source_configs(
 ):
     """Get All Data Source Configurations"""
     try:
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             return []
         return _sanitize_datasource_configs(config.data_source_configs)
@@ -1076,7 +1076,7 @@ async def update_data_source_config(
     """Update data source configuration"""
     try:
         #Get Current Configuration
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -1210,13 +1210,13 @@ async def update_data_source_config(
                 updated_config = DataSourceConfig(**_req)
                 config.data_source_configs[i] = updated_config
 
-                success = await config_service.save_system_config(config)
+                success = await CONFIG_SERVICE.save_system_config(config)
                 if success:
                     #Synchronize market classification relationships
                     new_categories = set(_req.get('market_categories', []))
 
                     #Get the current group relationship
-                    current_groupings = await config_service.get_datasource_groupings()
+                    current_groupings = await CONFIG_SERVICE.get_datasource_groupings()
                     current_categories = set(
                         g.market_category_id
                         for g in current_groupings
@@ -1233,7 +1233,7 @@ async def update_data_source_config(
                                 priority=updated_config.priority,
                                 enabled=updated_config.enabled
                             )
-                            await config_service.add_datasource_to_category(grouping)
+                            await CONFIG_SERVICE.add_datasource_to_category(grouping)
                         except Exception as e:
                             logger.warning(f"Could not close temporary folder: %s{str(e)}")
 
@@ -1241,7 +1241,7 @@ async def update_data_source_config(
                     to_remove = current_categories - new_categories
                     for category_id in to_remove:
                         try:
-                            await config_service.remove_datasource_from_category(name, category_id)
+                            await CONFIG_SERVICE.remove_datasource_from_category(name, category_id)
                         except Exception as e:
                             logger.warning(f"Could not close temporary folder: %s{str(e)}")
 
@@ -1285,7 +1285,7 @@ async def delete_data_source_config(
     """Delete Data Source Configuration"""
     try:
         #Get Current Configuration
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         if not config:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -1297,7 +1297,7 @@ async def delete_data_source_config(
             if ds_config.name == name:
                 config.data_source_configs.pop(i)
 
-                success = await config_service.save_system_config(config)
+                success = await CONFIG_SERVICE.save_system_config(config)
                 if success:
                     #Audit log (overlooking anomalies)
                     try:
@@ -1339,7 +1339,7 @@ async def get_market_categories(
 ):
     """Access to all market classifications"""
     try:
-        categories = await config_service.get_market_categories()
+        categories = await CONFIG_SERVICE.get_market_categories()
         return categories
     except Exception as e:
         raise HTTPException(
@@ -1356,7 +1356,7 @@ async def add_market_category(
     """Add Market Classification"""
     try:
         category = MarketCategory(**request.model_dump())
-        success = await config_service.add_market_category(category)
+        success = await CONFIG_SERVICE.add_market_category(category)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1394,7 +1394,7 @@ async def update_market_category(
 ):
     """Updating market classifications"""
     try:
-        success = await config_service.update_market_category(category_id, request)
+        success = await CONFIG_SERVICE.update_market_category(category_id, request)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1431,7 +1431,7 @@ async def delete_market_category(
 ):
     """Remove Market Classification"""
     try:
-        success = await config_service.delete_market_category(category_id)
+        success = await CONFIG_SERVICE.delete_market_category(category_id)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1469,7 +1469,7 @@ async def get_datasource_groupings(
 ):
     """Get All Data Source Group Relationships"""
     try:
-        groupings = await config_service.get_datasource_groupings()
+        groupings = await CONFIG_SERVICE.get_datasource_groupings()
         return groupings
     except Exception as e:
         raise HTTPException(
@@ -1486,7 +1486,7 @@ async def add_datasource_to_category(
     """Add data sources to classification"""
     try:
         grouping = DataSourceGrouping(**request.model_dump())
-        success = await config_service.add_datasource_to_category(grouping)
+        success = await CONFIG_SERVICE.add_datasource_to_category(grouping)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1524,7 +1524,7 @@ async def remove_datasource_from_category(
 ):
     """Remove data source from classification"""
     try:
-        success = await config_service.remove_datasource_from_category(data_source_name, category_id)
+        success = await CONFIG_SERVICE.remove_datasource_from_category(data_source_name, category_id)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1563,7 +1563,7 @@ async def update_datasource_grouping(
 ):
     """Update data source group relationships"""
     try:
-        success = await config_service.update_datasource_grouping(data_source_name, category_id, request)
+        success = await CONFIG_SERVICE.update_datasource_grouping(data_source_name, category_id, request)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1601,7 +1601,7 @@ async def update_category_datasource_order(
 ):
     """Update the sorting of data sources in the classification"""
     try:
-        success = await config_service.update_category_datasource_order(category_id, request.data_sources)
+        success = await CONFIG_SERVICE.update_category_datasource_order(category_id, request.data_sources)
 
         if success:
             #Audit log (overlooking anomalies)
@@ -1638,7 +1638,7 @@ async def set_default_data_source(
 ):
     """Set Default Data Source"""
     try:
-        success = await config_service.set_default_data_source(request.name)
+        success = await CONFIG_SERVICE.set_default_data_source(request.name)
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -1720,7 +1720,7 @@ async def update_system_settings(
         else:
             logger.warning(f"Not containing")
 
-        success = await config_service.update_system_settings(settings)
+        success = await CONFIG_SERVICE.update_system_settings(settings)
         if success:
             #Audit log (overlooking log anomalies without affecting the main process)
             try:
@@ -1773,7 +1773,7 @@ async def export_config(
 ):
     """Export Configuration"""
     try:
-        config_data = await config_service.export_config()
+        config_data = await CONFIG_SERVICE.export_config()
         #Audit log (overlooking anomalies)
         try:
             await log_operation(
@@ -1805,7 +1805,7 @@ async def import_config(
 ):
     """Import Configuration"""
     try:
-        success = await config_service.import_config(config_data)
+        success = await CONFIG_SERVICE.import_config(config_data)
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -1840,7 +1840,7 @@ async def migrate_legacy_config(
 ):
     """Move traditional configuration"""
     try:
-        success = await config_service.migrate_legacy_config()
+        success = await CONFIG_SERVICE.migrate_legacy_config()
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -1878,7 +1878,7 @@ async def set_default_llm(
     try:
         #Open source version: All users can modify configuration
 
-        success = await config_service.set_default_llm(request.name)
+        success = await CONFIG_SERVICE.set_default_llm(request.name)
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -1916,7 +1916,7 @@ async def set_default_data_source(
     try:
         #Open source version: All users can modify configuration
 
-        success = await config_service.set_default_data_source(request.name)
+        success = await CONFIG_SERVICE.set_default_data_source(request.name)
         if success:
             #Audit log (overlooking anomalies)
             try:
@@ -1951,7 +1951,7 @@ async def get_available_models(
 ):
     """Get a list of available models"""
     try:
-        models = await config_service.get_available_models()
+        models = await CONFIG_SERVICE.get_available_models()
         return models
     except Exception as e:
         raise HTTPException(
@@ -1968,7 +1968,7 @@ async def get_model_catalog(
 ):
     """Fetch all model directories"""
     try:
-        catalogs = await config_service.get_model_catalog()
+        catalogs = await CONFIG_SERVICE.get_model_catalog()
         return [catalog.model_dump(by_alias=False) for catalog in catalogs]
     except Exception as e:
         raise HTTPException(
@@ -1984,7 +1984,7 @@ async def get_provider_model_catalog(
 ):
     """Retrieving a model directory of specified manufacturers"""
     try:
-        catalog = await config_service.get_provider_models(provider)
+        catalog = await CONFIG_SERVICE.get_provider_models(provider)
         if not catalog:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -2028,7 +2028,7 @@ async def save_model_catalog(
         )
         logger.info(f"Could not close temporary folder: %s")
 
-        success = await config_service.save_model_catalog(catalog)
+        success = await CONFIG_SERVICE.save_model_catalog(catalog)
         logger.info(f"Save results:{success}")
 
         if not success:
@@ -2064,7 +2064,7 @@ async def delete_model_catalog(
 ):
     """Remove model directory"""
     try:
-        success = await config_service.delete_model_catalog(provider)
+        success = await CONFIG_SERVICE.delete_model_catalog(provider)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -2096,7 +2096,7 @@ async def init_model_catalog(
 ):
     """Initialize the default model directory"""
     try:
-        success = await config_service.init_default_model_catalog()
+        success = await CONFIG_SERVICE.init_default_model_catalog()
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2122,7 +2122,7 @@ async def get_database_configs(
     """Get All Database Configurations"""
     try:
         logger.info("Can not open message")
-        configs = await config_service.get_database_configs()
+        configs = await CONFIG_SERVICE.get_database_configs()
         logger.info(f"Other Organiser{len(configs)}Database Configuration")
         return configs
     except Exception as e:
@@ -2141,7 +2141,7 @@ async def get_database_config(
     """Get specified database configuration"""
     try:
         logger.info(f"Access to database configurations:{db_name}")
-        config = await config_service.get_database_config(db_name)
+        config = await CONFIG_SERVICE.get_database_config(db_name)
 
         if not config:
             raise HTTPException(
@@ -2173,7 +2173,7 @@ async def add_database_config(
         db_config = DatabaseConfig(**request.model_dump())
 
         #Add Profile
-        success = await config_service.add_database_config(db_config)
+        success = await CONFIG_SERVICE.add_database_config(db_config)
 
         if not success:
             raise HTTPException(
@@ -2223,7 +2223,7 @@ async def update_database_config(
         db_config = DatabaseConfig(**request.model_dump())
 
         #Update Configuration
-        success = await config_service.update_database_config(db_config)
+        success = await CONFIG_SERVICE.update_database_config(db_config)
 
         if not success:
             raise HTTPException(
@@ -2262,7 +2262,7 @@ async def delete_database_config(
         logger.info(f"Delete database configuration:{db_name}")
 
         #Remove Configuration
-        success = await config_service.delete_database_config(db_name)
+        success = await CONFIG_SERVICE.delete_database_config(db_name)
 
         if not success:
             raise HTTPException(

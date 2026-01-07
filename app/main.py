@@ -174,8 +174,8 @@ async def _print_config_summary(logger):
 
         #Check large model configuration
         try:
-            from app.services.config_service import config_service
-            config = await config_service.get_system_config()
+            from app.services.config_service import CONFIG_SERVICE
+            config = await CONFIG_SERVICE.get_system_config_from_database()
             if config and config.llm_configs:
                 enabled_llms = [llm for llm in config.llm_configs if llm.enabled]
                 logger.info(f"Enabled LLMs: {len(enabled_llms)}")

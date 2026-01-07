@@ -23,9 +23,9 @@ async def test_mongodb_config():
     print("测试：从 MongoDB 读取模型配置")
     print("=" * 80)
     
-    from app.services.config_service import config_service
+    from app.services.config_service import CONFIG_SERVICE
     
-    system_config = await config_service.get_system_config()
+    system_config = await CONFIG_SERVICE.get_system_config_from_database()
     
     if not system_config:
         print("\n❌ 系统配置为空")

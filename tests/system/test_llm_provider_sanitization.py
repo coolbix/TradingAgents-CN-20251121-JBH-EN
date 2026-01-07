@@ -13,7 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.routers import config as config_router  # noqa: E402
 from app.routers.auth import get_current_user  # noqa: E402
 from app.models.user import User  # noqa: E402
-from app.services.config_service import config_service  # noqa: E402
+from app.services.config_service import CONFIG_SERVICE  # noqa: E402
 
 
 @pytest.fixture()
@@ -38,7 +38,7 @@ def test_add_llm_provider_sanitizes_api_key(monkeypatch, test_app: TestClient):
         captured["api_key"] = provider.api_key
         return "mock-id-123"
 
-    monkeypatch.setattr(config_service, "add_llm_provider", mock_add_llm_provider)
+    monkeypatch.setattr(CONFIG_SERVICE, "add_llm_provider", mock_add_llm_provider)
 
     payload = {
         "name": "openai",
@@ -71,7 +71,7 @@ def test_update_llm_provider_sanitizes_api_key(monkeypatch, test_app: TestClient
         captured["api_key"] = update_data.get("api_key")
         return True
 
-    monkeypatch.setattr(config_service, "update_llm_provider", mock_update_llm_provider)
+    monkeypatch.setattr(CONFIG_SERVICE, "update_llm_provider", mock_update_llm_provider)
 
     payload = {
         "name": "openai",

@@ -18,10 +18,10 @@ async def main():
     print("=" * 60)
     
     try:
-        from app.services.config_service import config_service
+        from app.services.config_service import CONFIG_SERVICE
         
         # 获取系统配置
-        config = await config_service.get_system_config()
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         
         if config:
             print(f"\n✅ 获取到配置，版本: {config.version}")

@@ -60,7 +60,7 @@ class ConfigManagerCompat:
         """
         try:
             #Try loading from the new configuration system
-            from app.services.config_service import config_service
+            from app.services.config_service import CONFIG_SERVICE
             
             #Run step code in sync context
             loop = asyncio.get_event_loop()
@@ -68,7 +68,7 @@ class ConfigManagerCompat:
                 #Returns the default if the event cycle is running
                 return self._get_default_settings()
             else:
-                config = loop.run_until_complete(config_service.get_system_config())
+                config = loop.run_until_complete(CONFIG_SERVICE.get_system_config_from_database())
                 if config and config.system_settings:
                     return config.system_settings
         except Exception:
@@ -87,7 +87,7 @@ class ConfigManagerCompat:
             Bool: Save successfully
         """
         try:
-            from app.services.config_service import config_service
+            from app.services.config_service import CONFIG_SERVICE
             
             loop = asyncio.get_event_loop()
             if loop.is_running():
@@ -96,7 +96,7 @@ class ConfigManagerCompat:
                 return False
             else:
                 loop.run_until_complete(
-                    config_service.update_system_settings(settings_dict)
+                    CONFIG_SERVICE.update_system_settings(settings_dict)
                 )
                 return True
         except Exception as e:
@@ -110,13 +110,13 @@ class ConfigManagerCompat:
             List [Dict [str, Any]: Model configuration list
         """
         try:
-            from app.services.config_service import config_service
+            from app.services.config_service import CONFIG_SERVICE
             
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 return []
             else:
-                config = loop.run_until_complete(config_service.get_system_config())
+                config = loop.run_until_complete(CONFIG_SERVICE.get_system_config_from_database())
                 if config and config.llm_configs:
                     return [
                         {

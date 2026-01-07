@@ -80,8 +80,8 @@ async def main():
     # 4. 检查配置
     print("\n4️⃣ 检查配置...")
     try:
-        from app.services.config_service import config_service
-        config = await config_service.get_system_config()
+        from app.services.config_service import CONFIG_SERVICE
+        config = await CONFIG_SERVICE.get_system_config_from_database()
         
         if config and config.system_settings:
             enable_cost_tracking = config.system_settings.get('enable_cost_tracking', True)

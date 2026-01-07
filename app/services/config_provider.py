@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 import os
 
-from app.services.config_service import config_service
+from app.services.config_service import CONFIG_SERVICE
 
 
 class ConfigProvider:
@@ -36,7 +36,7 @@ class ConfigProvider:
             return dict(self._cache_settings or {})
 
         # Load DB settings
-        cfg = await config_service.get_system_config()
+        cfg = await CONFIG_SERVICE.get_system_config_from_database()
         base: Dict[str, Any] = {}
         if cfg and getattr(cfg, "system_settings", None):
             try:
@@ -78,7 +78,7 @@ class ConfigProvider:
         - has_value: bool (effective value is not None/empty)
         """
         # Load DB settings raw
-        cfg = await config_service.get_system_config()
+        cfg = await CONFIG_SERVICE.get_system_config_from_database()
         db_settings: Dict[str, Any] = {}
         if cfg and getattr(cfg, "system_settings", None):
             try:

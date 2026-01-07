@@ -72,7 +72,7 @@ async def validate_config():
     """
     from app.core.startup_validator import StartupValidator
     from app.core.config_bridge import bridge_config_to_env
-    from app.services.config_service import config_service
+    from app.services.config_service import CONFIG_SERVICE
 
     try:
         #Step 1: Reload Configuration - Read configuration from MongoDB and receive environmental variables
@@ -173,7 +173,7 @@ async def validate_config():
                 get_env_api_key_for_datasource
             )
 
-            system_config = await config_service.get_system_config()
+            system_config = await CONFIG_SERVICE.get_system_config_from_database()
             if system_config and system_config.data_source_configs:
                 logger.info(f"Other Organiser{len(system_config.data_source_configs)}Data source configuration")
 

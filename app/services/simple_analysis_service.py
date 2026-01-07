@@ -60,7 +60,7 @@ async def get_provider_by_model_name(model_name: str) -> str:
     """
     try:
         #Get the system configuration from the configuration service
-        system_config = await config_service.get_system_config()
+        system_config = await config_service.get_system_config_from_database()
         if not system_config or not system_config.llm_configs:
             logger.warning(f"⚠️ System configuration empty with default vendor mapping")
             return _get_default_provider_by_model(model_name)
