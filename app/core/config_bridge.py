@@ -12,7 +12,14 @@ logger = logging.getLogger("app.config_bridge")
 
 
 def consolidate_configs_to_osenviron():
-    """Bring the unified configurations to os.environ[] variable
+    """Consolidate the unified configurations to os.environ[] variables.
+    Configuration Sources:
+    1. configuration in the database
+    2. .env file
+    3. JSON configuration files (config/models.json, config/settings.json)
+
+    NOTE: The Settings class @app/core/config.py reads .env file and
+          holds the env config values just in the own member variables, does NOT set OS.ENVIRON.
 
     This function will:
     1. Read LLM Provider configurations from the database (API keys, overtime, temperature, etc.)
@@ -50,53 +57,52 @@ def consolidate_configs_to_osenviron():
         bridged_count += 1
 
         #-------------------------------------------------------------------------------------------------
-        #1. Bridging LLM Provider configuration (basic API key)
+        #1. Consolidate 'API Key' of LLM Providers
         #-------------------------------------------------------------------------------------------------
-        #🔧 [Priority].env file > Database vendor configuration
-        #🔥 Modify: Read the plant configuration from llm providers in the database instead of from JSON files
-        #Use the configuration in the database only if the environment variable does not exist or is a placeholder
+        #🔧 [Priority] os.environ (by .env) > Database LLM Provider configuration
+        #    Use the API key configuration in the database only if the environment variable does not exist or is invalid (placeholder)
         try:
             #Read the LLM Provider configuration using the sync MongoDB client
             from pymongo import MongoClient
             from app.core.config import SETTINGS
             from app.models.config_models import LLMProvider
 
-            #Create a simultaneous MongoDB client
-            client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB_NAME]
-            providers_collection = db.llm_providers
+            #Create a synchronous MongoDB client
+            mongo_client = MongoClient(SETTINGS.MONGO_URI)
+            db = mongo_client[SETTINGS.MONGO_DB_NAME]
+            llm_providers_collection = db.llm_providers
 
             #Query All LLM Provider Configurations
-            providers_data = list(providers_collection.find())
-            providers = [LLMProvider(**data) for data in providers_data]
+            providers_data = list(llm_providers_collection.find())
+            llm_providers_in_db = [LLMProvider(**data) for data in providers_data]
 
-            logger.info(f"Read from the database: {len(providers)} LLM Providers Configuration")
+            logger.info(f"Read from the database: {len(llm_providers_in_db)} LLM Providers Configuration")
 
-            for provider in providers:
-                if not provider.is_active:
-                    logger.debug(f"The LLM Provider {provider.name}: Not enabled, Skip")
+            for llm_provider_in_db in llm_providers_in_db:
+                if not llm_provider_in_db.is_active:
+                    logger.info(f"The LLM Provider {llm_provider_in_db.name}: Not enabled, Skip")
                     continue
 
-                env_key = f"{provider.name.upper()}_API_KEY"
-                existing_env_value = os.getenv(env_key)
+                llm_provider_api_key_name = f"{llm_provider_in_db.name.upper()}_API_KEY"
+                osenviron_llm_provider_api_key_value = os.getenv(llm_provider_api_key_name)
 
-                #Check that environment variables exist and are valid (not placeholders)
-                if existing_env_value and not existing_env_value.startswith("your_"):
-                    logger.info(f"{env_key} in the .env file(Long:{len(existing_env_value)})")
+                if osenviron_llm_provider_api_key_value and not osenviron_llm_provider_api_key_value.startswith("your_"):
+                    # if os.environ[llm_api_key] is valid, just use it.
+                    logger.info(f"{llm_provider_api_key_name} is defined in os.environ, so will use it for now.")
                     bridged_count += 1
-                elif provider.api_key and not provider.api_key.startswith("your_"):
-                    #Use database configuration only when environment variables do not exist or are placeholders
-                    os.environ[env_key] = provider.api_key
-                    logger.info(f"Using database LLM Provider configurations {env_key}(Long:{len(provider.api_key)})")
-                    logger.info(f"The LLM Configuration in database is being used for {env_key}(Long:{len(provider.api_key)})")
+                elif llm_provider_in_db.api_key and not llm_provider_in_db.api_key.startswith("your_"):
+                    #if os.environ[llm_api_key] is not valid, then use the database api key configuration.
+                    os.environ[llm_provider_api_key_name] = llm_provider_in_db.api_key
+                    logger.info(f"{llm_provider_api_key_name} has not been defined in os.environ, so will use the one defined in the database for now.")
                     bridged_count += 1
                 else:
-                    logger.debug(f"  ⏭️  {env_key} No valid API Key configured")
+                    logger.info(f"  ⏭️  {llm_provider_api_key_name} No valid API Key configured")
 
             #Close Sync Client
-            client.close()
+            mongo_client.close()
 
         except Exception as e:
+            #JBH FIXME: consider deprecating this block.
             logger.error(f"Access to database configuration failed:{e}", exc_info=True)
             logger.warning("⚠️ will try to read configurations from JSON files as a backup scenario")
 
@@ -104,23 +110,24 @@ def consolidate_configs_to_osenviron():
             llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
             for llm_config in llm_configs:
                 #Now it's a string type. It's no longer an anemic.
-                env_key = f"{llm_config.provider.upper()}_API_KEY"
-                existing_env_value = os.getenv(env_key)
+                llm_provider_api_key_name = f"{llm_config.provider.upper()}_API_KEY"
+                osenviron_llm_provider_api_key_value = os.getenv(llm_provider_api_key_name)
 
                 #Check that environment variables exist and are valid (not placeholders)
-                if existing_env_value and not existing_env_value.startswith("your_"):
-                    logger.info(f"In the .env file{env_key}(Long:{len(existing_env_value)})")
+                if osenviron_llm_provider_api_key_value and not osenviron_llm_provider_api_key_value.startswith("your_"):
+                    logger.info(f"In the .env file{llm_provider_api_key_name}(Long:{len(osenviron_llm_provider_api_key_value)})")
                     bridged_count += 1
                 elif llm_config.enabled and llm_config.api_key:
                     #Use database configuration only when environment variables do not exist or are placeholders
                     if not llm_config.api_key.startswith("your_"):
-                        os.environ[env_key] = llm_config.api_key
-                        logger.info(f"✓ Using JSON Files{env_key}(Long:{len(llm_config.api_key)})")
+                        os.environ[llm_provider_api_key_name] = llm_config.api_key
+                        logger.info(f"✓ Using JSON Files{llm_provider_api_key_name}(Long:{len(llm_config.api_key)})")
                         bridged_count += 1
                     else:
-                        logger.warning(f"  ⚠️  {env_key}Placeholders in .env and JSON files. Skip")
+                        logger.warning(f"  ⚠️  {llm_provider_api_key_name}Placeholders in .env and JSON files. Skip")
                 else:
-                    logger.debug(f"  ⏭️  {env_key}Not configured")
+                    logger.debug(f"  ⏭️  {llm_provider_api_key_name}Not configured")
+
 
         #-------------------------------------------------------------------------------------------------
         #2. Bridge default model configuration
@@ -155,8 +162,8 @@ def consolidate_configs_to_osenviron():
             from app.models.config_models import SystemConfig
 
             #Create a simultaneous MongoDB client
-            client = MongoClient(SETTINGS.MONGO_URI)
-            db = client[SETTINGS.MONGO_DB_NAME]
+            mongo_client = MongoClient(SETTINGS.MONGO_URI)
+            db = mongo_client[SETTINGS.MONGO_DB_NAME]
             config_collection = db.system_configs
 
             #Query the latest system configuration
@@ -174,7 +181,7 @@ def consolidate_configs_to_osenviron():
                 data_source_configs = UNIFIED_CONFIG_MANAGER.get_data_source_configs()
 
             #Close Sync Client
-            client.close()
+            mongo_client.close()
 
         except Exception as e:
             logger.error(f"Access to data source configuration from database failed:{e}", exc_info=True)

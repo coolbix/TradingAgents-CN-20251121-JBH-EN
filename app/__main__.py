@@ -37,20 +37,19 @@ if sys.platform == 'win32':
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-#Check and print. Env files to load information
-def check_env_file():
-    """Check and print. Env files to load information"""
+def check_env_file_existence():
+    """Check .env files existence. Verify the validity of the .env file"""
     import logging
     logger = logging.getLogger("app.startup")
     
-    logger.info("Check the environment profile...")
+    logger.info("Check .env files existence...")
 
     #Check Current Working Directory
     current_dir = Path.cwd()
-    logger.info(f"Current working directory:{current_dir}")
+    #logger.info(f"Current working directory:{current_dir}")
 
     #Check project root directory
-    logger.info(f"Project Root Directory:{project_root}")
+    #logger.info(f"Project Root Directory:{project_root}")
     
     #Check for possible .env file locations (in order of priority)
     env_locations = [
@@ -64,28 +63,28 @@ def check_env_file():
     for env_path in env_locations:
         if env_path.exists():
             if not env_found:  #Show only first found file details
-                logger.info(f"Found .env files:{env_path}")
-                logger.info(f"File size:{env_path.stat().st_size} bytes")
+                logger.info(f"Found .env file:{env_path}")
+                #logger.info(f"File size:{env_path.stat().st_size} bytes")
                 env_found = True
 
-                #Read and display parts (hidden sensitive information)
-                try:
-                    with open(env_path, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                    logger.info(f"📄.env document preview{len(lines)}Line:")
-                    for i, line in enumerate(lines[:10]):  #Show top 10 lines only
-                        line = line.strip()
-                        if line and not line.startswith('#'):
-                            #Hide Sensitive Information
-                            if any(keyword in line.upper() for keyword in ['SECRET', 'PASSWORD', 'TOKEN', 'KEY']):
-                                key = line.split('=')[0] if '=' in line else line
-                                logger.info(f"  {key}=***")
-                            else:
-                                logger.info(f"  {line}")
-                    if len(lines) > 10:
-                        logger.info(f"And...{len(lines) - 10}All right.")
-                except Exception as e:
-                    logger.warning(f"Error reading.env file:{e}")
+                #JBH TOBEDEL  #Read and display parts
+                #JBH TOBEDEL  try:
+                #JBH TOBEDEL      with open(env_path, 'r', encoding='utf-8') as f:
+                #JBH TOBEDEL          lines = f.readlines()
+                #JBH TOBEDEL      #logger.info(f"📄.env lines: {len(lines)}")
+                #JBH TOBEDEL      for i, line in enumerate(lines[:10]):  #Show top 10 lines only
+                #JBH TOBEDEL          line = line.strip()
+                #JBH TOBEDEL          if line and not line.startswith('#'):
+                #JBH TOBEDEL              #Hide Sensitive Information
+                #JBH TOBEDEL              if any(keyword in line.upper() for keyword in ['SECRET', 'PASSWORD', 'TOKEN', 'KEY']):
+                #JBH TOBEDEL                  key = line.split('=')[0] if '=' in line else line
+                #JBH TOBEDEL                  logger.debug(f"  {key}=***")
+                #JBH TOBEDEL              else:
+                #JBH TOBEDEL                  logger.debug(f"  {line}")
+                #JBH TOBEDEL      if len(lines) > 10:
+                #JBH TOBEDEL          logger.info(f"And...{len(lines) - 10} All right.")
+                #JBH TOBEDEL  except Exception as e:
+                #JBH TOBEDEL      logger.warning(f"Error reading.env file:{e}")
             else:
                 #If one is found, only other locations are recorded and there are files (possibly repeated)
                 logger.debug(f".env files:{env_path}")
@@ -94,7 +93,7 @@ def check_env_file():
         logger.warning("⚠️ No. env files found, using default configuration")
         logger.info(f"💡 Hint: Please be at the root of the item(s){project_root}Create .env files")
     
-    logger.info("-" * 50)
+    #logger.info("-" * 50)
 
 try:
     from app.core.config import SETTINGS
@@ -123,7 +122,7 @@ def main():
     except Exception:
         #Back to development environment simplified log configuration
         DEVELOP_CONFIG.setup_logging(SETTINGS.DEBUG)
-    print("Log configuration complete")
+    #print("Log configuration complete")
 
     import logging
     logger = logging.getLogger("app.startup")
@@ -156,7 +155,7 @@ def main():
         status = "✅ 已设置" if current_value != default_value else "⚠️ 默认值"
         logger.info(f"  {env_name}: {current_value} ({status})")
     
-    logger.info("-" * 50)
+    #logger.info("-" * 50)
 
     #JBH TOBEDEL  #Can not open message ??
     #JBH TOBEDEL  uvicorn_config = DEVELOP_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
@@ -172,8 +171,8 @@ def main():
     #JBH TOBEDEL  logger.info("Log configuration complete")
 
     #Check .env files after initialization of log system
-    logger.info("📋 Configuration Loading Phase:")
-    check_env_file()
+    #logger.info("📋 Configuration Loading Phase:")
+    check_env_file_existence()
 
     try:
         uvicorn.run(

@@ -17,7 +17,7 @@ from app.models.config_models import (
 
 
 @dataclass
-class ConfigPaths:
+class UnifiedConfigJsonPaths:
     """Profile Path"""
     root_config_dir: Path = Path("config")
     tradingagents_config_dir: Path = Path("tradingagents/config")
@@ -32,9 +32,15 @@ class ConfigPaths:
 
 class UnifiedConfigManager:
     """Unified Configuration Manager"""
+    # a config manager reading and writing the json config files (config/*.json).
+    #   - config/models.json
+    #   - config/settings.json
+    # It provides methods to get and set configurations in a unified way.
+
+    #JBH FIXME: consider consolidating those json config files with .env and unuse UnifiedConfigManager
     
     def __init__(self):
-        self.paths = ConfigPaths()
+        self.paths = UnifiedConfigJsonPaths()
         self._cache = {}
         self._last_modified = {}
         
@@ -90,11 +96,11 @@ class UnifiedConfigManager:
     #== sync, corrected by elderman == @elder man
     
     def get_legacy_models(self) -> List[Dict[str, Any]]:
-        """Get a model configuration for the traditional format"""
+        """Get a model configuration from config/models.json in legacy format"""
         return self._load_json_file(self.paths.models_json, "models")
     
     def get_llm_configs(self) -> List[LLMConfig]:
-        """Get standardized LLM configuration"""
+        """Get standardized LLM configuration from traditional format (config/models.json)"""
         legacy_models = self.get_legacy_models()
         llm_configs = []
 
@@ -160,7 +166,7 @@ class UnifiedConfigManager:
     #== sync, corrected by elderman == @elder man
     
     def get_system_settings(self) -> Dict[str, Any]:
-        """Get System Settings"""
+        """Get system settings from config/settings.json"""
         return self._load_json_file(self.paths.settings_json, "settings")
     
     def save_system_settings(self, settings: Dict[str, Any]) -> bool:
@@ -494,6 +500,8 @@ class UnifiedConfigManager:
             print(f"同步配置到传统格式失败: {e}")
             return False
 
+# a config manager reading and writing the json config files (config/*.json).
+#   - config/models.json
+#   - config/settings.json
+UNIFIED_CONFIG_MANAGER = UnifiedConfigManager()  #Create global instance
 
-#Create global instance
-UNIFIED_CONFIG_MANAGER = UnifiedConfigManager()

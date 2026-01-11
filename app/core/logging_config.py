@@ -400,18 +400,19 @@ def setup_logging(log_level: str = "INFO"):
 
             print(f"✅ [setup_logging] dictConfig 应用成功")
 
-            logging.getLogger("webapi").info(f"Logging configured from {logging_cfg_path}")
+            logging.getLogger("app.core").info(f"Logging configured from {logging_cfg_path}")
+            logging.getLogger("app.core").info(f"Logs directory: {str(Path(file_dir))}")
 
-            #Test whether the main log file is written
-            if main_enabled:
-                test_logger = logging.getLogger("tradingagents")
-                test_logger.info(f"🔍 Test Master Log files to write:{main_log}")
-                print(f"🔍 [setup_logging] 已向 tradingagents logger 写入测试日志")
+            #JBH TOBEDEL  #Test whether the main log file is written
+            #JBH TOBEDEL  if main_enabled:
+            #JBH TOBEDEL      test_logger = logging.getLogger("tradingagents")
+            #JBH TOBEDEL      test_logger.info(f"🔍 Test Master Log files to write:{main_log}")
+            #JBH TOBEDEL      print(f"🔍 [setup_logging] 已向 tradingagents logger 写入测试日志")
 
             return
     except Exception as e:
         #TOML exists but loading failed. Back to default configuration
-        logging.getLogger("webapi").warning(f"Failed to load logging.toml, fallback to defaults: {e}")
+        logging.getLogger("app.core").warning(f"Failed to load logging.toml, fallback to defaults: {e}")
 
     #2) Default built-in configuration (same)
     log_dir = Path("logs")
@@ -484,4 +485,4 @@ def setup_logging(log_level: str = "INFO"):
     }
 
     logging.config.dictConfig(logging_config)
-    logging.getLogger("webapi").info("Logging configured successfully (built-in)")
+    logging.getLogger("app.core").info("Logging configured successfully (built-in)")
