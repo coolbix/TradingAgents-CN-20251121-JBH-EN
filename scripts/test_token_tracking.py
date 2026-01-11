@@ -28,7 +28,7 @@ async def main():
     # 2. 创建测试使用记录
     print("\n2️⃣ 创建测试使用记录...")
     from app.services.usage_statistics_service import UsageStatisticsService
-    from app.models.config import UsageRecordModel
+    from app.models.config_models import UsageRecordModel
     
     usage_service = UsageStatisticsService()
     

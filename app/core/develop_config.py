@@ -6,7 +6,7 @@ import logging
 from typing import List, Optional
 
 
-class DevConfig:
+class DevelopConfig:
     """Develop Environmental Configuration Category"""
     
     #File Monitor Configuration
@@ -139,4 +139,4 @@ class DevConfig:
 
 
 #Develop Environment Shortcut
-DEV_CONFIG = DevConfig()
+DEVELOP_CONFIG = DevelopConfig()

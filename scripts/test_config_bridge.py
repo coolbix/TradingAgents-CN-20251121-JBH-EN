@@ -55,8 +55,8 @@ async def test_config_bridge():
     
     # 3. 执行配置桥接
     print("\n3️⃣ 执行配置桥接...")
-    from app.core.config_bridge import bridge_config_to_env
-    success = bridge_config_to_env()
+    from app.core.config_bridge import consolidate_configs_to_osenviron
+    success = consolidate_configs_to_osenviron()
     
     if not success:
         print("❌ 配置桥接失败")

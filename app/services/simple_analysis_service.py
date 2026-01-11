@@ -20,11 +20,11 @@ init_logging()
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
-from app.models.analysis import (
+from app.models.analysis_models import (
     AnalysisTask, AnalysisStatus, SingleAnalysisRequest, AnalysisParameters
 )
 from app.models.user import PyObjectId
-from app.models.notification import NotificationCreate
+from app.models.notification_models import NotificationCreate
 from bson import ObjectId
 from app.core.database import get_mongo_db_async
 from app.services.config_service import ConfigService

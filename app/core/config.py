@@ -20,6 +20,10 @@ for _legacy, _new in _LEGACY_ENV_ALIASES.items():
         )
 
 class Settings(BaseSettings):
+    # PyDantic BaseSettings for application configurations
+    # filled from ".env" file.
+    # NOTE: Settings holds the env config values just in the own member variables, does NOT set OS.ENVIRON.
+
     #Basic Configuration
     DEBUG: bool = Field(default=True)
     HOST: str = Field(default="0.0.0.0")
@@ -281,9 +285,12 @@ class Settings(BaseSettings):
         """Production environment"""
         return not self.DEBUG
 
-    # Ignore any extra environment variables present in .env or process env
+    # Pydantic v2’s settings configuration object for BaseSettings:
+    #   - Loads values from ".env" automatically, using UTF‑8.
+    #   - Ignores unknown env vars (extra="ignore"), so stray keys won’t error.
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
+# NOTE: Settings holds the env config values just in the own member variables, does NOT set OS.ENVIRON.
 SETTINGS = Settings()
 
 #Automatically set proxy configuration to environment variable

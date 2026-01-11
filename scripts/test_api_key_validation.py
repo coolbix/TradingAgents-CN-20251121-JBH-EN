@@ -12,12 +12,12 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.startup_validator import StartupValidator
+from app.core.startup_validator import StartupConfigValidator
 
 
 def test_api_key_validation():
     """测试 API Key 验证逻辑"""
-    validator = StartupValidator()
+    validator = StartupConfigValidator()
     
     # 测试用例
     test_cases = [

@@ -11,7 +11,7 @@ from bson import ObjectId
 
 from app.core.database import get_mongo_db_async
 from app.core.unified_config import UNIFIED_CONFIG_MANAGER
-from app.models.config import (
+from app.models.config_models import (
     SystemConfig, LLMConfig, DataSourceConfig, DatabaseConfig,
     ModelProvider, DataSourceType, DatabaseType, LLMProvider,
     MarketCategory, DataSourceGrouping, ModelCatalog, ModelInfo

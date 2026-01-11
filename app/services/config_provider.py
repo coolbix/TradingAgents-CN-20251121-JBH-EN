@@ -117,5 +117,5 @@ class ConfigProvider:
 
 
 # Module-level singleton
-provider = ConfigProvider(ttl_seconds=60)
+CONFIG_PROVIDER = ConfigProvider(ttl_seconds=60)
 

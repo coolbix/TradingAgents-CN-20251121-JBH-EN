@@ -22,7 +22,7 @@ async def test_screening_fields():
         # 导入服务
         from app.core.database import init_database_async
         from app.services.database_screening_service import get_database_screening_service
-        from app.models.screening import ScreeningCondition, OperatorType
+        from app.models.screening_models import ScreeningCondition, OperatorType
         
         # 初始化数据库
         await init_database_async()

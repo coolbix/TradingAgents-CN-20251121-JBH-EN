@@ -18,7 +18,7 @@ from unittest.mock import Mock, patch, AsyncMock
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.core.startup_validator import (
-    StartupValidator,
+    StartupConfigValidator,
     ConfigItem,
     ConfigLevel,
     ValidationResult,
@@ -60,7 +60,7 @@ class TestStartupValidator:
     @patch.dict(os.environ, {}, clear=True)
     def test_validate_missing_required_configs(self):
         """测试缺少必需配置的验证"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         result = validator.validate()
         
         assert result.success is False
@@ -82,7 +82,7 @@ class TestStartupValidator:
     })
     def test_validate_with_required_configs(self):
         """测试有必需配置的验证"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         result = validator.validate()
         
         assert result.success is True
@@ -98,7 +98,7 @@ class TestStartupValidator:
     })
     def test_validate_invalid_port(self):
         """测试无效端口验证"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         result = validator.validate()
         
         assert result.success is False
@@ -114,7 +114,7 @@ class TestStartupValidator:
     })
     def test_validate_short_jwt_secret(self):
         """测试过短的 JWT 密钥"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         result = validator.validate()
         
         assert result.success is False
@@ -130,7 +130,7 @@ class TestStartupValidator:
     })
     def test_validate_default_jwt_secret_warning(self):
         """测试使用默认 JWT 密钥时的警告"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         result = validator.validate()
         
         assert result.success is True
@@ -147,7 +147,7 @@ class TestStartupValidator:
     })
     def test_validate_missing_recommended_configs(self):
         """测试缺少推荐配置"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         result = validator.validate()
         
         assert result.success is True
@@ -160,7 +160,7 @@ class TestStartupValidator:
     @patch.dict(os.environ, {}, clear=True)
     def test_raise_if_failed(self):
         """测试验证失败时抛出异常"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         validator.validate()
         
         with pytest.raises(ConfigurationError):
@@ -176,7 +176,7 @@ class TestStartupValidator:
     })
     def test_raise_if_failed_success(self):
         """测试验证成功时不抛出异常"""
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         validator.validate()
         
         # 不应该抛出异常

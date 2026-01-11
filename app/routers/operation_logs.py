@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from app.routers.auth_db import get_current_user
 from app.services.operation_log_service import get_operation_log_service
-from app.models.operation_log import (
+from app.models.operationlog_models import (
     OperationLogQuery,
     OperationLogListResponse,
     OperationLogStatsResponse,

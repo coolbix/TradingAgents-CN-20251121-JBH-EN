@@ -24,7 +24,7 @@ async def task_progress_generator(task_id: str, user_id: str):
     try:
         # Load dynamic SSE settings
         try:
-            from app.services.config_provider import provider as config_provider
+            from app.services.config_provider import CONFIG_PROVIDER as config_provider
             eff = await config_provider.get_effective_system_settings()
             poll_timeout = float(eff.get("sse_poll_timeout_seconds", 1.0))
             heartbeat_every = int(eff.get("sse_heartbeat_interval_seconds", 10))
@@ -117,7 +117,7 @@ async def batch_progress_generator(batch_id: str, user_id: str):
     try:
         # Load dynamic SSE settings for batch stream
         try:
-            from app.services.config_provider import provider as config_provider
+            from app.services.config_provider import CONFIG_PROVIDER as config_provider
             eff = await config_provider.get_effective_system_settings()
             batch_poll_interval = float(eff.get("sse_batch_poll_interval_seconds", 2))
             batch_max_idle_seconds = int(eff.get("sse_batch_max_idle_seconds", 600))

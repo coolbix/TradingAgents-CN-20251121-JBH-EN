@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 from dotenv import load_dotenv
 load_dotenv(project_root / ".env")
 
-from app.core.startup_validator import StartupValidator
+from app.core.startup_validator import StartupConfigValidator
 
 
 def test_env_validation():
@@ -38,7 +38,7 @@ def test_env_validation():
         ("TUSHARE_TOKEN", "Tushare Token"),
     ]
     
-    validator = StartupValidator()
+    validator = StartupConfigValidator()
     
     print("\n📋 环境变量中的 API Key 状态:")
     print("-" * 80)

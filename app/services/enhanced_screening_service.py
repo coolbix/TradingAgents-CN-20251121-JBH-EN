@@ -7,7 +7,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 
-from app.models.screening import ScreeningCondition, FieldType, BASIC_FIELDS_INFO
+from app.models.screening_models import ScreeningCondition, FieldType, BASIC_FIELDS_INFO
 from app.services.database_screening_service import get_database_screening_service
 from app.services.screening_service import ScreeningService, ScreeningParams
 

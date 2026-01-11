@@ -22,7 +22,7 @@ init_logging()
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 from app.services.simple_analysis_service import create_analysis_config, get_provider_by_model_name
-from app.models.analysis import (
+from app.models.analysis_models import (
     AnalysisParameters, AnalysisResult, AnalysisTask, AnalysisBatch,
     AnalysisStatus, BatchStatus, SingleAnalysisRequest, BatchAnalysisRequest
 )
@@ -33,10 +33,10 @@ from app.core.redis_client import get_redis_service, RedisKeys
 from app.services.queue_service import QueueService
 from app.core.database import get_redis_client_async
 from app.services.redis_progress_tracker import RedisProgressTracker
-from app.services.config_provider import provider as config_provider
+from app.services.config_provider import CONFIG_PROVIDER as config_provider
 from app.services.queue import DEFAULT_USER_CONCURRENT_LIMIT, GLOBAL_CONCURRENT_LIMIT, VISIBILITY_TIMEOUT_SECONDS
 from app.services.usage_statistics_service import UsageStatisticsService
-from app.models.config import UsageRecord
+from app.models.config_models import UsageRecord
 
 import logging
 logger = logging.getLogger(__name__)

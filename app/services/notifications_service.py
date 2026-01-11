@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from bson import ObjectId
 
 from app.core.database import get_mongo_db_async, get_redis_client_async
-from app.models.notification import (
+from app.models.notification_models import (
     NotificationCreate, NotificationOut, NotificationList
 )
 from app.utils.timezone import now_tz

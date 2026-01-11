@@ -22,7 +22,7 @@ async def test_field_config_api():
     try:
         # 导入必要的模块
         from app.core.database import init_database_async
-        from app.models.screening import BASIC_FIELDS_INFO
+        from app.models.screening_models import BASIC_FIELDS_INFO
         
         # 初始化数据库
         await init_database_async()

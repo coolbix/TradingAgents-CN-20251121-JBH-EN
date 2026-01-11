@@ -113,7 +113,7 @@ async def main():
     print("\n6️⃣ 测试添加使用记录...")
     try:
         from app.services.usage_statistics_service import UsageStatisticsService
-        from app.models.config import UsageRecordModel
+        from app.models.config_models import UsageRecordModel
         
         usage_service = UsageStatisticsService()
         

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from app.routers.auth_db import get_current_user
 from app.models.user import User
-from app.models.config import (
+from app.models.config_models import (
     SystemConfigResponse, LLMConfigRequest, DataSourceConfigRequest,
     DatabaseConfigRequest, ConfigTestRequest, ConfigTestResponse,
     LLMConfig, DataSourceConfig, DatabaseConfig,
@@ -22,8 +22,8 @@ from datetime import datetime
 from app.utils.timezone import now_tz
 
 from app.services.operation_log_service import log_operation
-from app.models.operation_log import ActionType
-from app.services.config_provider import provider as config_provider
+from app.models.operationlog_models import ActionType
+from app.services.config_provider import CONFIG_PROVIDER as config_provider
 
 
 

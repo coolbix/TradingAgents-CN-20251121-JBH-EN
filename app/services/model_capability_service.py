@@ -119,7 +119,7 @@ class ModelCapabilityService:
         try:
             from pymongo import MongoClient
             from app.core.config import SETTINGS
-            from app.models.config import SystemConfig
+            from app.models.config_models import SystemConfig
 
             #Use sync MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)

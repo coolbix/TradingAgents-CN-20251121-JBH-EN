@@ -31,7 +31,7 @@ load_dotenv()
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.config import SETTINGS
-from app.models.config import ModelProvider, DataSourceType
+from app.models.config_models import ModelProvider, DataSourceType
 
 
 class ConfigMigrator:

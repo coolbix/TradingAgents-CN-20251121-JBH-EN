@@ -223,6 +223,9 @@ async def lifespan(app: FastAPI):
     #-----------------------------------------------------------------------------------------------------
     try:
         from app.core.startup_validator import validate_startup_config
+        # validate startup configuration
+        #   Required Configs: MONGODB, REDIS, JWT
+        #   Optional Configs: API Keys for DEEPSEEK, DASHSCOPE, TUSHARE
         validate_startup_config()
     except Exception as e:
         logger.error(f"Configure authentication failed:{e}")
@@ -234,8 +237,8 @@ async def lifespan(app: FastAPI):
     #Configure Bridges: Write Unified Configurations to Environmental Variables for TradingAgents Core Library
     #-----------------------------------------------------------------------------------------------------
     try:
-        from app.core.config_bridge import bridge_config_to_env
-        bridge_config_to_env()
+        from app.core.config_bridge import consolidate_configs_to_osenviron
+        consolidate_configs_to_osenviron()
     except Exception as e:
         logger.warning(f"The bridge failed:{e}")
         logger.warning("⚠️ TradingAgents will use configurations in .env files")
@@ -244,7 +247,7 @@ async def lifespan(app: FastAPI):
     # Apply dynamic settings (log_level, enable_monitoring) from ConfigProvider
     #-----------------------------------------------------------------------------------------------------
     try:
-        from app.services.config_provider import provider as config_provider  # local import to avoid early DB init issues
+        from app.services.config_provider import CONFIG_PROVIDER as config_provider  # local import to avoid early DB init issues
         eff = await config_provider.get_effective_system_settings()
         desired_level = str(eff.get("log_level", "INFO")).upper()
         setup_logging(log_level=desired_level)
@@ -567,8 +570,8 @@ async def lifespan(app: FastAPI):
             """Run NewsSync Tasks - Sync Self-Selected Unit News with AKShare"""
             try:
                 logger.info("Starting news synchronisation.")
-                service = await get_akshare_sync_service()
-                result = await service.sync_news_data(
+                akshare_sync_service = await get_akshare_sync_service()
+                result = await akshare_sync_service.sync_news_data(
                     symbols=None,  #None + options only=True
                     max_news_per_stock=SETTINGS.NEWS_SYNC_MAX_PER_SOURCE,
                     favorites_only=True  #Synchronization of selected units only

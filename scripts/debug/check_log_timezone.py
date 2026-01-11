@@ -23,7 +23,7 @@ async def check_log_timezone():
         # 导入数据库模块
         from app.core.database import init_database_async, get_mongo_db_async
         from app.services.operation_log_service import log_operation
-        from app.models.operation_log import ActionType
+        from app.models.operationlog_models import ActionType
         
         # 初始化数据库
         await init_database_async()
@@ -107,7 +107,7 @@ async def check_log_timezone():
         # 测试API返回的格式
         print("\n🌐 测试API返回格式:")
         from app.services.operation_log_service import get_operation_log_service
-        from app.models.operation_log import OperationLogQuery
+        from app.models.operationlog_models import OperationLogQuery
         
         service = get_operation_log_service()
         query = OperationLogQuery(page=1, page_size=1)

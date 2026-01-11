@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Optional
 from collections import defaultdict
 
 from app.core.database import get_mongo_db_async
-from app.models.config import UsageRecord, UsageStatistics
+from app.models.config_models import UsageRecord, UsageStatistics
 
 logger = logging.getLogger("app.services.usage_statistics_service")
 

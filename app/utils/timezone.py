@@ -14,7 +14,7 @@ def get_tz_name() -> str:
     """
     try:
         # Lazy import to avoid circular imports
-        from app.services.config_provider import provider as cfgprov  # type: ignore
+        from app.services.config_provider import CONFIG_PROVIDER as cfgprov  # type: ignore
         cached = getattr(cfgprov, "_cache_settings", None)
         if isinstance(cached, dict):
             tz = cached.get("app_timezone") or cached.get("APP_TIMEZONE")

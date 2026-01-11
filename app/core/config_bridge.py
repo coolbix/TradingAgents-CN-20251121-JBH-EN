@@ -11,8 +11,8 @@ from typing import Optional
 logger = logging.getLogger("app.config_bridge")
 
 
-def bridge_config_to_env():
-    """Bring the unified configuration bridge to the environment variable
+def consolidate_configs_to_osenviron():
+    """Bring the unified configurations to os.environ[] variable
 
     This function will:
     1. Read LLM Provider configurations from the database (API keys, overtime, temperature, etc.)
@@ -27,14 +27,13 @@ def bridge_config_to_env():
         from app.core.unified_config import UNIFIED_CONFIG_MANAGER
         from app.services.config_service import CONFIG_SERVICE
 
-        logger.info("Commencing bridge configuration to environment variable...")
+        logger.info("Consolidating configurations to OS_ENVIRONMENT...")
         bridged_count = 0
 
-        #Force MongoDB storage (for Token use statistics)
-        #Read configuration from .env file, and enable default if not set
+        #Force to use MongoDB storage (tradingagents.token_usage) to store the LLM token usage statistics
         use_mongodb_storage = os.getenv("USE_MONGODB_STORAGE", "true")
         os.environ["USE_MONGODB_STORAGE"] = use_mongodb_storage
-        logger.info(f"== sync, corrected by elderman =={use_mongodb_storage}")
+        #logger.info(f"== sync, corrected by elderman =={use_mongodb_storage}")
         bridged_count += 1
 
         #Bridge MongoDB Connection String
@@ -47,7 +46,7 @@ def bridge_config_to_env():
         #Bridge MongoDB Database Name
         mongodb_db_name = os.getenv("MONGODB_DATABASE_NAME", "tradingagents")
         os.environ["MONGODB_DATABASE_NAME"] = mongodb_db_name
-        logger.info(f"== sync, corrected by elderman == @elder man{mongodb_db_name}")
+        #logger.info(f"== sync, corrected by elderman == @elder man{mongodb_db_name}")
         bridged_count += 1
 
         #-------------------------------------------------------------------------------------------------
@@ -60,7 +59,7 @@ def bridge_config_to_env():
             #Read the LLM Provider configuration using the sync MongoDB client
             from pymongo import MongoClient
             from app.core.config import SETTINGS
-            from app.models.config import LLMProvider
+            from app.models.config_models import LLMProvider
 
             #Create a simultaneous MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)
@@ -71,7 +70,7 @@ def bridge_config_to_env():
             providers_data = list(providers_collection.find())
             providers = [LLMProvider(**data) for data in providers_data]
 
-            logger.info(f"Read from the database: {len(providers)}LLM Providers Configuration")
+            logger.info(f"Read from the database: {len(providers)} LLM Providers Configuration")
 
             for provider in providers:
                 if not provider.is_active:
@@ -153,7 +152,7 @@ def bridge_config_to_env():
             #Use sync MongoDB client reading system configuration
             from pymongo import MongoClient
             from app.core.config import SETTINGS
-            from app.models.config import SystemConfig
+            from app.models.config_models import SystemConfig
 
             #Create a simultaneous MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)
@@ -592,7 +591,7 @@ def reload_bridged_config():
     """
     logger.info("Reload the configuration bridge...")
     clear_bridged_config()
-    return bridge_config_to_env()
+    return consolidate_configs_to_osenviron()
 
 
 def _sync_pricing_config(llm_configs):
@@ -676,7 +675,7 @@ async def _sync_pricing_config_from_db():
     """
     try:
         from app.core.database import get_mongo_db_async
-        from app.models.config import LLMConfig
+        from app.models.config_models import LLMConfig
 
         db = get_mongo_db_async()
 
@@ -731,7 +730,7 @@ async def _sync_pricing_config_from_db():
 
 #Export Functions
 __all__ = [
-    'bridge_config_to_env',
+    'consolidate_configs_to_osenviron',
     'get_bridged_api_key',
     'get_bridged_model',
     'clear_bridged_config',

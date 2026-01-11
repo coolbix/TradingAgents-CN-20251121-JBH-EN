@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 
 from app.core.database import get_mongo_db_async
 from app.core.redis_client import get_redis_service, RedisKeys
-from app.models.analysis import AnalysisStatus, AnalysisResult
+from app.models.analysis_models import AnalysisStatus, AnalysisResult
 
 
 async def perform_update_task_status(

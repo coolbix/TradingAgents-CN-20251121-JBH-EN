@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from bson import ObjectId
 
 from app.core.database import get_mongo_db_async
-from app.models.operation_log import (
+from app.models.operationlog_models import (
     OperationLogCreate,
     OperationLogResponse,
     OperationLogQuery,

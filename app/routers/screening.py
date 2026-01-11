@@ -7,7 +7,7 @@ from app.routers.auth_db import get_current_user
 
 from app.services.screening_service import ScreeningService, ScreeningParams
 from app.services.enhanced_screening_service import get_enhanced_screening_service
-from app.models.screening import (
+from app.models.screening_models import (
     ScreeningCondition, ScreeningRequest as NewScreeningRequest,
     ScreeningResponse as NewScreeningResponse, FieldInfo, BASIC_FIELDS_INFO
 )

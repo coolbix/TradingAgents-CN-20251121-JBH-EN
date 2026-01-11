@@ -30,7 +30,7 @@ def test_config_settings_contains_ta_keys(app_client_config: TestClient, monkeyp
             "ta_google_news_sleep_min_seconds": 1.5,
         }
 
-    monkeypatch.setattr(cfgprov.provider, "get_effective_system_settings", _fake_eff)
+    monkeypatch.setattr(cfgprov.CONFIG_PROVIDER, "get_effective_system_settings", _fake_eff)
 
     resp = app_client_config.get("/api/config/settings")
     assert resp.status_code == 200, resp.text
@@ -52,7 +52,7 @@ def test_runtime_settings_priority_db_env_default(monkeypatch):
     async def _fake_eff_db():
         return {"ta_us_min_api_interval_seconds": 0.25}
 
-    monkeypatch.setattr(cfgprov.provider, "get_effective_system_settings", _fake_eff_db)
+    monkeypatch.setattr(cfgprov.CONFIG_PROVIDER, "get_effective_system_settings", _fake_eff_db)
 
     # DB should override ENV and default
     v_db = rs.get_float("TA_US_MIN_API_INTERVAL_SECONDS", "ta_us_min_api_interval_seconds", 1.0)
@@ -62,7 +62,7 @@ def test_runtime_settings_priority_db_env_default(monkeypatch):
     async def _fake_eff_empty():
         return {}
 
-    monkeypatch.setattr(cfgprov.provider, "get_effective_system_settings", _fake_eff_empty)
+    monkeypatch.setattr(cfgprov.CONFIG_PROVIDER, "get_effective_system_settings", _fake_eff_empty)
     v_env = rs.get_float("TA_US_MIN_API_INTERVAL_SECONDS", "ta_us_min_api_interval_seconds", 1.0)
     assert abs(v_env - 3.0) < 1e-9
 

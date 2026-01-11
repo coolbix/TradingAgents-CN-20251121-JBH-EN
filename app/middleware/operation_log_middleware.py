@@ -10,7 +10,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.services.operation_log_service import log_operation
-from app.models.operation_log import ActionType
+from app.models.operationlog_models import ActionType
 
 logger = logging.getLogger("webapi")
 

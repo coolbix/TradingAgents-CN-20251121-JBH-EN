@@ -28,7 +28,7 @@ load_dotenv()
 async def test_add_provider_with_key():
     """测试添加厂家并配置 API Key"""
     from app.services.config_service import ConfigService
-    from app.models.config import LLMProviderModel
+    from app.models.config_models import LLMProviderModel
     from app.core.database import init_database_async
     
     # 初始化数据库

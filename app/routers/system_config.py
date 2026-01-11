@@ -70,20 +70,20 @@ async def validate_config():
 
     Note: This interface is first configured from MongoDB to the environment variable before validation.
     """
-    from app.core.startup_validator import StartupValidator
-    from app.core.config_bridge import bridge_config_to_env
+    from app.core.startup_validator import StartupConfigValidator
+    from app.core.config_bridge import consolidate_configs_to_osenviron
     from app.services.config_service import CONFIG_SERVICE
 
     try:
         #Step 1: Reload Configuration - Read configuration from MongoDB and receive environmental variables
         try:
-            bridge_config_to_env()
+            consolidate_configs_to_osenviron()
             logger.info("✅ Configuration Reloads from MongoDB to environment variable")
         except Exception as e:
             logger.warning(f"Reloading failed:{e}, the configuration of the .env file will be verified")
 
         #Step 2: Verify Environmental Variable Configuration
-        validator = StartupValidator()
+        validator = StartupConfigValidator()
         env_result = validator.validate()
 
         #Step 3: Validation of the configuration in MongoDB (plant level)
@@ -103,7 +103,7 @@ async def validate_config():
             #Get llm providers() gives the environment variable Key value to provider.api key, making it impossible to distinguish between sources
             from pymongo import MongoClient
             from app.core.config import SETTINGS
-            from app.models.config import LLMProvider
+            from app.models.config_models import LLMProvider
 
             #Create a simultaneous MongoDB client
             client = MongoClient(SETTINGS.MONGO_URI)

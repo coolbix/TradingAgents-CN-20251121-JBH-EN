@@ -132,13 +132,13 @@ def setup_logging(log_level: str = "INFO"):
     _install_classname_record_factory()
     #1) Priority if TOML configuration exists and is parsable
     try:
-        cfg_path = resolve_logging_cfg_path()
-        print(f"🔍 [setup_logging] 日志配置文件路径: {cfg_path}")
-        print(f"🔍 [setup_logging] 配置文件存在: {cfg_path.exists()}")
+        logging_cfg_path = resolve_logging_cfg_path()
+        print(f"🔍 [setup_logging] 日志配置文件路径: {logging_cfg_path}")
+        print(f"🔍 [setup_logging] 配置文件存在: {logging_cfg_path.exists()}")
         print(f"🔍 [setup_logging] TOML加载器可用: {toml_loader is not None}")
 
-        if cfg_path.exists() and toml_loader is not None:
-            with cfg_path.open("rb") as f:
+        if logging_cfg_path.exists() and toml_loader is not None:
+            with logging_cfg_path.open("rb") as f:
                 toml_data = toml_loader.load(f)
 
             print(f"🔍 [setup_logging] 成功加载TOML配置")
@@ -400,7 +400,7 @@ def setup_logging(log_level: str = "INFO"):
 
             print(f"✅ [setup_logging] dictConfig 应用成功")
 
-            logging.getLogger("webapi").info(f"Logging configured from {cfg_path}")
+            logging.getLogger("webapi").info(f"Logging configured from {logging_cfg_path}")
 
             #Test whether the main log file is written
             if main_enabled:

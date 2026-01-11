@@ -10,7 +10,7 @@ from datetime import datetime
 import asyncio
 from dataclasses import dataclass, asdict
 
-from app.models.config import (
+from app.models.config_models import (
     LLMConfig, DataSourceConfig, DatabaseConfig, SystemConfig,
     ModelProvider, DataSourceType, DatabaseType
 )

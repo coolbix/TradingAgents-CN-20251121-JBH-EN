@@ -98,7 +98,7 @@ def check_env_file():
 
 try:
     from app.core.config import SETTINGS
-    from app.core.dev_config import DEV_CONFIG
+    from app.core.develop_config import DEVELOP_CONFIG
 except Exception as e:
     import traceback
     print(f"❌ 导入配置模块失败: {e}")
@@ -145,7 +145,7 @@ def main():
     logger.info("-" * 50)
 
     #Can not open message
-    uvicorn_config = DEV_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
+    uvicorn_config = DEVELOP_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
 
     #Set a simplified log configuration
     logger.info("Setting up log configuration...")
@@ -154,7 +154,7 @@ def main():
         app_setup_logging(SETTINGS.LOG_LEVEL)
     except Exception:
         #Back to development environment simplified log configuration
-        DEV_CONFIG.setup_logging(SETTINGS.DEBUG)
+        DEVELOP_CONFIG.setup_logging(SETTINGS.DEBUG)
     logger.info("Log configuration complete")
 
     #Check .env files after initialization of log system

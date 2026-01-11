@@ -206,7 +206,7 @@ async def main():
     await init_database_async()
     # Apply dynamic log level from system settings
     try:
-        from app.services.config_provider import provider as config_provider
+        from app.services.config_provider import CONFIG_PROVIDER as config_provider
         eff = await config_provider.get_effective_system_settings()
         desired_level = str(eff.get("log_level", "INFO")).upper()
         setup_logging(desired_level)

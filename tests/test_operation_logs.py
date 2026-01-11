@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app.core.database import init_database_async, get_mongo_db_async
 from app.services.operation_log_service import log_operation, get_operation_log_service
-from app.models.operation_log import ActionType
+from app.models.operationlog_models import ActionType
 
 async def test_operation_logs():
     """测试操作日志功能"""
@@ -81,7 +81,7 @@ async def test_operation_logs():
         
         # 测试3: 查询操作日志
         print("\n📋 测试3: 查询操作日志")
-        from app.models.operation_log import OperationLogQuery
+        from app.models.operationlog_models import OperationLogQuery
         
         query = OperationLogQuery(page=1, page_size=10)
         logs, total = await service.get_logs(query)

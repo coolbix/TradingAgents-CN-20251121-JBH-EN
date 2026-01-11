@@ -40,8 +40,8 @@ class ValidationResult:
     warnings: List[str]         #Warning Information
 
 
-class StartupValidator:
-    """Start Configuration Validator"""
+class StartupConfigValidator:
+    """Startup Configuration Validator"""
     
     #Required Profile
     REQUIRED_CONFIGS = [
@@ -122,7 +122,6 @@ class StartupValidator:
 
     def _is_valid_api_key(self, api_key: str) -> bool:
         """Determines whether API Key is valid (not placeholder)
-
         Args:
             api key: API Key to be validated
 
@@ -154,17 +153,16 @@ class StartupValidator:
         return True
 
     def validate(self) -> ValidationResult:
-        """Authentication Configuration
-
+        """Validate Configuration
         Returns:
             ValidationResult: Validation results
         """
-        logger.info("Start authenticating startup configuration...")
+        logger.info("Start validating startup configuration...")
         
-        #Authentication Required Configuration
+        #Verify Required Configuration: MONGODB, REDIS, JWT
         self._validate_required_configs()
         
-        #Verify Recommended Configuration
+        #Verify Recommended Configuration: API KEYS for DEEPSEEK, DASHSCOPE, TUSHARE
         self._validate_recommended_configs()
         
         #Check security configuration
@@ -172,14 +170,12 @@ class StartupValidator:
         
         #Set validation results
         self.result.success = len(self.result.missing_required) == 0 and len(self.result.invalid_configs) == 0
-        
-        #Output validation results
         self._print_validation_result()
         
         return self.result
     
     def _validate_required_configs(self):
-        """Authentication Required Configuration"""
+        """Verify Required Configuration"""
         for config in self.REQUIRED_CONFIGS:
             value = os.getenv(config.key)
             
@@ -223,12 +219,12 @@ class StartupValidator:
                 "⚠️  CSRF_SECRET 使用默认值，生产环境请务必修改！"
             )
         
-        #Check for DEBUG models in the production environment
+        #Check for Dev Environment or Production Environment
         debug = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes", "on")
         if not debug:
-            logger.info("Production environment model")
+            logger.info("Production environment")
         else:
-            logger.info("ℹ️ Develop an environmental model (DBUG=true)")
+            logger.info("ℹ️ Develop environment (DBUG=true)")
     
     def _print_validation_result(self):
         """Output validation results"""
@@ -284,7 +280,7 @@ class StartupValidator:
         logger.info("=" * 70 + "\n")
     
     def raise_if_failed(self):
-        """If the authentication fails, the anomaly is dropped."""
+        """If the validation fails, the anomaly is dropped."""
         if not self.result.success:
             error_messages = []
             
@@ -311,14 +307,12 @@ class ConfigurationError(Exception):
 
 def validate_startup_config() -> ValidationResult:
     """Validate startup configuration (facility function)
-
     Returns:
         ValidationResult: Validation results
-
     Rices:
-    Configuration Error: If authentication fails
+    Configuration Error: If validation fails
     """
-    validator = StartupValidator()
+    validator = StartupConfigValidator()
     result = validator.validate()
     validator.raise_if_failed()
     return result

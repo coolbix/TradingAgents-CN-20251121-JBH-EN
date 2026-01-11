@@ -11,7 +11,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from app.core.database import init_database_async, get_mongo_db_async
-from app.models.config import LLMProvider
+from app.models.config_models import LLMProvider
 
 async def init_providers():
     """Initialization of large modeler data"""

@@ -33,7 +33,7 @@ async def test_usage_recording():
     print("\n2️⃣ 创建测试使用记录...")
     try:
         from app.services.usage_statistics_service import UsageStatisticsService
-        from app.models.config import UsageRecordModel
+        from app.models.config_models import UsageRecordModel
         
         usage_service = UsageStatisticsService()
         
@@ -138,7 +138,7 @@ async def test_analysis_service_recording():
         db = get_mongo_db_async()
         
         from app.services.analysis_service import AnalysisService
-        from app.models.analysis import AnalysisTask, AnalysisResult
+        from app.models.analysis_models import AnalysisTask, AnalysisResult
         from bson import ObjectId
 
         # 创建模拟任务

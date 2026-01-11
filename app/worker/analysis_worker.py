@@ -21,8 +21,8 @@ from app.services.analysis_service import get_analysis_service
 from app.core.database import init_database_async, close_database_async
 from app.core.redis_client import init_redis, close_redis
 from app.core.config import SETTINGS
-from app.models.analysis import AnalysisTask, AnalysisParameters
-from app.services.config_provider import provider as config_provider
+from app.models.analysis_models import AnalysisTask, AnalysisParameters
+from app.services.config_provider import CONFIG_PROVIDER as config_provider
 from app.services.queue import DEFAULT_USER_CONCURRENT_LIMIT, GLOBAL_CONCURRENT_LIMIT, VISIBILITY_TIMEOUT_SECONDS
 
 logger = logging.getLogger(__name__)

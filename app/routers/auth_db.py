@@ -12,7 +12,7 @@ from app.services.auth_service import AuthService
 from app.services.user_service import user_service
 from app.models.user import UserCreate, UserUpdate
 from app.services.operation_log_service import log_operation
-from app.models.operation_log import ActionType
+from app.models.operationlog_models import ActionType
 
 #Try Import Log Manager
 try:
