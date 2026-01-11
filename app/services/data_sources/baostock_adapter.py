@@ -231,7 +231,7 @@ class BaoStockAdapter(DataSourceAdapter):
                                     #🔥For every 50 stocks processed to export progress log
                                     if processed_count % 50 == 0:
                                         progress_pct = (processed_count / total_stocks) * 100
-                                        logger.info(f"BaoStock Sync Progress:{processed_count}/{total_stocks} ({progress_pct:.1f}Other Organiser{name}({ts_code})")
+                                        logger.info(f"BaoStock Sync Progress: {processed_count}/{total_stocks} ({progress_pct:.1f}% Other Organiser {name}({ts_code})")
                                 else:
                                     failed_count += 1
                             else:

@@ -11,7 +11,7 @@ from app.constants.model_capabilities import (
     ModelRole,
     ModelFeature
 )
-from app.core.unified_config import unified_config
+from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 import logging
 import re
 
@@ -92,7 +92,7 @@ class ModelCapabilityService:
         """
         #1. Prioritize reading from database configuration
         try:
-            llm_configs = unified_config.get_llm_configs()
+            llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
             for config in llm_configs:
                 if config.model_name == model_name:
                     return getattr(config, 'capability_level', 2)
@@ -319,7 +319,7 @@ class ModelCapabilityService:
         
         #Fetch all enabled models
         try:
-            llm_configs = unified_config.get_llm_configs()
+            llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
             enabled_models = [c for c in llm_configs if c.enabled]
         except Exception as e:
             logger.error(f"Fetching model configuration failed:{e}")
@@ -388,8 +388,8 @@ class ModelCapabilityService:
     def _get_default_models(self) -> Tuple[str, str]:
         """Fetch default model pairs"""
         try:
-            quick_model = unified_config.get_quick_analysis_model()
-            deep_model = unified_config.get_deep_analysis_model()
+            quick_model = UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()
+            deep_model = UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()
             logger.info(f"Use system default model: Quick={quick_model}, deep={deep_model}")
             return quick_model, deep_model
         except Exception as e:
@@ -399,7 +399,7 @@ class ModelCapabilityService:
     def _recommend_model(self, model_type: str, min_level: int) -> str:
         """Recommended models for meeting requirements"""
         try:
-            llm_configs = unified_config.get_llm_configs()
+            llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
             for config in llm_configs:
                 if config.enabled and getattr(config, 'capability_level', 2) >= min_level:
                     display_name = config.model_display_name or config.model_name

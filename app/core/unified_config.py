@@ -496,4 +496,4 @@ class UnifiedConfigManager:
 
 
 #Create global instance
-unified_config = UnifiedConfigManager()
+UNIFIED_CONFIG_MANAGER = UnifiedConfigManager()

@@ -16,7 +16,7 @@ from app.constants.model_capabilities import (
     get_role_badge,
     get_feature_badge
 )
-from app.core.unified_config import unified_config
+from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 from app.core.response import ok, fail
 import logging
 
@@ -256,7 +256,7 @@ async def batch_init_capabilities(request: BatchInitRequest):
     """
     try:
         #Get All LLM Configurations
-        llm_configs = unified_config.get_llm_configs()
+        llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
 
         updated_count = 0
         skipped_count = 0

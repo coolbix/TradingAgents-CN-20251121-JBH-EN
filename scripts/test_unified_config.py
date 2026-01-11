@@ -10,7 +10,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.unified_config import unified_config
+from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 
 def main():
     """主函数"""
@@ -20,7 +20,7 @@ def main():
     
     try:
         # 获取系统设置
-        settings = unified_config.get_system_settings()
+        settings = UNIFIED_CONFIG_MANAGER.get_system_settings()
         
         print(f"\n系统设置中的模型相关配置:")
         print(f"  default_model: {settings.get('default_model')}")
@@ -28,9 +28,9 @@ def main():
         print(f"  deep_analysis_model: {settings.get('deep_analysis_model')}")
         
         print(f"\n通过 unified_config 方法获取:")
-        print(f"  get_default_model(): {unified_config.get_default_model()}")
-        print(f"  get_quick_analysis_model(): {unified_config.get_quick_analysis_model()}")
-        print(f"  get_deep_analysis_model(): {unified_config.get_deep_analysis_model()}")
+        print(f"  get_default_model(): {UNIFIED_CONFIG_MANAGER.get_default_model()}")
+        print(f"  get_quick_analysis_model(): {UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()}")
+        print(f"  get_deep_analysis_model(): {UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()}")
         
         print("\n" + "=" * 60)
         

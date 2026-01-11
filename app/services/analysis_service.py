@@ -110,10 +110,10 @@ class AnalysisService:
             progress_tracker.update_progress("🔧 检查环境配置")
 
             #Create full configuration using standard configuration functions
-            from app.core.unified_config import unified_config
+            from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 
-            quick_model = getattr(task.parameters, 'quick_analysis_model', None) or unified_config.get_quick_analysis_model()
-            deep_model = getattr(task.parameters, 'deep_analysis_model', None) or unified_config.get_deep_analysis_model()
+            quick_model = getattr(task.parameters, 'quick_analysis_model', None) or UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()
+            deep_model = getattr(task.parameters, 'deep_analysis_model', None) or UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()
 
             #🔧 Read the full configuration parameters of the model from the MongoDB database (rather than from the JSON file)
             quick_model_config = None
@@ -238,10 +238,10 @@ class AnalysisService:
             logger.info(f"[Line pool]{task.task_id} - {task.symbol}")
 
             #Create full configuration using standard configuration functions
-            from app.core.unified_config import unified_config
+            from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 
-            quick_model = getattr(task.parameters, 'quick_analysis_model', None) or unified_config.get_quick_analysis_model()
-            deep_model = getattr(task.parameters, 'deep_analysis_model', None) or unified_config.get_deep_analysis_model()
+            quick_model = getattr(task.parameters, 'quick_analysis_model', None) or UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()
+            deep_model = getattr(task.parameters, 'deep_analysis_model', None) or UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()
 
             #🔧 Read the full configuration parameters of the model from the MongoDB database (rather than from the JSON file)
             quick_model_config = None
@@ -628,15 +628,15 @@ class AnalysisService:
                 progress_callback(10, "初始化分析引擎...")
             
             #Create complete configuration using standard configuration functions - consistent with single unit analysis
-            from app.core.unified_config import unified_config
+            from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 
-            quick_model = getattr(task.parameters, 'quick_analysis_model', None) or unified_config.get_quick_analysis_model()
-            deep_model = getattr(task.parameters, 'deep_analysis_model', None) or unified_config.get_deep_analysis_model()
+            quick_model = getattr(task.parameters, 'quick_analysis_model', None) or UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()
+            deep_model = getattr(task.parameters, 'deep_analysis_model', None) or UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()
 
             #🔧 Read full configuration parameters of the model from the database
             quick_model_config = None
             deep_model_config = None
-            llm_configs = unified_config.get_llm_configs()
+            llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
 
             for llm_config in llm_configs:
                 if llm_config.model_name == quick_model:

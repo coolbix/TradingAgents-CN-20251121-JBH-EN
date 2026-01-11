@@ -110,9 +110,9 @@ def test_database_config():
     print("\n测试：数据库配置")
     print("=" * 80)
     
-    from app.core.unified_config import unified_config
+    from app.core.unified_config import UNIFIED_CONFIG_MANAGER
     
-    llm_configs = unified_config.get_llm_configs()
+    llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
     
     print(f"\n📊 数据库中的模型配置：")
     

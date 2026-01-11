@@ -218,7 +218,9 @@ async def lifespan(app: FastAPI):
     setup_logging()
     logger = logging.getLogger("app.main")
 
+    #-----------------------------------------------------------------------------------------------------
     #Verify Start Configuration
+    #-----------------------------------------------------------------------------------------------------
     try:
         from app.core.startup_validator import validate_startup_config
         validate_startup_config()
@@ -228,7 +230,9 @@ async def lifespan(app: FastAPI):
 
     await init_database_async()
 
+    #-----------------------------------------------------------------------------------------------------
     #Configure Bridges: Write Unified Configurations to Environmental Variables for TradingAgents Core Library
+    #-----------------------------------------------------------------------------------------------------
     try:
         from app.core.config_bridge import bridge_config_to_env
         bridge_config_to_env()
@@ -236,7 +240,9 @@ async def lifespan(app: FastAPI):
         logger.warning(f"The bridge failed:{e}")
         logger.warning("⚠️ TradingAgents will use configurations in .env files")
 
+    #-----------------------------------------------------------------------------------------------------
     # Apply dynamic settings (log_level, enable_monitoring) from ConfigProvider
+    #-----------------------------------------------------------------------------------------------------
     try:
         from app.services.config_provider import provider as config_provider  # local import to avoid early DB init issues
         eff = await config_provider.get_effective_system_settings()
@@ -252,12 +258,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logging.getLogger("webapi").warning(f"Failed to apply dynamic settings: {e}")
 
+    #-----------------------------------------------------------------------------------------------------
     #Show Profile Summary
+    #-----------------------------------------------------------------------------------------------------
     await _print_config_summary(logger)
 
     logger.info("TradingAgents FastAPI backend started")
 
+    #-----------------------------------------------------------------------------------------------------
     #Start-up period: If necessary, a closing snapshot of the previous trading date should be added at the break
+    #-----------------------------------------------------------------------------------------------------
     if SETTINGS.QUOTES_BACKFILL_ON_STARTUP:
         try:
             qi = QuotesIngestionService()
@@ -266,7 +276,9 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Startup backfill failed (ignored): {e}")
 
-    #Starts a daily timed task: Configureable
+    #-----------------------------------------------------------------------------------------------------
+    #Starts a daily timed task
+    #-----------------------------------------------------------------------------------------------------
     scheduler: AsyncIOScheduler | None = None
     try:
         from croniter import croniter
@@ -291,13 +303,21 @@ async def lifespan(app: FastAPI):
             preferred_sources = ["akshare", "baostock"]
             logger.info(f"📊 Stock Basic Information Sync Priority Data Source: AKShare > BaoStock (Tushare disabled)")
 
-        #Try once immediately after startup.
+        #-----------------------------------------------------------------------------------------------------
+        #Run one-time task immediately after startup.
+        #-----------------------------------------------------------------------------------------------------
         async def run_sync_with_sources():
             await multi_source_service.run_full_sync(force=False, preferred_sources=preferred_sources)
 
         asyncio.create_task(run_sync_with_sources())
 
-        #Configure Schedule: Prioritize Cron, followed by HH:MM
+
+        #-----------------------------------------------------------------------------------------------------
+        #Schedule periodic tasks: Prioritize Cron, followed by HH:MM
+        #-----------------------------------------------------------------------------------------------------
+
+        #-----------------------------------------------------------------------------------------------------
+        #Stock basic information sync task
         if SETTINGS.SYNC_STOCK_BASICS_ENABLED:
             if SETTINGS.SYNC_STOCK_BASICS_CRON:
                 #If a cron expression is provided
@@ -318,6 +338,8 @@ async def lifespan(app: FastAPI):
                 )
                 logger.info(f"📅 Stock basics sync scheduled daily at {SETTINGS.SYNC_STOCK_BASICS_TIME} ({SETTINGS.TIMEZONE})")
 
+        #-----------------------------------------------------------------------------------------------------
+        # stock real-time quotes ingestion task
         #Real-time database tasks (per N-s), internal self-determination period
         if SETTINGS.QUOTES_INGEST_ENABLED:
             quotes_ingestion = QuotesIngestionService()
@@ -330,10 +352,9 @@ async def lifespan(app: FastAPI):
             )
             logger.info(f"Real-time database mission started:{SETTINGS.QUOTES_INGEST_INTERVAL_SECONDS}s")
 
-        #Tushare Unified Data Sync Task Configuration
+        #-----------------------------------------------------------------------------------------------------
+        #Tushare: Stock Basic Information Sync Task
         logger.info("Configure the Tushare Unified Data Sync Task...")
-
-        #Synchronise Action
         scheduler.add_job(
             run_tushare_basic_info_sync,
             CronTrigger.from_crontab(SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -343,11 +364,12 @@ async def lifespan(app: FastAPI):
         )
         if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_BASIC_INFO_SYNC_ENABLED):
             scheduler.pause_job("tushare_basic_info_sync")
-            logger.info(f"⏸️Tushare Basic Information Synchronization has been added but suspended:{SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"⏸️Tushare: Stock Basic Information Synchronization has been added but suspended:{SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON}")
         else:
-            logger.info(f"Tushare Basic Information Synchronized:{SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON}")
+            logger.info(f"Tushare: Stock Basic Information Synchronized:{SETTINGS.TUSHARE_BASIC_INFO_SYNC_CRON}")
 
-        #Other Organiser
+        #-----------------------------------------------------------------------------------------------------
+        #Tushare: Real-time Quotes Sync Task
         scheduler.add_job(
             run_tushare_quotes_sync,
             CronTrigger.from_crontab(SETTINGS.TUSHARE_QUOTES_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -356,11 +378,12 @@ async def lifespan(app: FastAPI):
         )
         if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_QUOTES_SYNC_ENABLED):
             scheduler.pause_job("tushare_quotes_sync")
-            logger.info(f"Tushare line sync has been added but suspended:{SETTINGS.TUSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"Tushare: quotes sync has been added but suspended:{SETTINGS.TUSHARE_QUOTES_SYNC_CRON}")
         else:
-            logger.info(f"Tushare line syncs configured:{SETTINGS.TUSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"Tushare: quotes sync configured:{SETTINGS.TUSHARE_QUOTES_SYNC_CRON}")
 
-        #Synchronise Action
+        #-----------------------------------------------------------------------------------------------------
+        #Tushare: Historical Data Sync Task
         scheduler.add_job(
             run_tushare_historical_sync,
             CronTrigger.from_crontab(SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -370,11 +393,12 @@ async def lifespan(app: FastAPI):
         )
         if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_HISTORICAL_SYNC_ENABLED):
             scheduler.pause_job("tushare_historical_sync")
-            logger.info(f"Tushare's historical data sync has been added but is suspended:{SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON}")
+            logger.info(f"Tushare: historical data sync has been added but suspended:{SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON}")
         else:
-            logger.info(f"📊Tusharehistorical data synchronization configured:{SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON}")
+            logger.info(f"📊Tushare: historical data sync configured:{SETTINGS.TUSHARE_HISTORICAL_SYNC_CRON}")
 
-        #Financial Data Sync Task
+        #-----------------------------------------------------------------------------------------------------
+        #Tushare: Financial Data Sync Task
         scheduler.add_job(
             run_tushare_financial_sync,
             CronTrigger.from_crontab(SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -383,11 +407,12 @@ async def lifespan(app: FastAPI):
         )
         if not (SETTINGS.TUSHARE_UNIFIED_ENABLED and SETTINGS.TUSHARE_FINANCIAL_SYNC_ENABLED):
             scheduler.pause_job("tushare_financial_sync")
-            logger.info(f"⏸️Tushare Financial Data Synchronization has been added but suspended:{SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON}")
+            logger.info(f"⏸️Tushare: financial data sync has been added but suspended:{SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON}")
         else:
-            logger.info(f"Tushare financial data synchronised:{SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON}")
+            logger.info(f"Tushare: financial data sync configured:{SETTINGS.TUSHARE_FINANCIAL_SYNC_CRON}")
 
-        #Status check task
+        #-----------------------------------------------------------------------------------------------------
+        #Tushare: Status check task
         scheduler.add_job(
             run_tushare_status_check,
             CronTrigger.from_crontab(SETTINGS.TUSHARE_STATUS_CHECK_CRON, timezone=SETTINGS.TIMEZONE),
@@ -400,10 +425,9 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"Tushare status check configured:{SETTINGS.TUSHARE_STATUS_CHECK_CRON}")
 
-        #AKShare Unified Data Sync Task Configuration
+        #-----------------------------------------------------------------------------------------------------
+        #AKShare: Stock Basic Info Sync Task
         logger.info("Configure AKShare Unified Data Synchronization...")
-
-        #Synchronise Action
         scheduler.add_job(
             run_akshare_basic_info_sync,
             CronTrigger.from_crontab(SETTINGS.AKSHARE_BASIC_INFO_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -417,7 +441,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"AKShare's basic information is synchronised:{SETTINGS.AKSHARE_BASIC_INFO_SYNC_CRON}")
 
-        #Other Organiser
+        #-----------------------------------------------------------------------------------------------------
+        #AKShare: Stock Quotes Sync Task
         scheduler.add_job(
             run_akshare_quotes_sync,
             CronTrigger.from_crontab(SETTINGS.AKSHARE_QUOTES_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -426,11 +451,12 @@ async def lifespan(app: FastAPI):
         )
         if not (SETTINGS.AKSHARE_UNIFIED_ENABLED and SETTINGS.AKSHARE_QUOTES_SYNC_ENABLED):
             scheduler.pause_job("akshare_quotes_sync")
-            logger.info(f"The AKShare line sync has been added but suspended:{SETTINGS.AKSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"⏸️ AKShare: stock quotes sync has been added but suspended:{SETTINGS.AKSHARE_QUOTES_SYNC_CRON}")
         else:
-            logger.info(f"The AKShare line is configured:{SETTINGS.AKSHARE_QUOTES_SYNC_CRON}")
+            logger.info(f"AKShare: stock quotes sync configured:{SETTINGS.AKSHARE_QUOTES_SYNC_CRON}")
 
-        #Synchronise Action
+        #-----------------------------------------------------------------------------------------------------
+        #AKShare: Stock Historical Data Sync Task
         scheduler.add_job(
             run_akshare_historical_sync,
             CronTrigger.from_crontab(SETTINGS.AKSHARE_HISTORICAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -444,7 +470,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"AKShare's historical data synchronisation is configured:{SETTINGS.AKSHARE_HISTORICAL_SYNC_CRON}")
 
-        #Financial Data Sync Task
+        #-----------------------------------------------------------------------------------------------------
+        #AKShare: Stock Financial Data Sync Task
         scheduler.add_job(
             run_akshare_financial_sync,
             CronTrigger.from_crontab(SETTINGS.AKSHARE_FINANCIAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -457,7 +484,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"💰AKShare ' s financial data synchronized:{SETTINGS.AKSHARE_FINANCIAL_SYNC_CRON}")
 
-        #Status check task
+        #-----------------------------------------------------------------------------------------------------
+        #AKShare: Stock Status Check Task
         scheduler.add_job(
             run_akshare_status_check,
             CronTrigger.from_crontab(SETTINGS.AKSHARE_STATUS_CHECK_CRON, timezone=SETTINGS.TIMEZONE),
@@ -470,10 +498,9 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"AKShare status check configured:{SETTINGS.AKSHARE_STATUS_CHECK_CRON}")
 
-        #BaoStock Unified Data Sync Task Configuration
+        #-----------------------------------------------------------------------------------------------------
+        #BaoStock: Stock Basic Info Sync Task
         logger.info("Configure the BaoStock Unified Data Sync Task...")
-
-        #Synchronise Action
         scheduler.add_job(
             run_baostock_basic_info_sync,
             CronTrigger.from_crontab(SETTINGS.BAOSTOCK_BASIC_INFO_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -486,6 +513,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"BaoStock Basic Information Synchronized:{SETTINGS.BAOSTOCK_BASIC_INFO_SYNC_CRON}")
 
+        #-----------------------------------------------------------------------------------------------------
+        #BaoStock: Stock Quotes Sync Task
         #DayKline Sync Task (note: BaoStock does not support real-time lines)
         scheduler.add_job(
             run_baostock_daily_quotes_sync,
@@ -499,7 +528,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"BaoStockKline is configured:{SETTINGS.BAOSTOCK_DAILY_QUOTES_SYNC_CRON}(Note: BaoStock does not support real time.)")
 
-        #Synchronise Action
+        #-----------------------------------------------------------------------------------------------------
+        #BaoStock: Stock Historical Data Sync Task
         scheduler.add_job(
             run_baostock_historical_sync,
             CronTrigger.from_crontab(SETTINGS.BAOSTOCK_HISTORICAL_SYNC_CRON, timezone=SETTINGS.TIMEZONE),
@@ -512,7 +542,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"BaoStock has been configured:{SETTINGS.BAOSTOCK_HISTORICAL_SYNC_CRON}")
 
-        #Status check task
+        #-----------------------------------------------------------------------------------------------------
+        #BaoStock: Status Check Task
         scheduler.add_job(
             run_baostock_status_check,
             CronTrigger.from_crontab(SETTINGS.BAOSTOCK_STATUS_CHECK_CRON, timezone=SETTINGS.TIMEZONE),
@@ -525,6 +556,8 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"BaoStock status check configured:{SETTINGS.BAOSTOCK_STATUS_CHECK_CRON}")
 
+        #-----------------------------------------------------------------------------------------------------
+        #News Sync Task by AKShare
         #Synchronization of news data tasking (using AKShare to synchronize all stock news)
         logger.info("Configure news synchronisation...")
 
@@ -568,8 +601,9 @@ async def lifespan(app: FastAPI):
         else:
             logger.info(f"📰Syncs of news data configured (selected units only):{SETTINGS.NEWS_SYNC_CRON}")
 
+        #-----------------------------------------------------------------------------------------------------
+        #Start the scheduler
         scheduler.start()
-
         #Set the scheduler instance to service so that API can manage tasks
         set_scheduler_instance(scheduler)
         logger.info("✅ Scheduler service has been initiated")

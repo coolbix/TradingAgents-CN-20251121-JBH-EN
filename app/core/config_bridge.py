@@ -15,7 +15,7 @@ def bridge_config_to_env():
     """Bring the unified configuration bridge to the environment variable
 
     This function will:
-    1. Read large model manufacturer configurations from the database (API keys, overtime, temperature, etc.)
+    1. Read LLM Provider configurations from the database (API keys, overtime, temperature, etc.)
     2. Writing configuration to environmental variables
     3. Writing default models to environmental variables
     4. Writing data source configuration to environmental variables (API keys, timeout, retrying, etc.)
@@ -24,7 +24,7 @@ def bridge_config_to_env():
     So the TradingAgents Core Library can read the user profile data from the environment variable.
     """
     try:
-        from app.core.unified_config import unified_config
+        from app.core.unified_config import UNIFIED_CONFIG_MANAGER
         from app.services.config_service import CONFIG_SERVICE
 
         logger.info("Commencing bridge configuration to environment variable...")
@@ -50,12 +50,14 @@ def bridge_config_to_env():
         logger.info(f"== sync, corrected by elderman == @elder man{mongodb_db_name}")
         bridged_count += 1
 
-        #1. Bridging large model configuration (basic API key)
+        #-------------------------------------------------------------------------------------------------
+        #1. Bridging LLM Provider configuration (basic API key)
+        #-------------------------------------------------------------------------------------------------
         #🔧 [Priority].env file > Database vendor configuration
         #🔥 Modify: Read the plant configuration from llm providers in the database instead of from JSON files
         #Use the configuration in the database only if the environment variable does not exist or is a placeholder
         try:
-            #Read the manufacturer configuration using the sync MongoDB client
+            #Read the LLM Provider configuration using the sync MongoDB client
             from pymongo import MongoClient
             from app.core.config import SETTINGS
             from app.models.config import LLMProvider
@@ -65,15 +67,15 @@ def bridge_config_to_env():
             db = client[SETTINGS.MONGO_DB_NAME]
             providers_collection = db.llm_providers
 
-            #Query All Plant Configurations
+            #Query All LLM Provider Configurations
             providers_data = list(providers_collection.find())
             providers = [LLMProvider(**data) for data in providers_data]
 
-            logger.info(f"Read from the database{len(providers)}Plant Configuration")
+            logger.info(f"Read from the database: {len(providers)}LLM Providers Configuration")
 
             for provider in providers:
                 if not provider.is_active:
-                    logger.debug(f"The manufacturer.{provider.name}Not enabled, Skip")
+                    logger.debug(f"The LLM Provider {provider.name}: Not enabled, Skip")
                     continue
 
                 env_key = f"{provider.name.upper()}_API_KEY"
@@ -81,15 +83,16 @@ def bridge_config_to_env():
 
                 #Check that environment variables exist and are valid (not placeholders)
                 if existing_env_value and not existing_env_value.startswith("your_"):
-                    logger.info(f"In the .env file{env_key}(Long:{len(existing_env_value)})")
+                    logger.info(f"{env_key} in the .env file(Long:{len(existing_env_value)})")
                     bridged_count += 1
                 elif provider.api_key and not provider.api_key.startswith("your_"):
                     #Use database configuration only when environment variables do not exist or are placeholders
                     os.environ[env_key] = provider.api_key
-                    logger.info(f"Using database plant configurations{env_key}(Long:{len(provider.api_key)})")
+                    logger.info(f"Using database LLM Provider configurations {env_key}(Long:{len(provider.api_key)})")
+                    logger.info(f"The LLM Configuration in database is being used for {env_key}(Long:{len(provider.api_key)})")
                     bridged_count += 1
                 else:
-                    logger.debug(f"  ⏭️  {env_key}No valid API Key configured")
+                    logger.debug(f"  ⏭️  {env_key} No valid API Key configured")
 
             #Close Sync Client
             client.close()
@@ -99,7 +102,7 @@ def bridge_config_to_env():
             logger.warning("⚠️ will try to read configurations from JSON files as a backup scenario")
 
             #Backup scheme: read from JSON file
-            llm_configs = unified_config.get_llm_configs()
+            llm_configs = UNIFIED_CONFIG_MANAGER.get_llm_configs()
             for llm_config in llm_configs:
                 #Now it's a string type. It's no longer an anemic.
                 env_key = f"{llm_config.provider.upper()}_API_KEY"
@@ -120,26 +123,30 @@ def bridge_config_to_env():
                 else:
                     logger.debug(f"  ⏭️  {env_key}Not configured")
 
+        #-------------------------------------------------------------------------------------------------
         #2. Bridge default model configuration
-        default_model = unified_config.get_default_model()
+        #-------------------------------------------------------------------------------------------------
+        default_model = UNIFIED_CONFIG_MANAGER.get_default_model()
         if default_model:
             os.environ['TRADINGAGENTS_DEFAULT_MODEL'] = default_model
             logger.info(f"✓ Bridge default model:{default_model}")
             bridged_count += 1
 
-        quick_model = unified_config.get_quick_analysis_model()
+        quick_model = UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()
         if quick_model:
             os.environ['TRADINGAGENTS_QUICK_MODEL'] = quick_model
             logger.info(f"✓ Bridge Rapid Analysis Model:{quick_model}")
             bridged_count += 1
 
-        deep_model = unified_config.get_deep_analysis_model()
+        deep_model = UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()
         if deep_model:
             os.environ['TRADINGAGENTS_DEEP_MODEL'] = deep_model
             logger.info(f"✓ Bridge depth analysis model:{deep_model}")
             bridged_count += 1
 
+        #-------------------------------------------------------------------------------------------------
         #3. Bridging data source configuration (basic API key)
+        #-------------------------------------------------------------------------------------------------
         #🔧 [priority].env files > database configuration
         #🔥 Modify: Read the data source configuration from the database's system configs collection instead of from the JSON file
         try:
@@ -165,7 +172,7 @@ def bridge_config_to_env():
                 logger.info(f"Read from the database{len(data_source_configs)}Data source configuration")
             else:
                 logger.warning("⚠️ No data source configuration in database, using JSON file configuration")
-                data_source_configs = unified_config.get_data_source_configs()
+                data_source_configs = UNIFIED_CONFIG_MANAGER.get_data_source_configs()
 
             #Close Sync Client
             client.close()
@@ -173,7 +180,7 @@ def bridge_config_to_env():
         except Exception as e:
             logger.error(f"Access to data source configuration from database failed:{e}", exc_info=True)
             logger.warning("⚠️ will try to read configurations from JSON files as a backup scenario")
-            data_source_configs = unified_config.get_data_source_configs()
+            data_source_configs = UNIFIED_CONFIG_MANAGER.get_data_source_configs()
 
         for ds_config in data_source_configs:
             if ds_config.enabled and ds_config.api_key:
@@ -217,13 +224,19 @@ def bridge_config_to_env():
                         continue
                     bridged_count += 1
 
+        #-------------------------------------------------------------------------------------------------
         #4. Detailed configuration of bridge data sources (overtime, retest, cache, etc.)
+        #-------------------------------------------------------------------------------------------------
         bridged_count += _bridge_datasource_details(data_source_configs)
 
+        #-------------------------------------------------------------------------------------------------
         #5. Operation of the bridging system
+        #-------------------------------------------------------------------------------------------------
         bridged_count += _bridge_system_settings()
 
+        #-------------------------------------------------------------------------------------------------
         #6. Re-initiation of MongoDB storage in TradingAGents Library
+        #-------------------------------------------------------------------------------------------------
         #Because the global config manager example was created when the module was imported, when the environment variable was not bridged Answer.
         try:
             from tradingagents.config.config_manager import CONFIG_MANAGER
@@ -267,7 +280,9 @@ def bridge_config_to_env():
             import traceback
             logger.error(traceback.format_exc())
 
+        #-------------------------------------------------------------------------------------------------
         #Synchronize pricing configuration to referig/pricing.json
+        #-------------------------------------------------------------------------------------------------
         #Note: This needs to read the configuration from the database because the configuration in the file does not have pricing information
         #Synchronize pricing configuration using a step
         import asyncio
@@ -465,8 +480,8 @@ def _bridge_system_settings() -> int:
             else:
                 print(f"  ⚠️  [config_bridge] 不包含 deep_analysis_model")
 
-            from app.core.unified_config import unified_config
-            result = unified_config.save_system_settings(system_settings)
+            from app.core.unified_config import UNIFIED_CONFIG_MANAGER
+            result = UNIFIED_CONFIG_MANAGER.save_system_settings(system_settings)
 
             if result:
                 logger.info(f"System Settings Synchronized to File System")

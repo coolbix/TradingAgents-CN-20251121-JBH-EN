@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """测试模型配置修复"""
 
-from app.core.unified_config import unified_config
+from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 
 print("=" * 80)
 print("🧪 测试模型配置读取")
 print("=" * 80)
 
 # 1. 读取系统设置
-settings = unified_config.get_system_settings()
+settings = UNIFIED_CONFIG_MANAGER.get_system_settings()
 print(f"\n📖 系统设置中的字段:")
 print(f"  - quick_analysis_model: {settings.get('quick_analysis_model')}")
 print(f"  - deep_analysis_model: {settings.get('deep_analysis_model')}")
@@ -17,8 +17,8 @@ print(f"  - quick_think_llm: {settings.get('quick_think_llm')}")
 print(f"  - deep_think_llm: {settings.get('deep_think_llm')}")
 
 # 2. 测试新的读取函数
-quick_model = unified_config.get_quick_analysis_model()
-deep_model = unified_config.get_deep_analysis_model()
+quick_model = UNIFIED_CONFIG_MANAGER.get_quick_analysis_model()
+deep_model = UNIFIED_CONFIG_MANAGER.get_deep_analysis_model()
 
 print(f"\n✅ 通过 unified_config 读取的模型:")
 print(f"  - quick_analysis_model: {quick_model}")

@@ -10,7 +10,7 @@ from app.utils.timezone import now_tz
 from bson import ObjectId
 
 from app.core.database import get_mongo_db_async
-from app.core.unified_config import unified_config
+from app.core.unified_config import UNIFIED_CONFIG_MANAGER
 from app.models.config import (
     SystemConfig, LLMConfig, DataSourceConfig, DatabaseConfig,
     ModelProvider, DataSourceType, DatabaseType, LLMProvider,
@@ -383,7 +383,7 @@ class ConfigService:
 
             #Try to get it from the Unified Configuration Manager as a last retreat
             try:
-                unified_system_config = await unified_config.get_unified_system_config()
+                unified_system_config = await UNIFIED_CONFIG_MANAGER.get_unified_system_config()
                 if unified_system_config:
                     print("🔄 Fallback to unified configuration manager")
                     return unified_system_config
@@ -692,8 +692,8 @@ class ConfigService:
             #Synchronize to filesystem (for unified config)
             if result:
                 try:
-                    from app.core.unified_config import unified_config
-                    unified_config.sync_to_legacy_format(config)
+                    from app.core.unified_config import UNIFIED_CONFIG_MANAGER
+                    UNIFIED_CONFIG_MANAGER.sync_to_legacy_format(config)
                     print(f"✅ System settings synchronized to filesystem")
                 except Exception as e:
                     print(f"⚠️  Failed to sync system settings to filesystem: {e}")
@@ -851,7 +851,7 @@ class ConfigService:
         """Update Large Model Configuration"""
         try:
             #Save directly to Unified Configuration Manager
-            success = unified_config.save_llm_config(llm_config)
+            success = UNIFIED_CONFIG_MANAGER.save_llm_config(llm_config)
             if not success:
                 return False
 

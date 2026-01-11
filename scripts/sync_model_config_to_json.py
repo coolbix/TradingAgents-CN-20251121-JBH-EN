@@ -29,10 +29,10 @@ async def main():
         print(f"  - deep_analysis_model: {deep_model}")
         
         # 2. 使用 unified_config 保存到 JSON
-        from app.core.unified_config import unified_config
+        from app.core.unified_config import UNIFIED_CONFIG_MANAGER
         
         # 读取现有配置
-        current_settings = unified_config.get_system_settings()
+        current_settings = UNIFIED_CONFIG_MANAGER.get_system_settings()
         print(f"\n📖 当前 JSON 配置:")
         print(f"  - quick_analysis_model: {current_settings.get('quick_analysis_model')}")
         print(f"  - deep_analysis_model: {current_settings.get('deep_analysis_model')}")
@@ -47,7 +47,7 @@ async def main():
             current_settings['quick_think_llm'] = quick_model  # 映射到旧字段名
             current_settings['deep_think_llm'] = deep_model    # 映射到旧字段名
             
-            success = unified_config.save_system_settings(current_settings)
+            success = UNIFIED_CONFIG_MANAGER.save_system_settings(current_settings)
             
             if success:
                 print(f"✅ 配置同步成功！")
