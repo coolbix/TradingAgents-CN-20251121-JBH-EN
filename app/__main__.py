@@ -111,6 +111,20 @@ except Exception as e:
 
 def main():
     """Main Start Function"""
+
+    #Can not open message ??
+    uvicorn_config = DEVELOP_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
+
+    #Set the log configuration
+    print("Setting up log configuration...")
+    try:
+        from app.core.logging_config import setup_logging as app_setup_logging
+        app_setup_logging(SETTINGS.LOG_LEVEL)
+    except Exception:
+        #Back to development environment simplified log configuration
+        DEVELOP_CONFIG.setup_logging(SETTINGS.DEBUG)
+    print("Log configuration complete")
+
     import logging
     logger = logging.getLogger("app.startup")
     
@@ -144,18 +158,18 @@ def main():
     
     logger.info("-" * 50)
 
-    #Can not open message
-    uvicorn_config = DEVELOP_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
-
-    #Set a simplified log configuration
-    logger.info("Setting up log configuration...")
-    try:
-        from app.core.logging_config import setup_logging as app_setup_logging
-        app_setup_logging(SETTINGS.LOG_LEVEL)
-    except Exception:
-        #Back to development environment simplified log configuration
-        DEVELOP_CONFIG.setup_logging(SETTINGS.DEBUG)
-    logger.info("Log configuration complete")
+    #JBH TOBEDEL  #Can not open message ??
+    #JBH TOBEDEL  uvicorn_config = DEVELOP_CONFIG.get_uvicorn_config(SETTINGS.DEBUG)
+    #JBH TOBEDEL  
+    #JBH TOBEDEL  #Set the log configuration
+    #JBH TOBEDEL  logger.info("Setting up log configuration...")
+    #JBH TOBEDEL  try:
+    #JBH TOBEDEL      from app.core.logging_config import setup_logging as app_setup_logging
+    #JBH TOBEDEL      app_setup_logging(SETTINGS.LOG_LEVEL)
+    #JBH TOBEDEL  except Exception:
+    #JBH TOBEDEL      #Back to development environment simplified log configuration
+    #JBH TOBEDEL      DEVELOP_CONFIG.setup_logging(SETTINGS.DEBUG)
+    #JBH TOBEDEL  logger.info("Log configuration complete")
 
     #Check .env files after initialization of log system
     logger.info("📋 Configuration Loading Phase:")
