@@ -1,10 +1,8 @@
-import type { VNode } from 'vue'
-import { h } from 'vue'
+import type { VNode, Component } from 'vue'
+import { h, defineComponent } from 'vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
-import Form from 'primevue/form'
-import FormField from 'primevue/formfield'
 import { getPrimeConfirmService, getPrimeToastService } from './primevue-services'
 
 type MessageOptions = {
@@ -122,10 +120,37 @@ export const ElMessageBox = Object.assign(
 export type FormInstance = Record<string, unknown>
 export type FormRules = Record<string, unknown>
 
+// Simple form wrappers for Element Plus compatibility
+export const ElForm = defineComponent({
+  name: 'ElForm',
+  props: {
+    model: Object,
+    rules: Object,
+    labelWidth: String,
+    labelPosition: String
+  },
+  setup(props, { slots }) {
+    return () => h('form', { class: 'el-form' }, slots.default?.())
+  }
+})
+
+export const ElFormItem = defineComponent({
+  name: 'ElFormItem',
+  props: {
+    label: String,
+    prop: String,
+    required: Boolean
+  },
+  setup(props, { slots }) {
+    return () => h('div', { class: 'el-form-item' }, [
+      props.label && h('label', { class: 'el-form-item__label' }, props.label),
+      h('div', { class: 'el-form-item__content' }, slots.default?.())
+    ])
+  }
+})
+
 export const ElInput = InputText
 export const ElInputNumber = InputNumber
-export const ElForm = Form
-export const ElFormItem = FormField
 
 export default {
   ElMessage,

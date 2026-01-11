@@ -4,6 +4,8 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import { setupPrimeVueCompat } from './plugins/primevue-compat'
@@ -37,6 +39,8 @@ app.use(PrimeVue, {
 })
 app.use(ToastService)
 app.use(ConfirmationService)
+app.component('Toast', Toast)
+app.component('ConfirmDialog', ConfirmDialog)
 setupPrimeVueCompat(app)
 setPrimeToastService(app.config.globalProperties.$toast)
 setPrimeConfirmService(app.config.globalProperties.$confirm)

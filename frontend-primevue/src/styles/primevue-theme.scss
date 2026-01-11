@@ -38,12 +38,88 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  width: 100%;
+  background-color: var(--el-bg-color, #ffffff);
+  color: var(--el-text-color-primary, #111827);
 }
 
 .el-menu-item,
 .el-sub-menu__title {
-  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 16px;
   cursor: pointer;
+}
+
+.el-menu-item__content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.el-menu-item__content:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+
+.el-menu-item {
+  white-space: nowrap;
+}
+
+.el-sub-menu__title {
+  user-select: none;
+}
+
+.el-sub-menu__title .el-sub-menu__icon-arrow {
+  margin-left: auto;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.el-sub-menu.is-opened > .el-sub-menu__title .el-sub-menu__icon-arrow {
+  transform: rotate(180deg);
+}
+
+.el-sub-menu > .el-sub-menu__title + .el-menu {
+  display: none;
+}
+
+.el-sub-menu.is-opened > .el-sub-menu__title + .el-menu {
+  display: block;
+}
+
+.el-menu--inline .el-menu-item {
+  padding-left: 40px;
+}
+
+.el-menu--inline .el-sub-menu__title {
+  padding-left: 40px;
+}
+
+.el-menu--collapse .el-menu-item span,
+.el-menu--collapse .el-sub-menu__title span {
+  display: none;
+}
+
+.el-menu--collapse .el-menu-item,
+.el-menu--collapse .el-sub-menu__title {
+  justify-content: center;
+  padding: 0;
+}
+
+.el-menu--collapse .el-sub-menu__icon-arrow {
+  display: none;
 }
 
 .el-dropdown__menu {
@@ -63,6 +139,31 @@
 .el-dropdown-item {
   padding: 6px 12px;
   cursor: pointer;
+}
+
+.el-loading-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.65);
+  z-index: 10;
+}
+
+.el-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--el-border-color, #e5e7eb);
+  border-top-color: var(--el-color-primary, #2563eb);
+  animation: el-loading-spin 0.9s linear infinite;
+}
+
+@keyframes el-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .el-form-item {

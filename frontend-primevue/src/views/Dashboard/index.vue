@@ -570,8 +570,12 @@ const goToPaperTrading = () => {
 }
 
 // 格式化金额
-const formatMoney = (value: number) => {
-  return value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+const formatMoney = (value: unknown) => {
+  const numeric = typeof value === 'number' ? value : Number.parseFloat(String(value ?? 0))
+  if (!Number.isFinite(numeric)) {
+    return '0.00'
+  }
+  return numeric.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 // 获取盈亏样式类

@@ -1,4 +1,7 @@
-import { defineComponent, h, withDirectives, resolveDirective, provide, inject, type App, type VNode } from 'vue'
+import { defineComponent, h, withDirectives, resolveDirective, provide, inject, ref, computed, type App, type VNode } from 'vue'
+import type { Directive } from 'vue'
+import dayjs from 'dayjs'
+import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
@@ -11,7 +14,7 @@ import InputSwitch from 'primevue/inputswitch'
 import Checkbox from 'primevue/checkbox'
 import RadioButton from 'primevue/radiobutton'
 import Slider from 'primevue/slider'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import Dialog from 'primevue/dialog'
 import DataTable from 'primevue/datatable'
@@ -20,7 +23,7 @@ import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import Paginator from 'primevue/paginator'
 import Badge from 'primevue/badge'
-import Sidebar from 'primevue/sidebar'
+import Drawer from 'primevue/drawer'
 import Avatar from 'primevue/avatar'
 import Skeleton from 'primevue/skeleton'
 import Timeline from 'primevue/timeline'
@@ -30,7 +33,7 @@ import AccordionTab from 'primevue/accordiontab'
 import FileUpload from 'primevue/fileupload'
 import Tooltip from 'primevue/tooltip'
 import SelectButton from 'primevue/selectbutton'
-import Calendar from 'primevue/calendar'
+import DatePicker from 'primevue/datepicker'
 import ScrollTop from 'primevue/scrolltop'
 
 const ElIcon = defineComponent({
@@ -202,7 +205,7 @@ const ElSelect = defineComponent({
 
     return () => {
       const options = buildOptions()
-      const component = props.multiple ? MultiSelect : Dropdown
+      const component = props.multiple ? MultiSelect : Select
       return h(component, {
         modelValue: props.modelValue,
         options,
@@ -548,10 +551,77 @@ const ElCollapseItem = defineComponent({
   }
 })
 
+type MenuContext = {
+  collapse: boolean
+  uniqueOpened: boolean
+  router: boolean
+  defaultActive: string
+  activePath: () => string
+  toggleOpen: (key: string) => void
+  isOpened: (key: string) => boolean
+  registerSubMenu: (key: string, parentKey: string | null) => void
+}
+
+const menuContextKey = Symbol('el-menu-context')
+const subMenuParentKey = Symbol('el-sub-menu-parent')
+
 const ElMenu = defineComponent({
   name: 'ElMenu',
-  setup(_, { slots }) {
-    return () => h('ul', { class: 'el-menu' }, slots.default?.())
+  props: {
+    defaultActive: { type: String, default: '' },
+    collapse: { type: Boolean, default: false },
+    uniqueOpened: { type: Boolean, default: false },
+    router: { type: Boolean, default: false }
+  },
+  setup(props, { slots }) {
+    const route = useRoute()
+    const activePath = computed(() => props.defaultActive || route.fullPath)
+    const openedKeys = ref<Set<string>>(new Set())
+    const parentMap = ref<Map<string, string | null>>(new Map())
+    const registerSubMenu = (key: string, parentKey: string | null) => {
+      if (!key) return
+      parentMap.value.set(key, parentKey)
+    }
+    const toggleOpen = (key: string) => {
+      if (!key) return
+      const parentKey = parentMap.value.get(key) ?? null
+      const next = new Set(openedKeys.value)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        if (props.uniqueOpened) {
+          for (const openedKey of next) {
+            const openedParent = parentMap.value.get(openedKey) ?? null
+            if (openedParent === parentKey) {
+              next.delete(openedKey)
+            }
+          }
+        }
+        next.add(key)
+      }
+      openedKeys.value = next
+    }
+    const isOpened = (key: string) => openedKeys.value.has(key)
+
+    provide<MenuContext>(menuContextKey, {
+      collapse: props.collapse,
+      uniqueOpened: props.uniqueOpened,
+      router: props.router,
+      defaultActive: props.defaultActive,
+      activePath: () => activePath.value,
+      toggleOpen,
+      isOpened,
+      registerSubMenu
+    })
+
+    return () =>
+      h(
+        'ul',
+        {
+          class: ['el-menu', props.collapse ? 'el-menu--collapse' : '', 'el-menu--vertical']
+        },
+        slots.default?.()
+      )
   }
 })
 
@@ -561,9 +631,52 @@ const ElMenuItem = defineComponent({
     index: { type: String, default: '' }
   },
   setup(props, { slots }) {
-    return () => h('li', { class: 'el-menu-item', 'data-index': props.index }, slots.default?.())
+    const menu = inject<MenuContext | null>(menuContextKey, null)
+    const router = useRouter()
+    const route = useRoute()
+    const activeKey = computed(() => menu?.activePath() || route.fullPath)
+    const isActive = computed(() => !!props.index && activeKey.value === props.index)
+    const handleClick = () => {
+      if (!props.index) return
+      if (menu?.router) {
+        router.push(props.index)
+      }
+    }
+
+    return () =>
+      h(
+        'li',
+        {
+          class: ['el-menu-item', isActive.value ? 'is-active' : ''],
+          'data-index': props.index
+        },
+        [
+          h(
+            'button',
+            { class: 'el-menu-item__content', type: 'button', onClick: handleClick },
+            [
+              slots.default?.(),
+              slots.title ? h('span', { class: 'el-menu-item__title' }, slots.title()) : null
+            ]
+          )
+        ]
+      )
   }
 })
+
+const findActiveIndex = (nodes: VNode[] | undefined, activePath: string) => {
+  if (!nodes) return false
+  for (const node of nodes) {
+    if (!node) continue
+    const props = (node.props || {}) as Record<string, any>
+    if (props.index && props.index === activePath) return true
+    const children = (node.children || []) as VNode[] | undefined
+    if (Array.isArray(children) && findActiveIndex(children, activePath)) return true
+    const defaultSlot = (node.children as any)?.default?.()
+    if (Array.isArray(defaultSlot) && findActiveIndex(defaultSlot, activePath)) return true
+  }
+  return false
+}
 
 const ElSubMenu = defineComponent({
   name: 'ElSubMenu',
@@ -571,10 +684,46 @@ const ElSubMenu = defineComponent({
     index: { type: String, default: '' }
   },
   setup(props, { slots }) {
+    const menu = inject<MenuContext | null>(menuContextKey, null)
+    const parentKey = inject<string | null>(subMenuParentKey, null)
+    const localOpen = ref(false)
+    const hasActiveChild = computed(() => {
+      const activePath = menu?.activePath() || ''
+      return !!activePath && findActiveIndex(slots.default?.() as VNode[] | undefined, activePath)
+    })
+    const isOpened = computed(() => {
+      if (menu) {
+        if (menu.isOpened(props.index)) return true
+        if (hasActiveChild.value) return true
+        if (props.index && menu.activePath().startsWith(props.index)) return true
+        return false
+      }
+      return localOpen.value || hasActiveChild.value
+    })
+    const handleToggle = () => {
+      if (!props.index) return
+      if (menu) {
+        menu.toggleOpen(props.index)
+      } else {
+        localOpen.value = !localOpen.value
+      }
+    }
+    if (menu) {
+      menu.registerSubMenu(props.index, parentKey)
+    }
+    provide(subMenuParentKey, props.index || parentKey)
+
     return () =>
-      h('li', { class: 'el-sub-menu', 'data-index': props.index }, [
-        h('div', { class: 'el-sub-menu__title' }, slots.title?.()),
-        h('ul', { class: 'el-menu' }, slots.default?.())
+      h('li', { class: ['el-sub-menu', isOpened.value ? 'is-opened' : ''], 'data-index': props.index }, [
+        h('div', { class: 'el-sub-menu__title', onClick: handleToggle }, [
+          slots.title?.(),
+          h('span', { class: 'el-sub-menu__icon-arrow' }, '▾')
+        ]),
+        h(
+          'ul',
+          { class: 'el-menu el-menu--inline', style: { display: isOpened.value ? 'block' : 'none' } },
+          slots.default?.()
+        )
       ])
   }
 })
@@ -732,18 +881,47 @@ const ElDatePicker = defineComponent({
   props: {
     modelValue: { type: [String, Date, Array], default: null },
     type: { type: String, default: 'date' },
-    placeholder: { type: String, default: '' }
+    placeholder: { type: String, default: '' },
+    format: { type: String, default: '' },
+    valueFormat: { type: String, default: '' }
   },
   emits: ['update:modelValue', 'change'],
   setup(props, { emit }) {
-    const selectionMode = props.type === 'daterange' ? 'range' : 'single'
+    const toDate = (value: unknown) => {
+      if (!value) return null
+      if (value instanceof Date) return value
+      const parsed = new Date(String(value))
+      return Number.isNaN(parsed.getTime()) ? null : parsed
+    }
+    const toCalendarValue = (value: unknown) => {
+      if (props.type === 'daterange' || props.type === 'datetimerange') {
+        const range = Array.isArray(value) ? value : [value, null]
+        const now = new Date()
+        const start = toDate(range[0]) || now
+        const end = toDate(range[1]) || now
+        return [start, end]
+      }
+      return toDate(value) || new Date()
+    }
+    const formatValue = (value: Date | Date[] | null) => {
+      if (!props.valueFormat) return value
+      if (!value) return value
+      if (Array.isArray(value)) {
+        return value.map((item) => dayjs(item).format(props.valueFormat))
+      }
+      return dayjs(value).format(props.valueFormat)
+    }
+    const selectionMode =
+      props.type === 'daterange' || props.type === 'datetimerange' ? 'range' : 'single'
     return () =>
-      h(Calendar, {
-        modelValue: props.modelValue,
+      h(DatePicker, {
+        modelValue: toCalendarValue(props.modelValue),
         selectionMode,
         placeholder: props.placeholder,
-        'onUpdate:modelValue': (value: any) => emit('update:modelValue', value),
-        onChange: (event: any) => emit('change', event?.value ?? event)
+        dateFormat: props.format || undefined,
+        showTime: props.type === 'datetimerange',
+        'onUpdate:modelValue': (value: any) => emit('update:modelValue', formatValue(value)),
+        onChange: (event: any) => emit('change', formatValue(event?.value ?? event))
       })
   }
 })
@@ -771,8 +949,48 @@ const ElButtonGroup = defineComponent({
   }
 })
 
+const ElAvatar = defineComponent({
+  name: 'ElAvatar',
+  props: {
+    size: { type: [String, Number], default: undefined },
+    src: { type: String, default: '' },
+    alt: { type: String, default: '' }
+  },
+  setup(props, { slots }) {
+    const normalizedSize =
+      typeof props.size === 'number' ? String(props.size) : props.size || undefined
+    return () =>
+      h(
+        Avatar,
+        {
+          size: normalizedSize,
+          image: props.src || undefined,
+          alt: props.alt || undefined
+        },
+        slots
+      )
+  }
+})
+
 export const setupPrimeVueCompat = (app: App) => {
+  const loadingDirective: Directive = {
+    mounted(el, binding) {
+      const overlay = document.createElement('div')
+      overlay.className = 'el-loading-mask'
+      overlay.innerHTML = '<span class="el-loading-spinner"></span>'
+      overlay.style.display = binding.value ? 'flex' : 'none'
+      el.dataset.elLoading = 'true'
+      el.appendChild(overlay)
+    },
+    updated(el, binding) {
+      const overlay = el.querySelector('.el-loading-mask') as HTMLElement | null
+      if (!overlay) return
+      overlay.style.display = binding.value ? 'flex' : 'none'
+    }
+  }
+
   app.directive('tooltip', Tooltip)
+  app.directive('loading', loadingDirective)
 
   app.component('el-button', ElButton)
   app.component('el-card', ElCard)
@@ -809,8 +1027,8 @@ export const setupPrimeVueCompat = (app: App) => {
   app.component('el-collapse', ElCollapse)
   app.component('el-collapse-item', ElCollapseItem)
   app.component('el-badge', Badge)
-  app.component('el-drawer', Sidebar)
-  app.component('el-avatar', Avatar)
+  app.component('el-drawer', Drawer)
+  app.component('el-avatar', ElAvatar)
   app.component('el-skeleton', Skeleton)
   app.component('el-upload', FileUpload)
   app.component('el-icon', ElIcon)
